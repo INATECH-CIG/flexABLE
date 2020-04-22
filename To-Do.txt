@@ -1,0 +1,9 @@
+To-dos:
+    flexABLE.py :-
+        Loading the scenarios -> Splitting renewables to multiple powerplants instead of one
+
+    - Currently Import and Export will be dealt with as exogenous bids
+        - This could be addressed later by doing an Abstract Merit order model to clear external zones and add all their extra bids
+        
+    EOM:
+        - since the world is being referenced now, snapshot object should not be passed since we can always access it though self.world.snapshots

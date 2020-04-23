@@ -89,7 +89,6 @@ class EOM():
         # Case 3: Covers all other cases       
         # =====================================================================
         if sum_totalSupply == 0 or sum_totalDemand == 0:
-            mcp = 3000.2
             logging.debug('The sum of either demand offers ({}) or supply '
                           'offers ({}) is 0 at t:{}'.format(sum_totalDemand,
                                                             sum_totalSupply,
@@ -134,9 +133,6 @@ class EOM():
             # The inelastic demand is directly confirmed since the sum of supply energy it is enough to supply it
             bidsReceived["Demand"][-1].confirm()
             confirmedBidsSupply = []
-            # Hilfsvariablen
-            idx_demand = 0
-            idx_supply = 0
             confQty_demand = bidsReceived["Demand"][-1].amount
             confQty_supply = 0
             currBidPrice_demand = 3000.00
@@ -256,7 +252,8 @@ class EOM():
 
 
         self.marketResults[t]=result
-
+        self.world.dictPFC[t] = result.marketClearingPrice
+        
     def plotResults(self):
         def two_scales(ax1, time, data1, data2, c1, c2):
 

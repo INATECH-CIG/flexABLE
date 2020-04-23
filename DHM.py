@@ -45,32 +45,11 @@ class DHM():
                     if powerplant.maxExtraction > 0:
                         self.heatingDistricts[powerplant.heatingDistrict].append(powerplant)
 
-        tempMarketResult = {}
-
         for region in self.heatingDistricts.keys():
             for powerplant in self.heatingDistricts[region]:
                 self.bids[region][t].extend(powerplant.requestBid(t, market='DHM')) 
             self.marketClearing(t, region)
             
-            #result, confirmedPP = MarketClearing(df,demand=demand)
-            
-            
-        #     for _ in confirmedPP:
-        #         assetName,BidType = _.split('_')
-        #         self.World.powerplants['object'][assetName].marketSuccess['DHM_'+BidType].append(self.World.tick)
-        #         # # Ermittlung des voraussichtlichen Leistungsverlusts aufgrund der Wärmeauskopplung
-        #         if BidType == 'steam':
-        #             technology = self.World.powerplants['object'][assetName].technology
-        #             if technology in ['lignite', 'hard coal', 'combined cycle gas turbine']:
-        #                 confHeatExt_steam = bidsQty.loc[_]
-        #                 maxPower = self.World.powerplants['object'][assetName].maxPower
-        #                 powerLoss = int(maxPower - ((-0.12 * min((confHeatExt_steam / dt) / maxPower, 1.2) + 1) * maxPower))
-        #                 self.World.powerplants['object'][assetName].powerLossDHM[self.World.tick] = powerLoss
-                        
-        #     tempMarketResult['Price_'+ region] = result['Price']
-        #     tempMarketResult['Marginal Powerplant_'+ region] = result['Marginal Powerplant']
-
-        # self.marketResult = self.marketResult.append(pd.Series(tempMarketResult,name=self.World.tick))
 
     def marketClearing(self,t, region):
         #print(sorted(self.bids[t].values(),key=operator.attrgetter('price')))

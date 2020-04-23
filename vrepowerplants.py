@@ -71,16 +71,17 @@ class VREPowerplant():
             
         self.sentBids.append(bid)
         
-    def requestBid(self, t):
+    def requestBid(self, t, market):
         bids=[]
         bidQuantity_mr, bidPrice_mr = self.calculateBidEOM(t)
-        if bidQuantity_mr != 0:
-            bids.append(Bid(self,
-                            "Bu{}t{}_vre".format(self.name,t),
-                            bidPrice_mr,
-                            bidQuantity_mr,
-                            "Sent",
-                            "Supply"))
+        if market=="EOM":
+            if bidQuantity_mr != 0:
+                bids.append(Bid(self,
+                                "Bu{}t{}_vre".format(self.name,t),
+                                bidPrice_mr,
+                                bidQuantity_mr,
+                                "Sent",
+                                "Supply"))
 
         return bids
     

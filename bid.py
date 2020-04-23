@@ -13,12 +13,13 @@ class Bid(object):
     This does not represent a bid block. Multiple objects of the class bid could be used to define
     a block bid, but 
     """
-    def __init__(self,issuer="Not-Issued", ID="Generic", price=0, amount=0, status=None, bidType=None):
+    def __init__(self,issuer="Not-Issued", ID="Generic", price=0, amount=0, energyPrice=0, status=None, bidType=None):
         self.ID = ID
         self.issuer = issuer
         self.price = price
         self.amount = abs(amount)
         self.confirmedAmount = 0
+        self.energyPrice=energyPrice
         if status == None:
             self.status = "Created"
         else:

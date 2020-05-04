@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Apr  6 16:45:41 2020
+Created on Mon Apr  20 19:24:32 2020
 
 @author: intgridnb-02
 """
@@ -43,10 +43,9 @@ class CRM():
         
     def collectBids(self, agents, t, product):
         if product == 'posCRMCall':
-            self.bids[product][t].extend(self.marketResults['posCRMDemand'][t // 16].confirmedBids)
-            print(self.marketResults['posCRMDemand'][t // 16].confirmedBids)
+            self.bids[product][t].extend(self.marketResults['posCRMDemand'][(t // 16)*16].confirmedBids)
         if product == 'negCRMCall':
-            self.bids[product][t].extend(self.marketResults['negCRMDemand'][t // 16].confirmedBids)
+            self.bids[product][t].extend(self.marketResults['negCRMDemand'][(t // 16)*16].confirmedBids)
         for agent in agents.values():
             self.bids[product][t].extend(agent.requestBid(t,product))
 

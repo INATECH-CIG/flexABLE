@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 """
-Created on Mon Apr  6 16:06:57 2020
+Created on Sun Apr  19 16:06:57 2020
 
 @author: intgridnb-02
 """
@@ -60,6 +60,8 @@ class Powerplant():
             if 'mrEOM' in bid.ID or 'flexEOM' in bid.ID:
                 self.dictCapacity[self.world.currstep] += bid.confirmedAmount
         self.sentBids=[]
+        self.dictCapacity[self.world.currstep] += self.confQtyCRM_pos[self.world.currstep]
+        self.dictCapacity[self.world.currstep] -= self.confQtyCRM_neg[self.world.currstep]
         # Calculates market success
         if self.dictCapacity[self.world.currstep] > 0:
             self.marketSuccess[-1] += 1

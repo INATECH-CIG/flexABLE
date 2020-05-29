@@ -35,9 +35,11 @@ class EOM():
         self.marketResults = {}
         
         self.performance = 0
+        
     def step(self,t,agents):
         self.collectBids(agents, t)
         self.marketClearing(t)
+        
     def collectBids(self, agents, t):
         for agent in agents.values():
             self.bids[t].extend(agent.requestBid(t))
@@ -56,29 +58,30 @@ class EOM():
         partiallyConfirmedBids = []
         for b in self.bids[t]:
             bidsReceived[b.bidType].append(b)
-        bidsReceived["Supply"].append(Bid(self,
-                                          "Bu{}t{}_import".format(self.name,t),
-                                          -500,
-                                          self.CBtrades['Import'][t],
-                                          "Sent",
-                                          "Supply"))
-        bidsReceived["Demand"].append(Bid(self,
-                                          "Bu{}t{}_export".format(self.name,t),
-                                          3000,
-                                          self.CBtrades['Export'][t],
-                                          "Sent",
-                                          "Demand"))
+        bidsReceived["Supply"].append(Bid(issuer = self,
+                                          ID = "Bu{}t{}_import".format(self.name,t),
+                                          price = -500.,
+                                          amount = self.CBtrades['Import'][t],
+                                          status = "Sent",
+                                          bidType = "Supply"))
+        bidsReceived["Demand"].append(Bid(issuer = self,
+                                          ID = "Bu{}t{}_export".format(self.name,t),
+                                          price = 2999.,
+                                          amount = self.CBtrades['Export'][t],
+                                          status = "Sent",
+                                          bidType = "Demand"))
+        
         bidsReceived["Supply"].sort(key=operator.attrgetter('price'),
                                     reverse=True)
         
-        bidsReceived["Demand"].append(Bid(self, "IEDt{}".format(t),
-                                      -3000,
-                                      -self.demand[t],
-                                      "Sent",
-                                      "InelasticDemand"))
+        bidsReceived["Demand"].append(Bid(issuer = self,
+                                          ID = "IEDt{}".format(t),
+                                          price = 3000.,
+                                          amount = self.demand[t],
+                                          status = "Sent",
+                                          bidType = "InelasticDemand"))
         
-        bidsReceived["Demand"].sort(key=operator.attrgetter('price'),
-                                    reverse=True)
+        bidsReceived["Demand"].sort(key=operator.attrgetter('price'))
         
         sum_totalSupply = sum(bidsReceived["Supply"])
         sum_totalDemand = sum(bidsReceived["Demand"])
@@ -129,11 +132,17 @@ class EOM():
                                    timestamp=t)
 
         else:
-            confirmedBidsDemand = [bidsReceived["Demand"][-1]]
+            confirmedBidsDemand = []
+            confirmedBidsDemand.append(bidsReceived["Demand"].pop())
+            confQty_demand = confirmedBidsDemand[-1].amount
+            confirmedBidsDemand[-1].confirm()
+            
+            #confirmedBidsDemand = [bidsReceived["Demand"][-1]]
             # The inelastic demand is directly confirmed since the sum of supply energy it is enough to supply it
-            bidsReceived["Demand"][-1].confirm()
+            #bidsReceived["Demand"][-1].confirm()
+            #confQty_demand = bidsReceived["Demand"][-1].amount
+            
             confirmedBidsSupply = []
-            confQty_demand = bidsReceived["Demand"][-1].amount
             confQty_supply = 0
             currBidPrice_demand = 3000.00
             currBidPrice_supply = -3000.00
@@ -141,15 +150,15 @@ class EOM():
             while True:
                 # =============================================================================
                 # Cases to accept bids
-                # Case 1: Demand is larger than confirmed supply, and the current demand price is
+                # Case 3.1: Demand is larger than confirmed supply, and the current demand price is
                 #         higher than the current supply price, which signals willingness to buy
-                # Case 2: Confirmed demand is less or equal to confirmed supply but the current 
+                # Case 3.2: Confirmed demand is less or equal to confirmed supply but the current 
                 #         demand price is higher than current supply price, which means there is till 
                 #         willingness to buy and energy supply is still available, so an extra demand
                 #         offer is accepted
-                # Case 3: The intersection of the demand-supply curve has been exceeded (Confirmed Supply 
+                # Case 3.3: The intersection of the demand-supply curve has been exceeded (Confirmed Supply 
                 #         price is higher than demand)
-                # Case 4: The intersection of the demand-supply curve found, and the price of bother offers
+                # Case 3.4: The intersection of the demand-supply curve found, and the price of bother offers
                 #         is equal
                 # =============================================================================
                 # Case 1
@@ -166,6 +175,7 @@ class EOM():
     
                     except IndexError:
                         confirmedBidsDemand[-1].partialConfirm(confirmedBidsDemand[-1].amount-(confQty_demand - confQty_supply))
+                        case = 'Case3.1'
                         break
                 # =============================================================================
                 # Case 2
@@ -178,7 +188,8 @@ class EOM():
                         confirmedBidsDemand[-1].confirm()
                         
                     except IndexError:
-                        confirmedBidsSupply[-1].partialConfirm(confirmedBidsSupply[-1].amount-(confQty_demand - confQty_supply))
+                        confirmedBidsSupply[-1].partialConfirm(confirmedBidsSupply[-1].amount-(confQty_supply - confQty_demand))
+                        case = 'Case3.2'
                         break
     
                 # =============================================================================
@@ -193,6 +204,7 @@ class EOM():
                         confirmedBidsSupply[-1].partialConfirm(confirmedBidsSupply[-1].amount - (confQty_supply - confQty_demand))
                         bidsReceived["Demand"].append(confirmedBidsDemand.pop())
                         bidsReceived["Demand"][-1].reject()
+                        case = 'Case3.3'
                         break
     
                     # Checks whether the confirmed supply is greater than confirmed demand
@@ -203,10 +215,12 @@ class EOM():
                         confirmedBidsDemand[-1].partialConfirm(confirmedBidsDemand[-1].amount - (confQty_demand - confQty_supply))
                         bidsReceived["Supply"].append(confirmedBidsSupply.pop())
                         bidsReceived["Supply"][-1].reject()
+                        case = 'Case3.3'
                         break
     
                     # The confirmed supply matches confirmed demand
                     else:
+                        case = 'Case3.3'
                         break
     
                 # =============================================================================
@@ -217,20 +231,24 @@ class EOM():
                     # Kontrahiertes Angebot ist größer als kontrahierte Nachfrage
                     if confQty_supply > confQty_demand:
                         confirmedBidsSupply[-1].partialConfirm(confirmedBidsSupply[-1].amount - (confQty_supply - confQty_demand))
+                        case = 'Case3.4'
                         break
     
                     # Kontrahierte Nachfrage ist größer als kontrahiertes Angebot
                     elif confQty_demand > confQty_supply:
                         confirmedBidsDemand[-1].partialConfirm(confirmedBidsDemand[-1].amount - (confQty_demand - confQty_supply))
                         confirmedBidsDemand[-1][1] -= (confQty_demand - confQty_supply)
+                        case = 'Case3.4'
                         break
     
                     # Kontrahiertes Angebot und kontrahierte Nachfrage sind gleich groß
                     else:
+                        case = 'Case3.4'
                         break
     
                 # Preis und Menge der kontrahierten Angebote und Nachfrage bereits identisch
                 else:
+                    case = 'Case3.4'
                     break
             
             
@@ -239,16 +257,16 @@ class EOM():
             rejectedBids = list(set(bidsReceived["Supply"]+bidsReceived["Demand"])-set(confirmedBids))
 
             result = MarketResults("{}".format(self.name),
-                       issuer=self.name,
-                       confirmedBids=confirmedBids,
-                       rejectedBids=rejectedBids,
-                       partiallyConfirmedBids=partiallyConfirmedBids,
-                       marketClearingPrice=sorted(confirmedBids,key=operator.attrgetter('price'))[-1].price,
-                       marginalUnit=sorted(confirmedBids,key=operator.attrgetter('price'))[-1].ID,
-                       status="Case3",
-                       energyDeficit=0,
-                       energySurplus=0,
-                       timestamp=t)
+                       issuer = self.name,
+                       confirmedBids = confirmedBids,
+                       rejectedBids = rejectedBids,
+                       partiallyConfirmedBids = partiallyConfirmedBids,
+                       marketClearingPrice = sorted(confirmedBidsSupply,key=operator.attrgetter('price'))[-1].price,
+                       marginalUnit = sorted(confirmedBidsSupply,key=operator.attrgetter('price'))[-1].ID,
+                       status = case,
+                       energyDeficit = 0,
+                       energySurplus = 0,
+                       timestamp = t)
 
 
         self.marketResults[t]=result

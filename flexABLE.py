@@ -18,6 +18,7 @@ class World():
     """
     def __init__(self, snapshots, fuelPrices={}):
         self.powerplants=[]
+        self.storages = []
         self.agents = {}
         self.markets = {"EOM":{},
                         "CRM":{}}
@@ -54,6 +55,8 @@ class World():
                 market.step(self.snapshots[self.currstep],self.agents)
             for powerplant in self.powerplants:
                 powerplant.step()
+            for storage in self.storages:
+                storage.step()
             self.currstep +=1
         else:
             logger.info("Reached simulation end")
@@ -90,6 +93,18 @@ class World():
             self.addAgent(_)
         for powerplant, data in powerplantsList.iterrows():
             self.agents[data['company']].addPowerplant(powerplant,**dict(data))
+            
+        storageList = pd.read_csv('input/{}/STO_DE.csv'.format(scenario),
+                              index_col=0,
+                              encoding="Latin-1")
+
+        for _ in storageList.company.unique():
+            if _ not in self.agents:
+                self.addAgent(_)
+                
+        for storage, data in storageList.iterrows():
+            self.agents[data['company']].addStorage(storage,**dict(data))
+
         
         vrepowerplantFeedIn =pd.read_csv('input/{}/FES_DE.csv'.format(scenario),
                                          index_col=0,
@@ -141,7 +156,7 @@ class World():
         
 if __name__=="__main__":
     logger.info("Script started")
-    snapLength = 96*365
+    snapLength = 96*1
     example = World(snapLength)
     example.loadScenario(scenario='2016')
     pfc = pd.read_csv("input/2016/PFC_run1.csv", nrows = snapLength, index_col=0)
@@ -150,3 +165,9 @@ if __name__=="__main__":
     example.runSimulation()
     
     example.markets["EOM"]['EOM_DE'].plotResults()
+    # example.markets["CRM"]['CRM_DE'].plotResults()
+
+    example.storages[0].plotResults()
+    # example.powerplants[0].plotResults()
+    
+    

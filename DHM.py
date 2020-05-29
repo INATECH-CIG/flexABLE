@@ -69,11 +69,12 @@ class DHM():
         bidsReceived["Supply"].sort(key=operator.attrgetter('price'),
                                     reverse=True)
         
-        bidsReceived["Demand"].append(Bid(self, "IEDt{}".format(t),
-                                      -3000,
-                                      self.HLP_DH[region].at[t],
-                                      "Sent",
-                                      "InelasticDemand"))
+        bidsReceived["Demand"].append(Bid(issuer = self, 
+                                          ID = "IEDt{}".format(t),
+                                          price = -3000,
+                                          amount = self.HLP_DH[region].at[t],
+                                          status = "Sent",
+                                          bidType = "InelasticDemand"))
         
         bidsReceived["Demand"].sort(key=operator.attrgetter('price'),
                                     reverse=True)

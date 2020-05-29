@@ -7,6 +7,7 @@ Created on Sun Apr  19 16:06:57 2020
 from auxFunc import initializer
 from bid import Bid
 from statistics import mean
+import matplotlib.pyplot as plt
 
 class Powerplant():
     
@@ -112,20 +113,20 @@ class Powerplant():
         if market=="EOM":
             bidQuantity_mr, bidPrice_mr, bidQuantity_flex, bidPrice_flex = self.calculateBidEOM(t)
             if bidQuantity_mr != 0:
-                bids.append(Bid(self,
-                                "Bu{}t{}_mrEOM".format(self.name,t),
-                                bidPrice_mr,
-                                bidQuantity_mr,
-                                "Sent",
-                                "Supply"))
+                bids.append(Bid(issuer = self,
+                                ID = "Bu{}t{}_mrEOM".format(self.name,t),
+                                price = bidPrice_mr,
+                                amount = bidQuantity_mr,
+                                status = "Sent",
+                                bidType = "Supply"))
                 
             if bidQuantity_flex !=0:
-                bids.append(Bid(self,
-                                "Bu{}t{}_flexEOM".format(self.name,t),
-                                bidPrice_flex,
-                                bidQuantity_flex,
-                                "Sent",
-                                "Supply"))
+                bids.append(Bid(issuer = self,
+                                ID = "Bu{}t{}_flexEOM".format(self.name,t),
+                                price = bidPrice_flex,
+                                amount = bidQuantity_flex,
+                                status = "Sent",
+                                bidType = "Supply"))
         elif market=="DHM": 
             bids.extend(self.calculateBidDHM(t))
 
@@ -136,6 +137,7 @@ class Powerplant():
             bids.extend(self.calculatingBidsFPP_CRM_neg(t))
             
         return bids
+    
     def marginalCostsFPP(self, t, efficiencyDependence, passedCapacity):
         """
         Parameters
@@ -330,31 +332,31 @@ class Powerplant():
             heatPrice_auxFiring = round(self.world.fuelPrices['natural gas'][t] / 0.9, 2)
 
             # Eintragen der Wärmemarktgebote
-            bidsDHM.append(Bid(self,
-                               "Bu{}t{}_steam".format(self.name,t),
-                               heatPrice_process,
-                               heatExtraction_process,
-                               "Sent",
-                               "Supply"))
-            bidsDHM.append(Bid(self,
-                               "Bu{}t{}_auxFi".format(self.name,t),
-                               heatPrice_auxFiring,
-                               heatExtraction_auxFiring,
-                               "Sent",
-                               "Supply"))
+            bidsDHM.append(Bid(issuer = self,
+                               ID = "Bu{}t{}_steam".format(self.name,t),
+                               price = heatPrice_process,
+                               amount = heatExtraction_process,
+                               status = "Sent",
+                               bidType = "Supply"))
+            bidsDHM.append(Bid(issuer = self,
+                               ID = "Bu{}t{}_auxFi".format(self.name,t),
+                               price = heatPrice_auxFiring,
+                               amount = heatExtraction_auxFiring,
+                               status = "Sent",
+                               bidType = "Supply"))
         else:
-            bidsDHM.append(Bid(self,
-                               "Bu{}t{}_steam".format(self.name,t),
-                               0,
-                               0,
-                               "Sent",
-                               "Supply"))
-            bidsDHM.append(Bid(issuer=self,
-                               ID="Bu{}t{}_auxFi".format(self.name,t),
-                               price=0,
-                               amount=0,
-                               status="Sent",
-                               bidType="Supply"))
+            bidsDHM.append(Bid(issuer = self,
+                               ID = "Bu{}t{}_steam".format(self.name,t),
+                               price = 0,
+                               amount = 0,
+                               status = "Sent",
+                               bidType = "Supply"))
+            bidsDHM.append(Bid(issuer = self,
+                               ID = "Bu{}t{}_auxFi".format(self.name,t),
+                               price = 0,
+                               amount = 0,
+                               status = "Sent",
+                               bidType = "Supply"))
     
         return bidsDHM
 
@@ -386,21 +388,21 @@ class Powerplant():
 
             # Gebot eintragen
             bidsCRM.append(Bid(issuer=self,
-                               ID="Bu{}t{}_CRMPosDem".format(self.name,t),
-                               price=capacityPrice,
-                               amount=bidQuantityBPM_pos,
+                               ID = "Bu{}t{}_CRMPosDem".format(self.name,t),
+                               price = capacityPrice,
+                               amount = bidQuantityBPM_pos,
                                energyPrice = energyPrice,
-                               status="Sent",
-                               bidType="Supply"))
+                               status = "Sent",
+                               bidType = "Supply"))
 
         else:
             bidsCRM.append(Bid(issuer=self,
-                               ID="Bu{}t{}_CRMPosDem".format(self.name,t),
-                               price=0,
-                               amount=0,
+                               ID = "Bu{}t{}_CRMPosDem".format(self.name,t),
+                               price = 0,
+                               amount = 0,
                                energyPrice = 0,
-                               status="Sent",
-                               bidType="Supply"))
+                               status = "Sent",
+                               bidType = "Supply"))
     
         return bidsCRM
 
@@ -430,20 +432,20 @@ class Powerplant():
 
             # Gebot eintragen
             bidsCRM.append(Bid(issuer=self,
-                               ID="Bu{}t{}_CRMNegDem".format(self.name,t),
-                               price=capacityPrice,
-                               amount=bidQtyCRM_neg,
+                               ID = "Bu{}t{}_CRMNegDem".format(self.name,t),
+                               price = capacityPrice,
+                               amount = bidQtyCRM_neg,
                                energyPrice = energyPrice,
-                               status="Sent",
-                               bidType="Supply"))
+                               status = "Sent",
+                               bidType = "Supply"))
         else:
             bidsCRM.append(Bid(issuer=self,
-                               ID="Bu{}t{}_CRMNegDem".format(self.name,t),
-                               price=0,
-                               amount=0,
+                               ID = "Bu{}t{}_CRMNegDem".format(self.name,t),
+                               price = 0,
+                               amount = 0,
                                energyPrice = 0,
-                               status="Sent",
-                               bidType="Supply"))
+                               status = "Sent",
+                               bidType = "Supply"))
 
         return bidsCRM
 
@@ -478,3 +480,10 @@ class Powerplant():
                 listPFC.append([int(tick), float(round(self.world.dictPFC[tick], 2))])
     
         return listPFC
+    
+    def plotResults(self):
+        plt.figure()
+        plt.plot(range(len(self.world.snapshots)+1), list(self.dictCapacity.values()))
+        plt.ylabel('Power [MW]')
+        plt.title(self.name)
+        plt.show()

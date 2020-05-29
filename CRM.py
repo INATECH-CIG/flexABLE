@@ -74,11 +74,11 @@ class CRM():
         bidsReceived["Supply"].sort(key=operator.attrgetter(sortingAttribute),
                                     reverse=True)
         
-        bidsReceived["Demand"].append(Bid(issuer=self,
-                                          ID="IEDt{}".format(t),
-                                          price=-3000,
-                                          amount=-self.demand[product][t],
-                                          status="Sent",
+        bidsReceived["Demand"].append(Bid(issuer = self,
+                                          ID = "IEDt{}".format(t),
+                                          price = -3000,
+                                          amount = -self.demand[product][t],
+                                          status = "Sent",
                                           bidType="InelasticDemand"))
         
         bidsReceived["Demand"].sort(key=operator.attrgetter(sortingAttribute),

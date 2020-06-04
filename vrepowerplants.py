@@ -8,6 +8,7 @@ from auxFunc import initializer
 from bid import Bid
 import random
 import pandas
+
 class VREPowerplant():
     
     @initializer
@@ -76,12 +77,12 @@ class VREPowerplant():
         bidQuantity_mr, bidPrice_mr = self.calculateBidEOM(t)
         if market=="EOM":
             if bidQuantity_mr != 0:
-                bids.append(Bid(self,
-                                "Bu{}t{}_vre".format(self.name,t),
-                                bidPrice_mr,
-                                bidQuantity_mr,
-                                "Sent",
-                                "Supply"))
+                bids.append(Bid(issuer = self,
+                                ID = "Bu{}t{}_vre".format(self.name,t),
+                                price = bidPrice_mr,
+                                amount = bidQuantity_mr,
+                                status = "Sent",
+                                bidType = "Supply"))
 
         return bids
     

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Apr  19 15:59:22 2020
-
 @author: intgridnb-02
 """
 from loggingGUI import logger, loggerGUI
@@ -44,9 +43,22 @@ class Bid(object):
         self.confirmedAmount = self.amount
         
     def partialConfirm(self, confirmedAmount=0):
+        """
+        
+
+        Parameters
+        ----------
+        confirmedAmount : TYPE, optional
+            DESCRIPTION. The default is 0.
+
+        Returns
+        -------
+        None.
+
+        """
         self.status = "PartiallyConfirmed"
         if confirmedAmount > self.amount:
-            logging.warning("For bid {}, the confirmed amount is greater than offered amount."
+            logger.warning("For bid {}, the confirmed amount is greater than offered amount."
                             " Confirmed amount reduced to offered amount."
                             " This could eventually cause imbalance problem.".format(self.ID))
             self.confirmedAmount = self.amount

@@ -32,12 +32,12 @@ class Powerplant():
                 heatingDistrict='BW',
                 company='UNIPER',
                 year=1988,
-                Node='Bus_DE',
+                node='Bus_DE',
                 world=None):
 
         # bids status parameters
         self.dictCapacity = {n:0 for n in self.world.snapshots}
-        self.dictCapacity[-1] = self.minPower
+        self.dictCapacity[-1] = self.maxPower/2
         self.confQtyCRM_neg = {n:0 for n in self.world.snapshots}
         self.confQtyCRM_pos = {n:0 for n in self.world.snapshots}
         self.confQtyDHM_steam = {n:0 for n in self.world.snapshots}
@@ -63,6 +63,11 @@ class Powerplant():
         self.sentBids=[]
         self.dictCapacity[self.world.currstep] += self.confQtyCRM_pos[self.world.currstep]
         self.dictCapacity[self.world.currstep] -= self.confQtyCRM_neg[self.world.currstep]
+        
+        if self.dictCapacity[self.world.currstep] < 0:
+            self.dictCapacity[self.world.currstep] = 0
+            self.performance -=2
+
         # Calculates market success
         if self.dictCapacity[self.world.currstep] > 0:
             self.marketSuccess[-1] += 1
@@ -80,6 +85,7 @@ class Powerplant():
             self.averageDownTime.append(self.currentDowntime)
             self.currentDowntime = 0
             self.currentStatus = 1
+
 
 
     def feedback(self, bid):
@@ -446,7 +452,7 @@ class Powerplant():
                                energyPrice = 0,
                                status = "Sent",
                                bidType = "Supply"))
-
+        #bidsCRM = []
         return bidsCRM
 
 
@@ -483,7 +489,10 @@ class Powerplant():
     
     def plotResults(self):
         plt.figure()
-        plt.plot(range(len(self.world.snapshots)+1), list(self.dictCapacity.values()))
+        plt.step(range(len(self.world.snapshots)), list(self.dictCapacity.values())[1:], label='Total Capacity')
+        plt.step(range(len(self.world.snapshots)), [-_ for _ in list(self.confQtyCRM_neg.values())], label='Negative CRM')
+        plt.step(range(len(self.world.snapshots)), list(self.confQtyCRM_pos.values()), label='Positive CRM')
         plt.ylabel('Power [MW]')
         plt.title(self.name)
+        plt.legend()
         plt.show()

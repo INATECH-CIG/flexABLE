@@ -304,6 +304,7 @@ class EOM():
         
         color_y_axis(ax1, 'r')
         color_y_axis(ax2, 'b')
+        plt.title(self.world.simulationID)
         plt.show()
             
         # plt.xticks(range(len(self.marketResults)), list(self.marketResults.keys()))

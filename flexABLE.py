@@ -178,7 +178,7 @@ if __name__=="__main__":
     logger.info("Script started")
     snapLength = 96*1
     example = World(snapLength)
-    example.loadScenario(scenario='SingleUnit', importStorages=True, importCRM=True)
+    example.loadScenario(scenario='2016', importStorages=True, importCRM=True)
     pfc = pd.read_csv("input/2016/PFC_run1.csv", nrows = snapLength, index_col=0)
     example.dictPFC = dict(pfc['price'])
 

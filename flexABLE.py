@@ -8,12 +8,11 @@ Created on Sun Apr  19 15:56:51 2020
 import agent
 import EOM
 import DHM
-import CRM
-from NetworkOperator import NetworkOperator
-
 from loggingGUI import logger
 import pandas as pd
 from tqdm import tqdm
+import CRM
+from NetworkOperator import NetworkOperator
 import seaborn as sns
 sns.set_style('ticks')
 class World():
@@ -40,7 +39,7 @@ class World():
         self.minBidDHM =1
         self.minBidReDIS =1
         self.dt = 0.25 # Although we are always dealing with power, dt is needed to calculate the revenue and for the energy market
-        self.dictPFC = [0]*snapshots
+        self.dictPFC = {n:0 for n in self.snapshots}
 
         self.network = None
         
@@ -177,19 +176,17 @@ class World():
         
 if __name__=="__main__":
     logger.info("Script started")
-    snapLength = 96*7
+    snapLength = 96*1
     example = World(snapLength)
-    
-    pfc = pd.read_csv("input/2016/PFC_run1.csv", nrows = snapLength, index_col=0)
-    example.dictPFC = list(pfc['price'])
-    
     example.loadScenario(scenario='2016', importStorages=True, importCRM=True)
+    pfc = pd.read_csv("input/2016/PFC_run1.csv", nrows = snapLength, index_col=0)
+    example.dictPFC = dict(pfc['price'])
 
     example.runSimulation()
     
     example.markets["EOM"]['EOM_DE'].plotResults()
 
-    example.storages[0].plotResults()
+    #example.storages[0].plotResults()
     example.powerplants[0].plotResults()
     # example.powerplants[1].plotResults()
     

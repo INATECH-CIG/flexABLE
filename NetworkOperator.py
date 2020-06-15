@@ -29,3 +29,4 @@ class NetworkOperator():
         return 0
         for powerplant in self.world.powerplants:
             powerplant.currentStatus = 0
+        

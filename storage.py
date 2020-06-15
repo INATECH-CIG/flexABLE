@@ -7,6 +7,7 @@ Created on Sun Apr  19 16:06:57 2020
 from auxFunc import initializer
 from bid import Bid
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class Storage():
@@ -34,7 +35,7 @@ class Storage():
         self.confQtyCRM_neg = {n:0 for n in self.world.snapshots}
         self.confQtyCRM_pos = {n:0 for n in self.world.snapshots}
         self.dictEnergyCost = {n:0 for n in self.world.snapshots}
-        self.dictEnergyCost[0] = self.world.dictPFC[0] * self.dictSOC[0]
+        self.dictEnergyCost[0] = -self.world.dictPFC[0] * self.dictSOC[0]
 
         
         # performance parameter for ML
@@ -43,8 +44,12 @@ class Storage():
         # Unit status parameters
         self.marketSuccess = [0]
         self.currentCapacity = 0
-        self.Bids = {n:0 for n in self.world.snapshots}
+        self.Bids = {"EOM":{t:0 for t in self.world.snapshots},
+                     "posCRMDemand":{t:0 for t in self.world.snapshots},
+                     "negCRMDemand":{t:0 for t in self.world.snapshots}}
         self.sentBids = []
+        self.foresight = int(6/self.world.dt)
+
     
         
     def step(self):
@@ -62,23 +67,21 @@ class Storage():
         self.sentBids=[]
         self.dictCapacity[self.world.currstep] += self.confQtyCRM_pos[self.world.currstep]
         self.dictCapacity[self.world.currstep] -= self.confQtyCRM_neg[self.world.currstep]
-        
-        #check it again for crm prices
-        self.dictEnergyCost[self.world.currstep] = -min(self.dictCapacity[self.world.currstep], 0) * self.world.dictPFC[self.world.currstep] * self.world.dt    
-        
+                
         if self.world.currstep < len(self.world.snapshots) - 1:
             if self.dictCapacity[self.world.currstep] >= 0:
                 self.dictSOC[self.world.currstep + 1] = self.dictSOC[self.world.currstep] - (self.dictCapacity[self.world.currstep] / self.efficiency_discharge * self.world.dt)
+                self.dictEnergyCost[self.world.currstep + 1] = self.dictEnergyCost[self.world.currstep] + self.dictCapacity[self.world.currstep] * self.world.dictPFC[self.world.currstep] * self.world.dt    
             else:
                 self.dictSOC[self.world.currstep + 1] = self.dictSOC[self.world.currstep] - (self.dictCapacity[self.world.currstep] * self.efficiency_charge * self.world.dt)
+                self.dictEnergyCost[self.world.currstep + 1] = self.dictEnergyCost[self.world.currstep] - self.dictCapacity[self.world.currstep] * self.world.dictPFC[self.world.currstep] * self.world.dt    
+
+            self.dictSOC[self.world.currstep + 1] = max(self.dictSOC[self.world.currstep + 1], 0)
         else:
             if self.dictCapacity[self.world.currstep] >= 0:
                 self.dictSOC[0] -= self.dictCapacity[self.world.currstep] / self.efficiency_discharge * self.world.dt
             else:
                 self.dictSOC[0] += -self.dictCapacity[self.world.currstep] * self.efficiency_charge * self.world.dt
-        
-        if self.dictSOC[self.world.currstep] < 0:
-            print('STOP!!!')
         
         # Calculates market success
         if self.dictCapacity[self.world.currstep] > 0:
@@ -112,92 +115,111 @@ class Storage():
         
         if market == "EOM":
             bids.extend(self.calculateBidEOM(t))
+            self.Bids[market][t] = bids
             
         elif market == "posCRMDemand": 
             bids.extend(self.calculatingBidsSTO_CRM_pos(t))
+            self.Bids[market][t] = bids
 
         elif market == "negCRMDemand":
             bids.extend(self.calculatingBidsSTO_CRM_neg(t))
+            self.Bids[market][t] = bids
             
-        self.Bids[t] = bids
+        # self.Bids[market][t] = bids
         return bids
       
 
-    def marginalCostsFPP(self, t):
-   
-        
-        marginalCosts = sum(self.dictEnergyCost.values()) + self.variableCosts_discharge
-    
-        
-        return marginalCosts
 
 
-
-    def calculateBidEOM(self, t):
+    def calculateBidEOM(self, t, passedSOC = None):
         '''
         This is currently hard coded, but should be removed into input files
         '''
+        
+        SOC = self.dictSOC[t] if passedSOC == None else passedSOC
         bidsEOM = []
         
-        bidQuantity_supply, bidPrice_supply, bidQuantity_demand, bidPrice_demand = 0,0,0,0
         
-        
-        bidQuantity_supply = min(max((self.dictSOC[t] - self.minSOC - self.confQtyCRM_pos[t] * self.world.dt) 
-                                     * self.efficiency_discharge / self.world.dt,
-                                     0), self.maxPower_discharge)
-        
-        if bidQuantity_supply >= self.world.minBidEOM:
-            bidPrice_supply = -499.
-        else:
-            bidQuantity_supply = 0.0
-            bidPrice_supply = 0.0
-        
-        if bidQuantity_supply != 0:
-            bidsEOM.append(Bid(issuer = self,
-                               ID = "Bu{}t{}_supplyEOM".format(self.name,t),
-                               price = bidPrice_supply,
-                               amount = bidQuantity_supply,
-                               status = "Sent",
-                               bidType = "Supply"))
-        
-        bidQuantity_demand = min(max((self.maxSOC - self.dictSOC[t] - 
-                                     self.confQtyCRM_neg[t] * self.world.dt) / self.efficiency_charge / self.world.dt, 0),
-                                 self.maxPower_charge)
-        
-        if bidQuantity_demand >= self.world.minBidEOM:
-            bidPrice_demand = 2000.
-        else:
-            bidQuantity_demand = 0.0
-            bidPrice_demand = 0.0
+        if t >= len(self.world.snapshots):
+            t -= len(self.world.snapshots)
             
+        if t-self.foresight < 0:
+            averagePrice = np.mean(self.world.dictPFC[t-self.foresight:] + self.world.dictPFC[0:t+self.foresight])
+        elif t+self.foresight > len(self.world.snapshots):
+            averagePrice = np.mean(self.world.dictPFC[t-self.foresight:] + self.world.dictPFC[:t+self.foresight-len(self.world.snapshots)])
+        else:
+            averagePrice = np.mean(self.world.dictPFC[t-self.foresight:t+self.foresight])
+            
+            
+        if self.world.dictPFC[t] >= 1.1 * averagePrice:
+            bidQuantity_supply = min(max((SOC - self.minSOC - self.confQtyCRM_pos[t] * self.world.dt)
+                                         * self.efficiency_discharge / self.world.dt,
+                                         0), self.maxPower_discharge)
+            
+            bidPrice_supply = averagePrice
+            
+            if bidQuantity_supply >= self.world.minBidEOM:
+                bidsEOM.append(Bid(issuer = self,
+                                   ID = "Bu{}t{}_supplyEOM".format(self.name,t),
+                                   price = bidPrice_supply,
+                                   amount = bidQuantity_supply,
+                                   status = "Sent",
+                                   bidType = "Supply"))
+            
+        elif self.world.dictPFC[t] <= 0.9 * averagePrice:
 
-                
-        if bidQuantity_demand !=0:
-            bidsEOM.append(Bid(issuer = self,
-                               ID = "Bu{}t{}_demandEOM".format(self.name,t),
-                               price = bidPrice_demand,
-                               amount = bidQuantity_demand,
-                               status = "Sent",
-                               bidType = "Demand"))
+            bidQuantity_demand = min(max((self.maxSOC - SOC - 
+                                         self.confQtyCRM_neg[t] * self.world.dt) / self.efficiency_charge / self.world.dt, 0),
+                                     self.maxPower_charge)
+            
+            bidPrice_demand = averagePrice 
+            
+            if bidQuantity_demand >= self.world.minBidEOM:
+                bidsEOM.append(Bid(issuer = self,
+                                   ID = "Bu{}t{}_demandEOM".format(self.name,t),
+                                   price = bidPrice_demand,
+                                   amount = bidQuantity_demand,
+                                   status = "Sent",
+                                   bidType = "Demand"))
 
         return bidsEOM
 
 
+    def calculatingBidPricesSTO_CRM(self, t):
+        fl = int(4 / self.world.dt)
+        theoreticalSOC = self.dictSOC[t]
+        theoreticalRevenue = []
+        
+        for tick in range(t, t + fl):
+            BidSTO_EOM = self.calculateBidEOM(tick, theoreticalSOC)
+            if len(BidSTO_EOM) != 0:
+                BidSTO_EOM = BidSTO_EOM[0]
+                if BidSTO_EOM.bidType == 'Supply':
+                    theoreticalSOC -= BidSTO_EOM.amount / self.efficiency_discharge * self.world.dt
+                    theoreticalRevenue.append(self.world.dictPFC[t] * BidSTO_EOM.amount * self.world.dt)
+                elif BidSTO_EOM.bidType == 'Demand':
+                    theoreticalSOC += BidSTO_EOM.amount * self.efficiency_charge * self.world.dt
+                    theoreticalRevenue.append(- self.world.dictPFC[t] * BidSTO_EOM.amount * self.world.dt)
+            else:
+                continue
+        
+        capacityPrice = abs(sum(theoreticalRevenue))
+        energyPrice = -self.dictEnergyCost[self.world.currstep] / self.dictSOC[t]
+        return capacityPrice, energyPrice
 
+
+    
     def calculatingBidsSTO_CRM_pos(self, t):
         bidsCRM = []
-    
+        
         availablePower_BP_pos = min(max((self.dictSOC[t] - self.minSOC) * self.efficiency_discharge / self.world.dt, 0),
                                     self.maxPower_discharge)
         
-        specificRevenueEOM_dtau = self.specificRevenueEOM(t, 16, self.marginalCostsFPP(t), 'all')
-
-        if availablePower_BP_pos >= self.world.minBidCRM and specificRevenueEOM_dtau >= 0:
+        if availablePower_BP_pos >= self.world.minBidCRM:
             
             bidQuantityBPM_pos = availablePower_BP_pos
-            capacityPrice = specificRevenueEOM_dtau * bidQuantityBPM_pos
-            energyPrice = self.marginalCostsFPP(t)
-
+            capacityPrice, energyPrice = self.calculatingBidPricesSTO_CRM(t)
+            
             bidsCRM.append(Bid(issuer = self,
                                ID = "Bu{}t{}_CRMPosDem".format(self.name,t),
                                price = capacityPrice,
@@ -215,29 +237,27 @@ class Storage():
                                status = "Sent",
                                bidType = "Supply"))
             
-    
+
         return bidsCRM
     
 
     def calculatingBidsSTO_CRM_neg(self, t):
         bidsCRM = []
         
-        availablePower_BP_neg = min(max((self.maxSOC - self.dictSOC[t]) / self.efficiency_charge / self.world.dt, 0),
+        availablePower_BP_neg = min(max((self.maxSOC - abs(self.dictSOC[t])) / self.efficiency_charge / self.world.dt, 0),
                                     self.maxPower_charge)
         
-        specificRevenueEOM_dtau = self.specificRevenueEOM(t, 16, self.marginalCostsFPP(t), 'all')
-
         if availablePower_BP_neg >= self.world.minBidCRM:
             
             bidQtyCRM_neg = availablePower_BP_neg
-            capacityPrice = abs(specificRevenueEOM_dtau * bidQtyCRM_neg)
-            energyPrice = - self.marginalCostsFPP(t)
+            #self.calculatingBidPricesSTO_CRM(t)
+
 
             bidsCRM.append(Bid(issuer = self,
                                ID = "Bu{}t{}_CRMNegDem".format(self.name,t),
-                               price = capacityPrice,
+                               price = 0,
                                amount = bidQtyCRM_neg,
-                               energyPrice = energyPrice,
+                               energyPrice = 0,
                                status = "Sent",
                                bidType = "Supply"))
 
@@ -250,24 +270,9 @@ class Storage():
                                status = "Sent",
                                bidType = "Supply"))
             
-    
+        
         return bidsCRM
 
-
-    def specificRevenueEOM(self,t, foresight, marginalCosts, horizon):
-        listPFC = self.getPart_PFC(t, foresight)
-    
-        if horizon == 'positive':
-            specificRevenue_sum = round(sum([(marketPrice - marginalCosts) * self.world.dt for position, [tick, marketPrice]
-                                             in enumerate(listPFC) if marginalCosts < marketPrice]), 2)
-        elif horizon == 'negative':
-            specificRevenue_sum = round(sum([(marketPrice - marginalCosts) * self.world.dt for position, [tick, marketPrice]
-                                             in enumerate(listPFC) if marginalCosts > marketPrice]), 2)
-        else:
-            specificRevenue_sum = round(sum([(marketPrice - marginalCosts) * self.world.dt for position, [tick, marketPrice]
-                                             in enumerate(listPFC)]), 2)
-    
-        return specificRevenue_sum
     
     
     def getPart_PFC(self, t, foresight):
@@ -280,6 +285,11 @@ class Storage():
                 listPFC.append([int(tick), float(round(self.world.dictPFC[tick], 2))])
             for tick in range(0, overhang):  # Auffüllen mit Preisen vom Anfang der PFC
                 listPFC.append([int(lengthPFC + tick), float(round(self.world.dictPFC[tick], 2))])
+        elif t < 0:
+            for tick in range(t, 0):
+                listPFC.append([int(tick), float(round(self.world.dictPFC[len(self.world.dictPFC)+tick], 2))])
+            for tick in range(0, int(t + foresight)):
+                listPFC.append([int(tick), float(round(self.world.dictPFC[tick], 2))])
         else:
             for tick in range(t, int(t + foresight)):
                 listPFC.append([int(tick), float(round(self.world.dictPFC[tick], 2))])
@@ -287,17 +297,20 @@ class Storage():
         return listPFC
     
     
-    def plotResults(self):
-        plt.figure()
-        plt.plot(range(len(self.world.snapshots)), list(self.dictCapacity.values()))
-        plt.ylabel('Power [MW]')
-        plt.title(self.name)
-        plt.show()
-        
+    def plotResults(self):      
         plt.figure()
         plt.plot(range(len(self.world.snapshots)), list(self.dictSOC.values()))
         plt.ylabel('SOC [MWh]')
         plt.title(self.name)
+        plt.show()
+        
+        plt.figure()
+        plt.step(range(len(self.world.snapshots)), list(self.dictCapacity.values()), label='Total Capacity')
+        plt.step(range(len(self.world.snapshots)), [-_ for _ in list(self.confQtyCRM_neg.values())], label='Negative CRM')
+        plt.step(range(len(self.world.snapshots)), list(self.confQtyCRM_pos.values()), label='Positive CRM')
+        plt.ylabel('Power [MW]')
+        plt.title(self.name)
+        plt.legend()
         plt.show()
         
         

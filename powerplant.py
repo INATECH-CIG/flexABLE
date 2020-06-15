@@ -457,33 +457,47 @@ class Powerplant():
 
 
     def specificRevenueEOM(self,t, foresight, marginalCosts, horizon):
-        listPFC = self.getPart_PFC(t, foresight)
+        # listPFC = self.getPart_PFC(t, foresight)
+        listPFC = []
+        
+            
+        if t + foresight > len(self.world.dictPFC):
+            listPFC = self.world.dictPFC[t:] + self.world.dictPFC[:t+foresight-len(self.world.dictPFC)]
+        else:
+            listPFC = self.world.dictPFC[t:t+foresight]
     
         if horizon == 'positive':
-            specificRevenue_sum = round(sum([(marketPrice - marginalCosts) * self.world.dt for position, [tick, marketPrice]
-                                             in enumerate(listPFC) if marginalCosts < marketPrice]), 2)
+            specificRevenue_sum = round(sum([(marketPrice - marginalCosts) * self.world.dt for marketPrice
+                                             in listPFC if marginalCosts < marketPrice]), 2)
         elif horizon == 'negative':
-            specificRevenue_sum = round(sum([(marketPrice - marginalCosts) * self.world.dt for position, [tick, marketPrice]
-                                             in enumerate(listPFC) if marginalCosts > marketPrice]), 2)
+            specificRevenue_sum = round(sum([(marketPrice - marginalCosts) * self.world.dt for marketPrice
+                                             in listPFC if marginalCosts > marketPrice]), 2)
         else:
-            specificRevenue_sum = round(sum([(marketPrice - marginalCosts) * self.world.dt for position, [tick, marketPrice]
-                                             in enumerate(listPFC)]), 2)
-    
+            specificRevenue_sum = round(sum([(marketPrice - marginalCosts) * self.world.dt for marketPrice
+                                             in listPFC]), 2)
+            
+
         return specificRevenue_sum
     
     def getPart_PFC(self, t, foresight):
-        listPFC = []
-        lengthPFC = len(self.world.dictPFC)
-    
-        if (t + foresight) > lengthPFC:
-            overhang = (t + foresight) - lengthPFC
-            for tick in range(t, lengthPFC):  # verbleibende Marktpreise in der PFC
-                listPFC.append([int(tick), float(round(self.world.dictPFC[tick], 2))])
-            for tick in range(0, overhang):  # Auffüllen mit Preisen vom Anfang der PFC
-                listPFC.append([int(lengthPFC + tick), float(round(self.world.dictPFC[tick], 2))])
+        
+        if t + foresight > len(self.world.dictPFC):
+            listPFC = [self.world.dictPFC[t:], self.world.dictPFC[:t+foresight-len(self.world.dictPFC)]]
         else:
-            for tick in range(t, int(t + foresight)):
-                listPFC.append([int(tick), float(round(self.world.dictPFC[tick], 2))])
+            listPFC = self.world.dictPFC[t:t+foresight]
+        
+        # listPFC = []
+        # lengthPFC = len(self.world.dictPFC)
+    
+        # if (t + foresight) > lengthPFC:
+        #     overhang = (t + foresight) - lengthPFC
+        #     for tick in range(t, lengthPFC):  # verbleibende Marktpreise in der PFC
+        #         listPFC.append([int(tick), float(round(self.world.dictPFC[tick], 2))])
+        #     for tick in range(0, overhang):  # Auffüllen mit Preisen vom Anfang der PFC
+        #         listPFC.append([int(lengthPFC + tick), float(round(self.world.dictPFC[tick], 2))])
+        # else:
+        #     for tick in range(t, int(t + foresight)):
+        #         listPFC.append([int(tick), float(round(self.world.dictPFC[tick], 2))])
     
         return listPFC
     

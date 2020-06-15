@@ -25,7 +25,7 @@ class NetworkOperator():
         #{_.name:_.dictCapacity[example.currstep-1] for _ in self.world.powerplants }
     
     def step(self):
-        self.world.powerplants[0].currentStatus=0
+        #self.world.powerplants[0].currentStatus=0
         return 0
         for powerplant in self.world.powerplants:
             powerplant.currentStatus = 0

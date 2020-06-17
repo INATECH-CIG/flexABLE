@@ -39,7 +39,7 @@ class World():
         self.minBidDHM =1
         self.minBidReDIS =1
         self.dt = 0.25 # Although we are always dealing with power, dt is needed to calculate the revenue and for the energy market
-        self.dictPFC = {n:0 for n in self.snapshots}
+        self.dictPFC = [0]*snapshots
 
         self.network = None
         
@@ -178,9 +178,12 @@ if __name__=="__main__":
     logger.info("Script started")
     snapLength = 96*1
     example = World(snapLength)
-    example.loadScenario(scenario='2016', importStorages=True, importCRM=True)
+    
     pfc = pd.read_csv("input/2016/PFC_run1.csv", nrows = snapLength, index_col=0)
-    example.dictPFC = dict(pfc['price'])
+    example.dictPFC = list(pfc['price'])
+    
+    example.loadScenario(scenario='2016', importStorages=True, importCRM=True)
+
 
     example.runSimulation()
     

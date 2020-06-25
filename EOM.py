@@ -12,10 +12,11 @@ import shelve
 import matplotlib.pyplot as plt
 
 class EOM():
-    def __init__(self, name, demand=None, CBtrades=None,  world=None):
+    def __init__(self, name, demand=None, CBtrades=None, networkEnabled=False,  world=None, solver_name='gurobi_direct'):
         self.name = name
         self.world=world
         self.snapshots = self.world.snapshots
+        self.networkEnabled = networkEnabled
         if demand == None:
             self.demand = {t:0 for t in self.snapshots}
         elif len(demand) != len(self.snapshots):
@@ -35,10 +36,13 @@ class EOM():
         self.marketResults = {}
         
         self.performance = 0
-        
+        self.solver_name = solver_name
     def step(self,t,agents):
         self.collectBids(agents, t)
-        self.marketClearing(t)
+        if self.networkEnabled:
+            self.marketNetworkClearing(t)
+        else:
+            self.marketClearing(t)
         
     def collectBids(self, agents, t):
         for agent in agents.values():
@@ -271,7 +275,78 @@ class EOM():
 
         self.marketResults[t]=result
         self.world.dictPFC[t] = result.marketClearingPrice
+
+    def marketNetworkClearing(self,t):
+        #print(sorted(self.bids[t].values(),key=operator.attrgetter('price')))
+        # =============================================================================
+        # A double ended que might be considered instead of lists if the amount of agents
+        # is too high, in-order to speed up the matching process, an alternative would be
+        # reverse sorting the lists
+        # =============================================================================
+        bidsReceived = {"Supply":[],
+                        "Demand":[]}
+        confirmedBids = []
+        rejectedBids = []
+        partiallyConfirmedBids = []
+        for b in self.bids[t]:
+            bidsReceived[b.bidType].append(b)
+        # =============================================================================
+        # We can consider defining the function outside the marketNetworkClearing part
+        # to increase performance (Nested Functions), but the overhead of such definition
+        # is not that high
+        # =============================================================================
+
+        p_nom = dict(map(lambda x: [x.ID, x.amount], bidsReceived['Supply']))
+        self.world.network.generators['p_nom'] = self.world.network.generators.index.map(p_nom).fillna(0)
+        self.world.network.generators.p_nom.loc[self.world.network.generators.carrier == '_backup'] = 100
+        marginal_cost = dict(map(lambda x: [x.ID, x.price], bidsReceived['Supply']))
+        self.world.network.generators['marginal_cost']= self.world.network.generators.index.map(marginal_cost).fillna(0)
+        self.world.network.generators.marginal_cost.loc[self.world.network.generators.carrier == '_backup'] = 100
         
+        self.world.network.lines.s_nom *= 1000
+        confirmedBids = []
+        rejectedBids = []
+        partiallyConfirmedBids = []
+        supplyDict = dict(map(lambda x: [x.ID, (x,x.amount,x.price)], bidsReceived['Supply']))
+        demandDict = dict(map(lambda x: [x.ID, (x,x.amount,x.price)], bidsReceived['Demand']))
+        
+        def confirmBidsNetwork(powerplant):
+            try:
+                supplyDict[powerplant.name][0].partialConfirm(powerplant[t])
+                if powerplant[t] > 0:
+                    confirmedBids.append(supplyDict[powerplant.name][0])
+                if powerplant[t] <= 0:
+                    rejectedBids.append(supplyDict[powerplant.name][0])
+            except KeyError:
+                pass
+            return powerplant[t]
+        
+        solution= self.world.network.lopf(t,
+                                          solver_name= self.solver_name,
+                                          solver_options={'ResultFile':'model.ilp',
+                                                          'tee':False})
+        
+        self.world.network.lines.s_nom /= 1000
+        self.world.network.generators_t.p.iloc[[t],:].T.apply(
+            lambda x:confirmBidsNetwork(x), axis=1)
+        if solution != ('ok', 'optimal'):
+            bPoint = True
+        if len(confirmedBids) ==0:
+           bPoint = True           
+        result = MarketResults("{}".format(self.name),
+                   issuer = self.name,
+                   confirmedBids = confirmedBids,
+                   rejectedBids = rejectedBids,
+                   partiallyConfirmedBids = partiallyConfirmedBids,
+                   marketClearingPrice = sorted(confirmedBids,key=operator.attrgetter('price'))[-1].price,
+                   marginalUnit = 0,
+                   status = 0,
+                   energyDeficit = 0,
+                   energySurplus = 0,
+                   timestamp = t)
+
+        self.marketResults[t]=result
+        self.world.dictPFC[t] = result.marketClearingPrice
     def plotResults(self):
         def two_scales(ax1, time, data1, data2, c1, c2):
 

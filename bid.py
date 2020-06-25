@@ -56,15 +56,22 @@ class Bid(object):
         None.
 
         """
-        self.status = "PartiallyConfirmed"
-        if confirmedAmount > self.amount:
+        if confirmedAmount == 0:
+            self.status = "Rejected"
+            self.confirmedAmount= 0
+        elif confirmedAmount < self.amount:
+            self.status = "PartiallyConfirmed"
+            self.confirmedAmount= confirmedAmount
+        elif confirmedAmount == self.amount:
+            self.status = "Confirmed"
+            self.confirmedAmount = self.amount
+        elif confirmedAmount > self.amount:
             logger.warning("For bid {}, the confirmed amount is greater than offered amount."
                             " Confirmed amount reduced to offered amount."
                             " This could eventually cause imbalance problem.".format(self.ID))
             self.confirmedAmount = self.amount
-            
-        else:
-            self.confirmedAmount= confirmedAmount
+
+
             
     def reject(self):
         if 'IED' in self.ID:

@@ -120,7 +120,8 @@ class Powerplant():
             bidQuantity_mr, bidPrice_mr, bidQuantity_flex, bidPrice_flex = self.calculateBidEOM(t)
             if bidQuantity_mr != 0:
                 bids.append(Bid(issuer = self,
-                                ID = "Bu{}t{}_mrEOM".format(self.name,t),
+                                ID = "{}_mrEOM".format(self.name,t),
+                                #ID = "{}_mr".format(self.name),
                                 price = bidPrice_mr,
                                 amount = bidQuantity_mr,
                                 status = "Sent",
@@ -128,7 +129,8 @@ class Powerplant():
                 
             if bidQuantity_flex !=0:
                 bids.append(Bid(issuer = self,
-                                ID = "Bu{}t{}_flexEOM".format(self.name,t),
+                                #ID = "{}_flex".format(self.name),
+                                ID = "{}_flexEOM".format(self.name,t),
                                 price = bidPrice_flex,
                                 amount = bidQuantity_flex,
                                 status = "Sent",
@@ -503,9 +505,11 @@ class Powerplant():
     
     def plotResults(self):
         plt.figure()
-        plt.step(range(len(self.world.snapshots)), list(self.dictCapacity.values())[1:], label='Total Capacity')
-        plt.step(range(len(self.world.snapshots)), [-_ for _ in list(self.confQtyCRM_neg.values())], label='Negative CRM')
-        plt.step(range(len(self.world.snapshots)), list(self.confQtyCRM_pos.values()), label='Positive CRM')
+        plt.step(range(len(self.world.snapshots)), list(self.dictCapacity.values())[0:-1],'r-', label='Total Capacity')
+        plt.step(range(len(self.world.snapshots)), [-_ for _ in list(self.confQtyCRM_neg.values())],'b--', label='Negative CRM')
+        plt.step(range(len(self.world.snapshots)), list(self.confQtyCRM_pos.values()),'g--',  label='Positive CRM')
+        plt.step(range(len(self.world.snapshots)),[self.maxPower for _ in range(len(self.world.snapshots))],'r:', label='Maximum Power')
+        plt.step(range(len(self.world.snapshots)),[self.minPower for _ in range(len(self.world.snapshots))],'r:', label='Minimum Power')
         plt.ylabel('Power [MW]')
         plt.title(self.name)
         plt.legend()

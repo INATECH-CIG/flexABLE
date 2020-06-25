@@ -6,5 +6,5 @@ save_non_project_files = False
 
 [main]
 version = 0.2.0
-recent_files = ['flexABLE.py', 'agent.py', 'storage.py', 'powerplant.py', 'vrepowerplants.py', 'CRM.py', 'EOM.py', 'DHM.py', 'MarketResults.py', 'bid.py', 'NetworkOperator.py']
+recent_files = ['flexABLE.py', 'agent.py', 'storage.py', 'powerplant.py', 'vrepowerplants.py', 'CRM.py', 'EOM.py', 'DHM.py', 'MarketResults.py', 'bid.py', 'NetworkOperator.py', '..\\..\\Anaconda3\\envs\\pypsa\\lib\\site-packages\\pypsa\\components.py', '..\\AP2.6\\Input\\Network_Regional.py']
 

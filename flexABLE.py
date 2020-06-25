@@ -4,7 +4,8 @@ Created on Sun Apr  19 15:56:51 2020
 
 @author: intgridnb-02
 """
-
+import logging
+logging.getLogger('pyomo.core').setLevel(logging.ERROR)
 import agent
 import EOM
 import DHM
@@ -12,14 +13,16 @@ from loggingGUI import logger
 import pandas as pd
 from tqdm import tqdm
 import CRM
-from NetworkOperator import NetworkOperator
+#from NetworkOperator import NetworkOperator
+import pypsa
 import seaborn as sns
+import matplotlib.pyplot as plt
 sns.set_style('ticks')
 class World():
     """
     This is the main container
     """
-    def __init__(self, snapshots, fuelPrices={}, simulationID=None):
+    def __init__(self, snapshots, fuelPrices={}, simulationID=None, networkEnabled=False):
         self.simulationID = simulationID
         self.powerplants=[]
         self.storages = []
@@ -40,15 +43,16 @@ class World():
         self.minBidReDIS =1
         self.dt = 0.25 # Although we are always dealing with power, dt is needed to calculate the revenue and for the energy market
         self.dictPFC = [0]*snapshots
-
-        self.network = None
+        self.networkEnabled = networkEnabled
+        self.network = pypsa.Network()
         
     def addAgent(self, name):
         self.agents[name] = agent.Agent(name, snapshots=self.snapshots , world=self)
         
     def addMarket(self, name, marketType, demand=None, CBtrades=None, HLP_DH=None, HLP_HH=None, annualDemand=None):
         if marketType == "EOM":
-            self.markets["EOM"][name] = EOM.EOM(name, demand=demand, CBtrades=CBtrades, world=self)
+            self.markets["EOM"][name] = EOM.EOM(name, demand=demand, CBtrades=CBtrades,
+                                                networkEnabled= self.networkEnabled, world=self)
         if marketType == "DHM":
             self.markets["DHM"] = DHM.DHM(name, HLP_DH=HLP_DH, HLP_HH=HLP_HH, annualDemand=annualDemand, world=self)
         if marketType == "CRM":
@@ -59,7 +63,7 @@ class World():
             self.markets['DHM'].step(self.snapshots[self.currstep])
             for market in self.markets["EOM"].values():
                 market.step(self.snapshots[self.currstep],self.agents)
-            self.network.step()
+            #self.network.step()
             for powerplant in self.powerplants:
                 powerplant.step()
             for storage in self.storages:
@@ -77,7 +81,7 @@ class World():
             else:
                 break
         logger.info("reached simulation end")
-    def loadScenario(self, scenario="Default", importStorages=True, importCRM=True, importDHM=True):
+    def loadScenario(self, scenario="Default", importStorages=True, importCRM=True, importDHM=True, addBackup=False):
         # Some of the input files should be restructured such as demand, so it
         # could include more than one zone
         
@@ -117,13 +121,13 @@ class World():
             for storage, data in storageList.iterrows():
                 self.agents[data['company']].addStorage(storage,**dict(data))
     
-            
-        vrepowerplantFeedIn =pd.read_csv('input/{}/FES_DE.csv'.format(scenario),
-                                         index_col=0,
-                                         encoding="Latin-1")
-        self.addAgent('Renewables')
-        for _ in vrepowerplantFeedIn:
-            self.agents['Renewables'].addVREPowerplant(_, FeedInTimeseries=vrepowerplantFeedIn[_].to_list())
+        if not(self.networkEnabled):           
+            vrepowerplantFeedIn =pd.read_csv('input/{}/FES_DE.csv'.format(scenario),
+                                             index_col=0,
+                                             encoding="Latin-1")
+            self.addAgent('Renewables')
+            for _ in vrepowerplantFeedIn:
+                self.agents['Renewables'].addVREPowerplant(_, FeedInTimeseries=vrepowerplantFeedIn[_].to_list())
         logger.info("Agents and assets loaded.")
         # Loads the inelastic demand data
         # This could be extended with another file that specifies to which zone
@@ -168,21 +172,83 @@ class World():
         self.addMarket('CRM_DE','CRM', demand=CRMdemand)
         
         logger.info("Demand data loaded.")
-
-        # Loading Network data
-        logger.info("Loading Network.")
-        self.network = NetworkOperator(importCSV=True, world=self)
-        logger.info("Network Loaded.")
+        if self.networkEnabled:
+            # Loading Network data
+            logger.info("Setting up Network.")
+            nodes = pd.read_csv('input/{}/nodes.csv'.format(scenario),
+                                index_col=0,
+                                encoding="Latin-1")
+            lines = pd.read_csv('input/{}/lines.csv'.format(scenario),
+                                index_col=0,
+                                encoding="Latin-1")
+            load_distribution = pd.read_csv('input/{}/IED_DE_Distrib.csv'.format(scenario),
+                                            nrows=len(self.snapshots),
+                                            index_col=0,
+                                            encoding="Latin-1")
+            self.network.set_snapshots(range(len(self.snapshots)))
+            self.network.madd('Bus',
+                              nodes.index,
+                              x=nodes.x,
+                              y=nodes.y)
+            if addBackup:
+                self.network.madd('Generator',
+                                  nodes.index,
+                                  suffix='_backup',
+                                  bus=nodes.index,
+                                  p_nom=100,
+                                  p_min_pu=0,
+                                  p_max_pu=1,
+                                  marginal_cost=3000,
+                                  carrier='_backup')
+            self.network.madd('Line',
+                              lines.index,
+                              bus0=lines.bus0,
+                              bus1=lines.bus1,
+                              x= lines.x,
+                              r= lines.r,
+                              s_nom= lines.s_nom)
+            self.network.madd('Load',
+                              nodes.index,
+                              suffix='_load',
+                              bus=nodes.index,
+                              p_set=load_distribution.mul(demand.demand,axis=0))
+            self.network.madd('Generator',
+                              powerplantsList.index,
+                              suffix='_mrEOM',
+                              carrier= powerplantsList.technology,
+                              bus=powerplantsList.node,
+                              p_nom=powerplantsList.maxPower,
+                              p_min_pu=0,
+                              p_max_pu=1)
+            self.network.madd('Generator',
+                              powerplantsList.index,
+                              suffix='_flexEOM',
+                              carrier= powerplantsList.technology,
+                              bus=powerplantsList.node,
+                              p_nom=powerplantsList.maxPower,
+                              p_min_pu=0,
+                              p_max_pu=1)
+            
+            
+            
+            # vrepowerplantFeedIn =pd.read_csv('input/{}/FES_DE.csv'.format(scenario),
+            #                                  index_col=0,
+            #                                  encoding="Latin-1")
+            # self.addAgent('Renewables')
+            # for _ in vrepowerplantFeedIn:
+            #     self.agents['Renewables'].addVREPowerplant(_, FeedInTimeseries=vrepowerplantFeedIn[_].to_list())
+            # self.network = NetworkOperator(importCSV=True, world=self)
+            logger.info("Network Loaded.")
         
 if __name__=="__main__":
     logger.info("Script started")
     snapLength = 96*1
-    example = World(snapLength)
+    example = World(snapLength, networkEnabled=True)
     
     pfc = pd.read_csv("input/2016/PFC_run1.csv", nrows = snapLength, index_col=0)
     example.dictPFC = list(pfc['price'])
     
-    example.loadScenario(scenario='2016', importStorages=True, importCRM=True)
+    example.loadScenario(scenario='2015_Network', importStorages=False, importCRM=True,addBackup=True)
 
 
     example.runSimulation()
@@ -191,6 +257,44 @@ if __name__=="__main__":
 
     #example.storages[0].plotResults()
     example.powerplants[0].plotResults()
+    example.powerplants[1].plotResults()
     # example.powerplants[1].plotResults()
     
-    
+#%% Plot
+colors = {'Waste':'brown',
+          'nuclear':'#FF3232',
+          'lignite':'brown',
+          'hard coal':'k',
+          'combined cycle gas turbine':'orange',
+          'oil':'#000000',
+          'open cycle gas turbine':'navy',
+          '_backup':'lightsteelblue',
+          'Hydro':'mediumblue',
+          'Biomass':'forestgreen',
+          'PV':'yellow',
+          'Wind Onshore':'blue',
+          'Wind Offshore':'blue',}
+
+
+p_by_carrier = example.network.generators_t.p.groupby(example.network.generators.carrier, axis=1).sum()
+
+
+cols = ['nuclear','lignite', 'hard coal','oil', '_backup', 'combined cycle gas turbine',
+         'open cycle gas turbine']
+p_by_carrier = p_by_carrier[cols]
+
+fig,ax = plt.subplots(1,1)
+
+fig.set_size_inches(12,6)
+
+(p_by_carrier/1e3).plot(kind="area",ax=ax,
+                        linewidth=0,
+                        color=[colors[col] for col in p_by_carrier.columns],
+                        alpha=0.7)
+
+
+ax.legend(ncol=4,loc="upper left")
+
+ax.set_ylabel("GW")
+
+# ax.set_xlabel("")

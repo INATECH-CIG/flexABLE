@@ -160,7 +160,7 @@ class Storage():
             
             if bidQuantity_supply >= self.world.minBidEOM:
                 bidsEOM.append(Bid(issuer = self,
-                                   ID = "Bu{}t{}_supplyEOM".format(self.name,t),
+                                   ID = "{}_supplyEOM".format(self.name),
                                    price = bidPrice_supply,
                                    amount = bidQuantity_supply,
                                    status = "Sent",
@@ -176,7 +176,7 @@ class Storage():
             
             if bidQuantity_demand >= self.world.minBidEOM:
                 bidsEOM.append(Bid(issuer = self,
-                                   ID = "Bu{}t{}_demandEOM".format(self.name,t),
+                                   ID = "{}_demandEOM".format(self.name),
                                    price = bidPrice_demand,
                                    amount = bidQuantity_demand,
                                    status = "Sent",
@@ -221,7 +221,7 @@ class Storage():
             capacityPrice, energyPrice = self.calculatingBidPricesSTO_CRM(t)
             
             bidsCRM.append(Bid(issuer = self,
-                               ID = "Bu{}t{}_CRMPosDem".format(self.name,t),
+                               ID = "{}_CRMPosDem".format(self.name),
                                price = capacityPrice,
                                amount = bidQuantityBPM_pos,
                                energyPrice = energyPrice,
@@ -230,7 +230,7 @@ class Storage():
 
         else:
             bidsCRM.append(Bid(issuer=self,
-                               ID="Bu{}t{}_CRMPosDem".format(self.name,t),
+                               ID="{}_CRMPosDem".format(self.name),
                                price = 0,
                                amount = 0,
                                energyPrice = 0,
@@ -254,7 +254,7 @@ class Storage():
 
 
             bidsCRM.append(Bid(issuer = self,
-                               ID = "Bu{}t{}_CRMNegDem".format(self.name,t),
+                               ID = "{}_CRMNegDem".format(self.name),
                                price = 0,
                                amount = bidQtyCRM_neg,
                                energyPrice = 0,
@@ -263,7 +263,7 @@ class Storage():
 
         else:
             bidsCRM.append(Bid(issuer = self,
-                               ID = "Bu{}t{}_CRMNegDem".format(self.name,t),
+                               ID = "{}_CRMNegDem".format(self.name),
                                price = 0,
                                amount = 0,
                                energyPrice = 0,

@@ -16,9 +16,9 @@ from tkinter import ttk, VERTICAL, HORIZONTAL, N, S, E, W
 import time
 import io
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("flexABLE")
 
+logger = logging.getLogger("flexABLE")
+logging.basicConfig(level=logger.INFO)
 
 
 class Clock(threading.Thread):

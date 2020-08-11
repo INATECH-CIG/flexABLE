@@ -3,7 +3,9 @@
 Created on Sun Apr  19 15:59:22 2020
 @author: intgridnb-02
 """
-from loggingGUI import logger, loggerGUI
+import logging
+logger = logging.getLogger("flexABLE")
+
 class Bid(object):
     """
     The bid class is intended to represent a bid object that is offered on a DA-Market

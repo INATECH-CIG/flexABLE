@@ -4,20 +4,28 @@ Created on Sun Apr  19 15:56:51 2020
 
 @author: intgridnb-02
 """
-import logging
-logging.getLogger('pyomo.core').setLevel(logging.ERROR)
+
 import agent
 import EOM
 import DHM
-from loggingGUI import logger
+#from loggingGUI import logger
 import pandas as pd
 from tqdm import tqdm
 import CRM
 #from NetworkOperator import NetworkOperator
+import logging
 import pypsa
+pypsa.pf.logger.setLevel(logging.ERROR)
+pypsa.opf.logger.setLevel(logging.ERROR)
 import seaborn as sns
 import matplotlib.pyplot as plt
 sns.set_style('ticks')
+
+logger = logging.getLogger("flexABLE")
+logging.basicConfig(level=logging.INFO)
+logging.getLogger('pyomo.core').setLevel(logging.ERROR)
+
+
 class World():
     """
     This is the main container
@@ -178,10 +186,19 @@ class World():
             nodes = pd.read_csv('input/{}/nodes.csv'.format(scenario),
                                 index_col=0,
                                 encoding="Latin-1")
+            nodes.region = nodes.astype(int).astype(str)
             lines = pd.read_csv('input/{}/lines.csv'.format(scenario),
                                 index_col=0,
                                 encoding="Latin-1")
             load_distribution = pd.read_csv('input/{}/IED_DE_Distrib.csv'.format(scenario),
+                                            nrows=len(self.snapshots),
+                                            index_col=0,
+                                            encoding="Latin-1")
+            PV_CF = pd.read_csv('input/{}/PV_CF.csv'.format(scenario),
+                                            nrows=len(self.snapshots),
+                                            index_col=0,
+                                            encoding="Latin-1")
+            wind_CF = pd.read_csv('input/{}/wind_CF.csv'.format(scenario),
                                             nrows=len(self.snapshots),
                                             index_col=0,
                                             encoding="Latin-1")
@@ -195,11 +212,11 @@ class World():
                                   nodes.index,
                                   suffix='_backup',
                                   bus=nodes.index,
-                                  p_nom=100,
+                                  p_nom=1000,
                                   p_min_pu=0,
                                   p_max_pu=1,
                                   marginal_cost=3000,
-                                  carrier='_backup')
+                                  carrier='backup')
             self.network.madd('Line',
                               lines.index,
                               bus0=lines.bus0,
@@ -228,27 +245,88 @@ class World():
                               p_nom=powerplantsList.maxPower,
                               p_min_pu=0,
                               p_max_pu=1)
-            
-            
-            
-            # vrepowerplantFeedIn =pd.read_csv('input/{}/FES_DE.csv'.format(scenario),
-            #                                  index_col=0,
-            #                                  encoding="Latin-1")
-            # self.addAgent('Renewables')
-            # for _ in vrepowerplantFeedIn:
-            #     self.agents['Renewables'].addVREPowerplant(_, FeedInTimeseries=vrepowerplantFeedIn[_].to_list())
-            # self.network = NetworkOperator(importCSV=True, world=self)
+            self.addAgent('Renewables')
+            for _ , data in nodes.iterrows():
+                if data.PV:
+                    self.network.add('Generator',
+                                      "{}_PV".format(_),
+                                      bus=_,
+                                      p_nom=data.PV,
+                                      p_min_pu=0,
+                                      p_max_pu=1,
+                                      marginal_cost=0,
+                                      carrier='PV')
+                    self.agents['Renewables'].addVREPowerplant("{}_PV".format(_),
+                                                               FeedInTimeseries=(PV_CF[str(data.region)]*data.PV).to_list())
+                if data.windOff:
+                    self.network.add('Generator',
+                                      "{}_windOff".format(_),
+                                      bus=_,
+                                      p_nom=data.windOff,
+                                      p_min_pu=0,
+                                      p_max_pu=1,
+                                      marginal_cost=0,
+                                      carrier='Wind Offshore')
+                    self.agents['Renewables'].addVREPowerplant("{}_windOff".format(_),
+                                                               FeedInTimeseries=(wind_CF[str(_)]*data.windOff).to_list())
+                if data.windOn:
+                    self.network.add('Generator',
+                                      "{}_windOn".format(_),
+                                      bus=_,
+                                      p_nom=data.windOn,
+                                      p_min_pu=0,
+                                      p_max_pu=1,
+                                      marginal_cost=0,
+                                      carrier='Wind Onshore')
+                    self.agents['Renewables'].addVREPowerplant("{}_windOn".format(_),
+                                                               FeedInTimeseries=(wind_CF[str(_)]*data.windOn).to_list())
+                if data.BIO:
+                    self.network.add('Generator',
+                                      "{}_Bio".format(_),
+                                      bus=_,
+                                      p_nom=data.BIO,
+                                      p_min_pu=0,
+                                      p_max_pu=1,
+                                      marginal_cost=0,
+                                      carrier='Biomass')
+                    self.agents['Renewables'].addVREPowerplant("{}_Bio".format(_),
+                                                               FeedInTimeseries=[data.BIO]*len(self.snapshots))   
+            if importStorages: 
+                self.network.madd('Generator',
+                                  storageList.index,
+                                  suffix='_supplyEOM',
+                                  carrier= 'PSPP_discharge',
+                                  bus=storageList.node,
+                                  p_nom=0,
+                                  sign=1,
+                                  p_min_pu=0,
+                                  p_max_pu=1)
+                self.network.madd('Generator',
+                                  storageList.index,
+                                  suffix='_demandEOM',
+                                  carrier= 'PSPP_charge',
+                                  bus=storageList.node,
+                                  p_nom=0,
+                                  sign=-1,
+                                  p_min_pu=0,
+                                  p_max_pu=1)
+                for _ in storageList.company.unique():
+                    if _ not in self.agents:
+                        self.addAgent(_)
+                        
+                for storage, data in storageList.iterrows():
+                    self.agents[data['company']].addStorage(storage,**dict(data))
             logger.info("Network Loaded.")
         
 if __name__=="__main__":
     logger.info("Script started")
-    snapLength = 96*1
+    snapLength = 16*1
     example = World(snapLength, networkEnabled=True)
     
     pfc = pd.read_csv("input/2016/PFC_run1.csv", nrows = snapLength, index_col=0)
     example.dictPFC = list(pfc['price'])
     
-    example.loadScenario(scenario='2015_Network', importStorages=False, importCRM=True,addBackup=True)
+    example.loadScenario(scenario='2015_Network', importStorages=True, importCRM=True, addBackup=True)
 
 
     example.runSimulation()
@@ -265,24 +343,30 @@ colors = {'Waste':'brown',
           'nuclear':'#FF3232',
           'lignite':'brown',
           'hard coal':'k',
-          'combined cycle gas turbine':'orange',
+          'combined cycle gas turbine':'#FA964B',
           'oil':'#000000',
-          'open cycle gas turbine':'navy',
-          '_backup':'lightsteelblue',
+          'open cycle gas turbine':'#FA964B',
+          'backup':'lightsteelblue',
           'Hydro':'mediumblue',
-          'Biomass':'forestgreen',
-          'PV':'yellow',
-          'Wind Onshore':'blue',
-          'Wind Offshore':'blue',}
+          'Biomass':'#009632',
+          'PV':'#FFCD64',
+          'Wind Onshore':'#AFC4A5',
+          'Wind Offshore':'#AFC4A5',
+          'PSPP_discharge':'#0096E1',
+          'PSPP_charge':'#323296'}
 
 
 p_by_carrier = example.network.generators_t.p.groupby(example.network.generators.carrier, axis=1).sum()
 
 
-cols = ['nuclear','lignite', 'hard coal','oil', '_backup', 'combined cycle gas turbine',
-         'open cycle gas turbine']
-p_by_carrier = p_by_carrier[cols]
+cols = ['PSPP_charge','Biomass','nuclear','lignite', 'hard coal','oil', 'backup', 'combined cycle gas turbine',
+         'open cycle gas turbine','PSPP_discharge','PV', 'Wind Onshore', 'Wind Offshore']
+for carrier in list(set(cols)- set(p_by_carrier.columns)):
+    cols.remove(carrier)
 
+    
+p_by_carrier = p_by_carrier[cols]
+p_by_carrier['PSPP_charge'] = -p_by_carrier['PSPP_charge']
 fig,ax = plt.subplots(1,1)
 
 fig.set_size_inches(12,6)
@@ -293,7 +377,7 @@ fig.set_size_inches(12,6)
                         alpha=0.7)
 
 
-ax.legend(ncol=4,loc="upper left")
+ax.legend(loc="center left", fancybox=True, shadow=True)
 
 ax.set_ylabel("GW")
 

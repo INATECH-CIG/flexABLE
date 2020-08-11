@@ -10,6 +10,7 @@ import logging
 from MarketResults import MarketResults
 import shelve
 import matplotlib.pyplot as plt
+import pandas as pd
 
 class EOM():
     def __init__(self, name, demand=None, CBtrades=None, networkEnabled=False,  world=None, solver_name='gurobi_direct'):
@@ -295,13 +296,18 @@ class EOM():
         # to increase performance (Nested Functions), but the overhead of such definition
         # is not that high
         # =============================================================================
-
+        
+        # Attaching bids to powerplants
         p_nom = dict(map(lambda x: [x.ID, x.amount], bidsReceived['Supply']))
-        self.world.network.generators['p_nom'] = self.world.network.generators.index.map(p_nom).fillna(0)
-        self.world.network.generators.p_nom.loc[self.world.network.generators.carrier == '_backup'] = 100
+        p_nom.update(dict(map(lambda x: [x.ID, x.amount], bidsReceived['Demand'])))
+        self.world.network.generators.loc[self.world.network.generators.carrier != 'backup','p_nom'] = 0
+        self.world.network.generators.loc[p_nom.keys(),'p_nom'] = pd.Series(p_nom)
+        # Attaching marginal costs
         marginal_cost = dict(map(lambda x: [x.ID, x.price], bidsReceived['Supply']))
-        self.world.network.generators['marginal_cost']= self.world.network.generators.index.map(marginal_cost).fillna(0)
-        self.world.network.generators.marginal_cost.loc[self.world.network.generators.carrier == '_backup'] = 100
+        marginal_cost.update(dict(map(lambda x: [x.ID, x.price], bidsReceived['Demand'])))
+        self.world.network.generators.loc[:,'marginal_cost'] = 3000
+        self.world.network.generators.loc[marginal_cost.keys(),'marginal_cost'] = pd.Series(marginal_cost)
+
         
         self.world.network.lines.s_nom *= 1000
         confirmedBids = []
@@ -329,10 +335,7 @@ class EOM():
         self.world.network.lines.s_nom /= 1000
         self.world.network.generators_t.p.iloc[[t],:].T.apply(
             lambda x:confirmBidsNetwork(x), axis=1)
-        if solution != ('ok', 'optimal'):
-            bPoint = True
-        if len(confirmedBids) ==0:
-           bPoint = True           
+
         result = MarketResults("{}".format(self.name),
                    issuer = self.name,
                    confirmedBids = confirmedBids,

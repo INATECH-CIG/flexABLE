@@ -1,0 +1,13 @@
+\ Model Linear Optimal Power Flow_copy
+\ LP format - for model browsing. Use MPS format to capture full model detail.
+Minimize
+ 
+Subject To
+ x11: x9 <= 500
+ x13: x2 + x3 + x4 + x9 = 600
+Bounds
+ -infinity <= x2 <= 0
+ -infinity <= x3 <= 0
+ -infinity <= x4 <= 0
+ x9 free
+End

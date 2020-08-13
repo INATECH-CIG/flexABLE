@@ -29,6 +29,7 @@ from datetime import datetime
 logger = logging.getLogger("flexABLE")
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('pyomo.core').setLevel(logging.ERROR)
+logging.getLogger('numexpr.utils'
 
 
 
@@ -326,8 +327,9 @@ if __name__=="__main__":
     
     logger.info("Script started")
 
-    snapLength = 96*15
-    example = World(snapLength, networkEnabled=False)
+    snapLength = 96*1
+    networkEnabled=False
+    example = World(snapLength, networkEnabled=networkEnabled)
     
     pfc = pd.read_csv("input/2016/PFC_run1.csv", nrows = snapLength, index_col=0)
     
@@ -341,54 +343,89 @@ if __name__=="__main__":
     print('Finished at:', finished)
     print('Simulation time:', finished - start)#
     
-    example.markets["EOM"]['EOM_DE'].plotResults()
-
+    
+    plt.plot(example.dictPFC)
+    
     example.storages[0].plotResults()
     example.powerplants[0].plotResults()
-    #example.powerplants[1].plotResults()
-    # example.powerplants[1].plotResults()
+
+#%% plot EOM prices
+def two_scales(ax1, time, data1, data2, c1, c2):
+
+    ax2 = ax1.twinx()
+
+    ax1.step(time, data1, color=c1)
+    ax1.set_xlabel('snapshot')
+    ax1.set_ylabel('Demand [MW/Snapshot]')
+
+    ax2.step(time, data2, color=c2)
+    ax2.set_ylabel('Market Clearing Price [€/MW]')
+    return ax1, ax2
+
+
+# Create some mock data
+t = range(len(example.dictPFC))
+s1 = list(example.markets["EOM"]['EOM_DE'].demand.values())
+s2 = example.dictPFC
+# Create axes
+fig, ax = plt.subplots()
+ax1, ax2 = two_scales(ax, t, s1, s2, 'r', 'b')
+
+
+# Change color of each axis
+def color_y_axis(ax, color):
+    """Color your axes."""
+    for t in ax.get_yticklabels():
+        t.set_color(color)
+    return None
+
+color_y_axis(ax1, 'r')
+color_y_axis(ax2, 'b')
+plt.title(example.simulationID)
+plt.show()
+
+#%% Plot network result
+if networkEnabled:
+    colors = {'Waste':'brown',
+              'nuclear':'#FF3232',
+              'lignite':'brown',
+              'hard coal':'k',
+              'combined cycle gas turbine':'#FA964B',
+              'oil':'#000000',
+              'open cycle gas turbine':'#FA964B',
+              'backup':'lightsteelblue',
+              'Hydro':'mediumblue',
+              'Biomass':'#009632',
+              'PV':'#FFCD64',
+              'Wind Onshore':'#AFC4A5',
+              'Wind Offshore':'#AFC4A5',
+              'PSPP_discharge':'#0096E1',
+              'PSPP_charge':'#323296'}
     
-#%% Plot
-colors = {'Waste':'brown',
-          'nuclear':'#FF3232',
-          'lignite':'brown',
-          'hard coal':'k',
-          'combined cycle gas turbine':'#FA964B',
-          'oil':'#000000',
-          'open cycle gas turbine':'#FA964B',
-          'backup':'lightsteelblue',
-          'Hydro':'mediumblue',
-          'Biomass':'#009632',
-          'PV':'#FFCD64',
-          'Wind Onshore':'#AFC4A5',
-          'Wind Offshore':'#AFC4A5',
-          'PSPP_discharge':'#0096E1',
-          'PSPP_charge':'#323296'}
-
-
-p_by_carrier = example.network.generators_t.p.groupby(example.network.generators.carrier, axis=1).sum()
-
-
-cols = ['PSPP_charge','Biomass','nuclear','lignite', 'hard coal','oil', 'backup', 'combined cycle gas turbine',
-         'open cycle gas turbine','PSPP_discharge','PV', 'Wind Onshore', 'Wind Offshore']
-for carrier in list(set(cols)- set(p_by_carrier.columns)):
-    cols.remove(carrier)
-
     
-p_by_carrier = p_by_carrier[cols]
-p_by_carrier['PSPP_charge'] = -p_by_carrier['PSPP_charge']
-fig,ax = plt.subplots(1,1)
-
-fig.set_size_inches(12,6)
-
-(p_by_carrier/1e3).plot(kind="area",ax=ax,
-                        linewidth=0,
-                        color=[colors[col] for col in p_by_carrier.columns],
-                        alpha=0.7)
-
-
-#ax.legend(loc="center left", fancybox=True, shadow=True)
-
-ax.set_ylabel("GW")
-
-# ax.set_xlabel("")
+    p_by_carrier = example.network.generators_t.p.groupby(example.network.generators.carrier, axis=1).sum()
+    
+    
+    cols = ['PSPP_charge','Biomass','nuclear','lignite', 'hard coal','oil', 'backup', 'combined cycle gas turbine',
+             'open cycle gas turbine','PSPP_discharge','PV', 'Wind Onshore', 'Wind Offshore']
+    for carrier in list(set(cols)- set(p_by_carrier.columns)):
+        cols.remove(carrier)
+    
+        
+    p_by_carrier = p_by_carrier[cols]
+    p_by_carrier['PSPP_charge'] = -p_by_carrier['PSPP_charge']
+    fig,ax = plt.subplots(1,1)
+    
+    fig.set_size_inches(12,6)
+    
+    (p_by_carrier/1e3).plot(kind="area",ax=ax,
+                            linewidth=0,
+                            color=[colors[col] for col in p_by_carrier.columns],
+                            alpha=0.7)
+    
+    
+    #ax.legend(loc="center left", fancybox=True, shadow=True)
+    
+    ax.set_ylabel("GW")
+    
+    # ax.set_xlabel("")

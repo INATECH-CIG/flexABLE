@@ -30,6 +30,7 @@ class CRM():
                      "negCRMDemand":{t:[] for t in self.snapshots},
                      "posCRMCall":{t:[] for t in self.snapshots},
                      "negCRMCall":{t:[] for t in self.snapshots}}
+        
         self.marketResults = {"posCRMDemand":{t:0 for t in self.snapshots},
                               "negCRMDemand":{t:0 for t in self.snapshots},
                               "posCRMCall":{t:0 for t in self.snapshots},

@@ -13,11 +13,12 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 class EOM():
-    def __init__(self, name, demand=None, CBtrades=None, networkEnabled=False,  world=None, solver_name='gurobi_direct'):
+    def __init__(self, name, demand=None, CBtrades=None, networkEnabled=False,  world=None, solver_name='gurobi'):
         self.name = name
         self.world=world
         self.snapshots = self.world.snapshots
         self.networkEnabled = networkEnabled
+        
         if demand == None:
             self.demand = {t:0 for t in self.snapshots}
         elif len(demand) != len(self.snapshots):
@@ -33,11 +34,12 @@ class EOM():
         else:
             self.CBtrades = CBtrades
 
-        self.bids = {t:[] for t in self.snapshots}
-        self.marketResults = {}
+        self.bids = []
+        # self.marketResults = {}
         
         self.performance = 0
         self.solver_name = solver_name
+        
     def step(self,t,agents):
         self.collectBids(agents, t)
         if self.networkEnabled:
@@ -46,8 +48,9 @@ class EOM():
             self.marketClearing(t)
         
     def collectBids(self, agents, t):
+        self.bids = []
         for agent in agents.values():
-            self.bids[t].extend(agent.requestBid(t))
+            self.bids.extend(agent.requestBid(t))
 
     def marketClearing(self,t):
         #print(sorted(self.bids[t].values(),key=operator.attrgetter('price')))
@@ -61,7 +64,7 @@ class EOM():
         confirmedBids = []
         rejectedBids = []
         partiallyConfirmedBids = []
-        for b in self.bids[t]:
+        for b in self.bids:
             bidsReceived[b.bidType].append(b)
         bidsReceived["Supply"].append(Bid(issuer = self,
                                           ID = "Bu{}t{}_import".format(self.name,t),
@@ -274,7 +277,7 @@ class EOM():
                        timestamp = t)
 
 
-        self.marketResults[t]=result
+        # self.marketResults[t]=result
         self.world.dictPFC[t] = result.marketClearingPrice
 
     def marketNetworkClearing(self,t):
@@ -304,7 +307,7 @@ class EOM():
         self.world.network.generators.loc[p_nom.keys(),'p_nom'] = pd.Series(p_nom)
         # Attaching marginal costs
         marginal_cost = dict(map(lambda x: [x.ID, x.price], bidsReceived['Supply']))
-        marginal_cost.update(dict(map(lambda x: [x.ID, x.price], bidsReceived['Demand'])))
+        marginal_cost.update(dict(map(lambda x: [x.ID, -x.price], bidsReceived['Demand'])))
         self.world.network.generators.loc[:,'marginal_cost'] = 3000
         self.world.network.generators.loc[marginal_cost.keys(),'marginal_cost'] = pd.Series(marginal_cost)
 
@@ -327,10 +330,13 @@ class EOM():
                 pass
             return powerplant[t]
         
+        # solution = self.world.network.lopf(t, pyomo = False,
+        #                                     solver_name= 'gurobi',
+        #                                     solver_dir = 'Solver',
+        #                                     solver_options={'OutputFlag':0})
+        
         solution= self.world.network.lopf(t,
-                                          solver_name= self.solver_name,
-                                          solver_options={'ResultFile':'model.ilp',
-                                                          'tee':False})
+                                          solver_name= self.solver_name)
         
         self.world.network.lines.s_nom /= 1000
         self.world.network.generators_t.p.iloc[[t],:].T.apply(
@@ -350,6 +356,7 @@ class EOM():
 
         self.marketResults[t]=result
         self.world.dictPFC[t] = result.marketClearingPrice
+        
     def plotResults(self):
         def two_scales(ax1, time, data1, data2, c1, c2):
 

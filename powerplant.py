@@ -74,7 +74,7 @@ class Powerplant():
         else:
             self.marketSuccess.append(0)
         # Checks if the powerplant is shutdown and whether it can start-up
-        if (self.dictCapacity[self.world.currstep] < self.minPower) and self.currentDowntime==0 and self.marketSuccess[-1]>0:
+        if (self.dictCapacity[self.world.currstep] < 1*self.minPower) and self.currentDowntime==0 and self.marketSuccess[-1]>0:
             self.currentStatus = 0
             
         if self.currentStatus == 0:

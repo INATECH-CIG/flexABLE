@@ -151,22 +151,22 @@ class Storage():
             averagePrice = np.mean(self.world.dictPFC[t-self.foresight:t+self.foresight])
             
             
-        if self.world.dictPFC[t] >= 1.1 * averagePrice:
+        if self.world.dictPFC[t] >= averagePrice:
             bidQuantity_supply = min(max((SOC - self.minSOC - self.confQtyCRM_pos[t] * self.world.dt)
-                                         * self.efficiency_discharge / self.world.dt,
-                                         0), self.maxPower_discharge)
+                                          * self.efficiency_discharge / self.world.dt,
+                                          0), self.maxPower_discharge)
             
             bidPrice_supply = averagePrice
             
             if bidQuantity_supply >= self.world.minBidEOM:
                 bidsEOM.append(Bid(issuer = self,
-                                   ID = "{}_supplyEOM".format(self.name),
-                                   price = bidPrice_supply,
-                                   amount = bidQuantity_supply,
-                                   status = "Sent",
-                                   bidType = "Supply"))
+                                    ID = "{}_supplyEOM".format(self.name),
+                                    price = bidPrice_supply,
+                                    amount = bidQuantity_supply,
+                                    status = "Sent",
+                                    bidType = "Supply"))
             
-        elif self.world.dictPFC[t] <= 0.9 * averagePrice:
+        elif self.world.dictPFC[t] < averagePrice:
 
             bidQuantity_demand = min(max((self.maxSOC - SOC - 
                                          self.confQtyCRM_neg[t] * self.world.dt) / self.efficiency_charge / self.world.dt, 0),
@@ -175,6 +175,7 @@ class Storage():
             bidPrice_demand = averagePrice 
             
             if bidQuantity_demand >= self.world.minBidEOM:
+
                 bidsEOM.append(Bid(issuer = self,
                                    ID = "{}_demandEOM".format(self.name),
                                    price = bidPrice_demand,

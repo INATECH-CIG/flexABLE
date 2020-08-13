@@ -67,10 +67,10 @@ class Bid(object):
         elif confirmedAmount == self.amount:
             self.status = "Confirmed"
             self.confirmedAmount = self.amount
-        elif confirmedAmount > self.amount:
+        elif confirmedAmount > self.amount and (confirmedAmount - self.amount) > 1:
             logger.warning("For bid {}, the confirmed amount is greater than offered amount."
                             " Confirmed amount reduced to offered amount."
-                            " This could eventually cause imbalance problem.".format(self.ID))
+                            " This could eventually cause imbalance problem. Amount: {}".format(self.ID,confirmedAmount- self.amount))
             self.confirmedAmount = self.amount
 
 

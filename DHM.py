@@ -20,14 +20,15 @@ class DHM():
         self.name=name
         for region,demand in self.annualDemand.iterrows():
             self.HLP_DH[region] = self.HLP_DH[region]*demand['Demand']
-        self.bids = {t:[] for t in self.world.snapshots}
-        self.marketResults= {}
+            
+        # self.bids = {t:[] for t in self.world.snapshots}
+        # self.marketResults= {}
         self.heatingDistricts = {}
         self.performance = 0
         
     def collectBids(self, agents, t):
         for agent in agents.values():
-            self.bids[t].extend(agent.requestBid(t))
+            self.bids.extend(agent.requestBid(t))
             
     def step(self, t):
         '''
@@ -38,16 +39,18 @@ class DHM():
         # the whole powerplant list)
         if t == self.world.snapshots[0]:
             self.heatingDistricts = {region:[] for region in set([i.heatingDistrict for i in self.world.powerplants])}
-            self.marketResults= {region:{} for region in set([i.heatingDistrict for i in self.world.powerplants])}
-            self.bids = {region:{t:[] for t in self.world.snapshots} for region in set([i.heatingDistrict for i in self.world.powerplants])}
+            # self.marketResults= {region:{} for region in set([i.heatingDistrict for i in self.world.powerplants])}
+            self.bids = {region:[] for region in set([i.heatingDistrict for i in self.world.powerplants])}
             for powerplant in self.world.powerplants:
                 if powerplant.heatExtraction:
                     if powerplant.maxExtraction > 0:
                         self.heatingDistricts[powerplant.heatingDistrict].append(powerplant)
 
+        self.bids = {region:[] for region in self.bids.keys()}
+        
         for region in self.heatingDistricts.keys():
             for powerplant in self.heatingDistricts[region]:
-                self.bids[region][t].extend(powerplant.requestBid(t, market='DHM')) 
+                self.bids[region].extend(powerplant.requestBid(t, market='DHM')) 
             self.marketClearing(t, region)
             
 
@@ -63,7 +66,7 @@ class DHM():
         confirmedBids = []
         rejectedBids = []
         partiallyConfirmedBids = []
-        for b in self.bids[region][t]:
+        for b in self.bids[region]:
             bidsReceived[b.bidType].append(b)
 
         bidsReceived["Supply"].sort(key=operator.attrgetter('price'),
@@ -254,7 +257,7 @@ class DHM():
                        timestamp=t)
     
     
-        self.marketResults[region][t]=result
+        # self.marketResults[region][t]=result
     def feedback(self,award):
         self.performance +=award
         

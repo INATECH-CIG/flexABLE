@@ -17,13 +17,19 @@ import logging
 import pypsa
 pypsa.pf.logger.setLevel(logging.ERROR)
 pypsa.opf.logger.setLevel(logging.ERROR)
+pypsa.linopf.logger.setLevel(logging.ERROR)
+
+
 import seaborn as sns
 import matplotlib.pyplot as plt
 sns.set_style('ticks')
 
+from datetime import datetime
+
 logger = logging.getLogger("flexABLE")
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('pyomo.core').setLevel(logging.ERROR)
+
 
 
 class World():
@@ -132,6 +138,7 @@ class World():
         if not(self.networkEnabled):           
             vrepowerplantFeedIn =pd.read_csv('input/{}/FES_DE.csv'.format(scenario),
                                              index_col=0,
+                                             nrows=len(self.snapshots),
                                              encoding="Latin-1")
             self.addAgent('Renewables')
             for _ in vrepowerplantFeedIn:
@@ -310,32 +317,35 @@ class World():
                                   sign=-1,
                                   p_min_pu=0,
                                   p_max_pu=1)
-                for _ in storageList.company.unique():
-                    if _ not in self.agents:
-                        self.addAgent(_)
-                        
-                for storage, data in storageList.iterrows():
-                    self.agents[data['company']].addStorage(storage,**dict(data))
+                            
             logger.info("Network Loaded.")
         
 if __name__=="__main__":
+    start = datetime.now()
+    print('Started at:', start)
+    
     logger.info("Script started")
-    snapLength = 16*1
-    example = World(snapLength, networkEnabled=True)
+
+    snapLength = 96*15
+    example = World(snapLength, networkEnabled=False)
     
     pfc = pd.read_csv("input/2016/PFC_run1.csv", nrows = snapLength, index_col=0)
-    example.dictPFC = list(pfc['price'])
     
-    example.loadScenario(scenario='2015_Network', importStorages=True, importCRM=True, addBackup=True)
+    example.dictPFC = list(pfc['price'])
 
+    example.loadScenario(scenario='2015_Network', importStorages=True, importCRM=True, addBackup=False)
 
     example.runSimulation()
     
+    finished = datetime.now()
+    print('Finished at:', finished)
+    print('Simulation time:', finished - start)#
+    
     example.markets["EOM"]['EOM_DE'].plotResults()
 
-    #example.storages[0].plotResults()
+    example.storages[0].plotResults()
     example.powerplants[0].plotResults()
-    example.powerplants[1].plotResults()
+    #example.powerplants[1].plotResults()
     # example.powerplants[1].plotResults()
     
 #%% Plot
@@ -377,7 +387,7 @@ fig.set_size_inches(12,6)
                         alpha=0.7)
 
 
-ax.legend(loc="center left", fancybox=True, shadow=True)
+#ax.legend(loc="center left", fancybox=True, shadow=True)
 
 ax.set_ylabel("GW")
 

@@ -29,7 +29,7 @@ from datetime import datetime
 logger = logging.getLogger("flexABLE")
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('pyomo.core').setLevel(logging.ERROR)
-logging.getLogger('numexpr.utils'
+logging.getLogger('numexpr.utils').setLevel(logging.ERROR)
 
 
 

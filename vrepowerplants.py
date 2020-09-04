@@ -83,7 +83,8 @@ class VREPowerplant():
                                 amount = bidQuantity_mr,
                                 status = "Sent",
                                 bidType = "Supply",
-                                node = self.node))
+                                node = self.node,
+                                redispatch_price=-500))
 
         return bids
     

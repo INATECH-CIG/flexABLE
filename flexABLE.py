@@ -264,11 +264,11 @@ class World():
                               bus1=lines.bus1,
                               x= lines.x,
                               r= lines.r,
-                              s_nom= lines.s_nom,
-                              s_nom_extendable=True,
-                              s_nom_max=lines.s_nom*2,
+                              s_nom= lines.s_nom*1000,
+                              s_nom_extendable=False,
+                              s_nom_max=lines.s_nom*1.2,
                               s_nom_min=lines.s_nom,
-                              capital_cost=10000)
+                              capital_cost=20000)
             self.network.madd('Load',
                               nodes.index,
                               suffix='_load',
@@ -321,7 +321,7 @@ class World():
                                       p_nom=data.PV,
                                       p_min_pu=-1,
                                       p_max_pu=0,
-                                      marginal_cost=50,
+                                      marginal_cost=-500,
                                       carrier='PV')
                     self.agents['Renewables'].addVREPowerplant("{}_PV".format(_),
                                                                FeedInTimeseries=(PV_CF[str(data.region)]*data.PV).to_list(),
@@ -333,7 +333,7 @@ class World():
                                       p_nom=data.windOff,
                                       p_min_pu=-1,
                                       p_max_pu=0,
-                                      marginal_cost=50,
+                                      marginal_cost=-500,
                                       carrier='Wind Offshore')
                     self.agents['Renewables'].addVREPowerplant("{}_windOff".format(_),
                                                                FeedInTimeseries=(wind_CF[str(_)]*data.windOff).to_list(),
@@ -345,7 +345,7 @@ class World():
                                       p_nom=data.windOn,
                                       p_min_pu=-1,
                                       p_max_pu=0,
-                                      marginal_cost=50,
+                                      marginal_cost=-500,
                                       carrier='Wind Onshore')
                     self.agents['Renewables'].addVREPowerplant("{}_windOn".format(_),
                                                                FeedInTimeseries=(wind_CF[str(_)]*data.windOn).to_list(),
@@ -365,7 +365,7 @@ class World():
             if importStorages: 
                 self.network.madd('Generator',
                                   storageList.index,
-                                  suffix='_supplyEOM',
+                                  suffix='_supplyEOM_posRedis',
                                   carrier= 'PSPP_discharge',
                                   bus=storageList.node,
                                   p_nom=0,
@@ -374,13 +374,13 @@ class World():
                                   p_max_pu=1)
                 self.network.madd('Generator',
                                   storageList.index,
-                                  suffix='_demandEOM',
+                                  suffix='_demandEOM_negRedis',
                                   carrier= 'PSPP_charge',
                                   bus=storageList.node,
                                   p_nom=0,
-                                  sign=-1,
-                                  p_min_pu=0,
-                                  p_max_pu=1)
+                                  sign=1,
+                                  p_min_pu=-1,
+                                  p_max_pu=0)
                             
             logger.info("Network Loaded.")
         
@@ -390,7 +390,7 @@ if __name__=="__main__":
     
     logger.info("Script started")
 
-    snapLength = 96*365
+    snapLength = 16*1
     networkEnabled=True
     importStorages=True
     importCRM=True
@@ -466,7 +466,7 @@ if networkEnabled:
               'PSPP_discharge':'#0096E1',
               'PSPP_charge':'#323296'}
     
-    
+    colors = {**{f'{k}_A': v for k, v in colors.items()},**{f'{k}_B': v for k, v in colors.items()}}
     p_by_carrier = example.network.generators_t.p.groupby(example.network.generators.carrier, axis=1).sum()
     
     
@@ -481,22 +481,14 @@ if networkEnabled:
     fig,ax = plt.subplots(1,1)
     
     fig.set_size_inches(12,6)
-    
-    # (p_by_carrier/1e3).plot(kind="area",ax=ax,
-    #                         linewidth=0,
-    #                         color=[colors[col] for col in p_by_carrier.columns],
-    #                         alpha=0.7)
-    
-    p_by_carrier[p_by_carrier>=0].plot(kind="area",ax=ax,
+
+    p_by_carrier=p_by_carrier[p_by_carrier>=0].join(p_by_carrier[p_by_carrier<0], lsuffix="_A", rsuffix="_B")
+    p_by_carrier.plot(kind="area",ax=ax,
                             linewidth=0,
                             color=[colors[col] for col in p_by_carrier.columns],
                             alpha=0.7)
-    p_by_carrier[p_by_carrier<=0].plot(kind="area",ax=ax,
-                            linewidth=0,
-                            color=[colors[col] for col in p_by_carrier.columns],
-                            alpha=0.7)
-    #ax.legend(loc="center left", fancybox=True, shadow=True)
     
     ax.set_ylabel("GW")
-    
-    # ax.set_xlabel("")
+    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
+    ax.set_xlim(0,snapLength-1)
+    plt.tight_layout()

@@ -33,7 +33,8 @@ class Powerplant():
                 company='UNIPER',
                 year=1988,
                 node='Bus_DE',
-                world=None):
+                world=None,
+                Redispatch=False):
 
         # bids status parameters
         self.dictCapacity = {n:0 for n in self.world.snapshots}

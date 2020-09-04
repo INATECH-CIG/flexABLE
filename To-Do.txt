@@ -14,3 +14,5 @@ To-dos:
 Changelog:
     20.Aug : Added a redispatch price to the bids, which is automatically set to bid price if not assigned explicitly, this would allow
     us later on to examine market "arbitrage"
+    
+    04.Sept : Added a flag parameter to powerplants allowing them to either participate in redispatch or not

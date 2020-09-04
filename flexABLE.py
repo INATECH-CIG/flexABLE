@@ -1,35 +1,68 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Apr  19 15:56:51 2020
+Copyright 2019-2020
 
-@author: intgridnb-02
+Ramiz Qussous (INATECH - University of Freibug)
+Nick Harder (INATECH - University of Freibug)
+Dr. Thomas Künzel (Fichtner GmbH & Co. KG. - Hochschule Offenburg )
+Prof. Dr. Anke Weidlich (INATECH - University of Freibug - Hochschule Offenburg)
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 3 of the
+License, or (at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+# Importing classes
 import agent
 import EOM
 import DHM
-#from loggingGUI import logger
+import CRM
+
 import pandas as pd
 from tqdm import tqdm
-import CRM
+
 #from NetworkOperator import NetworkOperator
+# Managing the logger and TQDM, PyPSA had to be imported after logging to set
+# logging level correctly
 import logging
 import pypsa
 pypsa.pf.logger.setLevel(logging.ERROR)
 pypsa.opf.logger.setLevel(logging.ERROR)
 pypsa.linopf.logger.setLevel(logging.ERROR)
-
-
-import seaborn as sns
-import matplotlib.pyplot as plt
-sns.set_style('ticks')
-
-from datetime import datetime
-
 logger = logging.getLogger("flexABLE")
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('pyomo.core').setLevel(logging.ERROR)
 logging.getLogger('numexpr.utils').setLevel(logging.ERROR)
+class TqdmLoggingHandler(logging.Handler):
+    def __init__(self, level=logging.NOTSET):
+        super().__init__(level)
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            tqdm.tqdm.write(msg)
+            self.flush()
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            self.handleError(record) 
+log = logging.getLogger (__name__)
+log.setLevel (logging.INFO)
+log.addHandler (TqdmLoggingHandler ())
+
+
+from datetime import datetime
+# Plotting packages
+import seaborn as sns
+import matplotlib.pyplot as plt
+sns.set_style('ticks')
 
 
 
@@ -231,15 +264,25 @@ class World():
                               bus1=lines.bus1,
                               x= lines.x,
                               r= lines.r,
-                              s_nom= lines.s_nom)
+                              s_nom= lines.s_nom,
+                              s_nom_extendable=True,
+                              s_nom_max=lines.s_nom*2,
+                              s_nom_min=lines.s_nom,
+                              capital_cost=10000)
             self.network.madd('Load',
                               nodes.index,
                               suffix='_load',
                               bus=nodes.index,
                               p_set=load_distribution.mul(demand.demand,axis=0))
+            self.network.madd('Load',
+                              nodes.index,
+                              suffix='_mcFeedIn',
+                              sign=1,
+                              bus=nodes.index,
+                              p_set=0)
             self.network.madd('Generator',
                               powerplantsList.index,
-                              suffix='_mrEOM',
+                              suffix='_mrEOM_posRedis',
                               carrier= powerplantsList.technology,
                               bus=powerplantsList.node,
                               p_nom=powerplantsList.maxPower,
@@ -247,58 +290,78 @@ class World():
                               p_max_pu=1)
             self.network.madd('Generator',
                               powerplantsList.index,
-                              suffix='_flexEOM',
+                              suffix='_flexEOM_posRedis',
                               carrier= powerplantsList.technology,
                               bus=powerplantsList.node,
                               p_nom=powerplantsList.maxPower,
                               p_min_pu=0,
                               p_max_pu=1)
+            self.network.madd('Generator',
+                              powerplantsList.index,
+                              suffix='_mrEOM_negRedis',
+                              carrier= powerplantsList.technology,
+                              bus=powerplantsList.node,
+                              p_nom=powerplantsList.maxPower,
+                              p_min_pu=-1,
+                              p_max_pu=0)
+            self.network.madd('Generator',
+                              powerplantsList.index,
+                              suffix='_flexEOM_negRedis',
+                              carrier= powerplantsList.technology,
+                              bus=powerplantsList.node,
+                              p_nom=powerplantsList.maxPower,
+                              p_min_pu=-1,
+                              p_max_pu=0)
             self.addAgent('Renewables')
             for _ , data in nodes.iterrows():
                 if data.PV:
                     self.network.add('Generator',
-                                      "{}_PV".format(_),
+                                      "{}_PV_negRedis".format(_),
                                       bus=_,
                                       p_nom=data.PV,
-                                      p_min_pu=0,
-                                      p_max_pu=1,
-                                      marginal_cost=0,
+                                      p_min_pu=-1,
+                                      p_max_pu=0,
+                                      marginal_cost=50,
                                       carrier='PV')
                     self.agents['Renewables'].addVREPowerplant("{}_PV".format(_),
-                                                               FeedInTimeseries=(PV_CF[str(data.region)]*data.PV).to_list())
+                                                               FeedInTimeseries=(PV_CF[str(data.region)]*data.PV).to_list(),
+                                                               node=_)
                 if data.windOff:
                     self.network.add('Generator',
-                                      "{}_windOff".format(_),
+                                      "{}_windOff_negRedis".format(_),
                                       bus=_,
                                       p_nom=data.windOff,
-                                      p_min_pu=0,
-                                      p_max_pu=1,
-                                      marginal_cost=0,
+                                      p_min_pu=-1,
+                                      p_max_pu=0,
+                                      marginal_cost=50,
                                       carrier='Wind Offshore')
                     self.agents['Renewables'].addVREPowerplant("{}_windOff".format(_),
-                                                               FeedInTimeseries=(wind_CF[str(_)]*data.windOff).to_list())
+                                                               FeedInTimeseries=(wind_CF[str(_)]*data.windOff).to_list(),
+                                                               node=_)
                 if data.windOn:
                     self.network.add('Generator',
-                                      "{}_windOn".format(_),
+                                      "{}_windOn_negRedis".format(_),
                                       bus=_,
                                       p_nom=data.windOn,
-                                      p_min_pu=0,
-                                      p_max_pu=1,
-                                      marginal_cost=0,
+                                      p_min_pu=-1,
+                                      p_max_pu=0,
+                                      marginal_cost=50,
                                       carrier='Wind Onshore')
                     self.agents['Renewables'].addVREPowerplant("{}_windOn".format(_),
-                                                               FeedInTimeseries=(wind_CF[str(_)]*data.windOn).to_list())
-                if data.BIO:
-                    self.network.add('Generator',
-                                      "{}_Bio".format(_),
-                                      bus=_,
-                                      p_nom=data.BIO,
-                                      p_min_pu=0,
-                                      p_max_pu=1,
-                                      marginal_cost=0,
-                                      carrier='Biomass')
-                    self.agents['Renewables'].addVREPowerplant("{}_Bio".format(_),
-                                                               FeedInTimeseries=[data.BIO]*len(self.snapshots))   
+                                                               FeedInTimeseries=(wind_CF[str(_)]*data.windOn).to_list(),
+                                                               node=_)
+                # if data.BIO:
+                #     self.networ02k.add('Generator',
+                #                       "{}_Bio".format(_),
+                #                       bus=_,
+                #                       p_nom=data.BIO,
+                #                       p_min_pu=0,
+                #                       p_max_pu=1,
+                #                       marginal_cost=0,
+                #                       carrier='Biomass')
+                #     self.agents['Renewables'].addVREPowerplant("{}_Bio".format(_),
+                #                                                FeedInTimeseries=[data.BIO]*len(self.snapshots),
+                #                                                node=_)   
             if importStorages: 
                 self.network.madd('Generator',
                                   storageList.index,
@@ -327,15 +390,18 @@ if __name__=="__main__":
     
     logger.info("Script started")
 
-    snapLength = 96*1
-    networkEnabled=False
+    snapLength = 96*365
+    networkEnabled=True
+    importStorages=True
+    importCRM=True
+    addBackup=False
     example = World(snapLength, networkEnabled=networkEnabled)
     
     pfc = pd.read_csv("input/2016/PFC_run1.csv", nrows = snapLength, index_col=0)
     
     example.dictPFC = list(pfc['price'])
 
-    example.loadScenario(scenario='2015_Network', importStorages=True, importCRM=True, addBackup=False)
+    example.loadScenario(scenario='2015_Network', importStorages=importStorages, importCRM=importCRM, addBackup=addBackup)
 
     example.runSimulation()
     
@@ -343,46 +409,44 @@ if __name__=="__main__":
     print('Finished at:', finished)
     print('Simulation time:', finished - start)#
     
-    
-    plt.plot(example.dictPFC)
-    
-    example.storages[0].plotResults()
+    if importStorages:   
+        example.storages[0].plotResults()
     example.powerplants[0].plotResults()
 
-#%% plot EOM prices
-def two_scales(ax1, time, data1, data2, c1, c2):
-
-    ax2 = ax1.twinx()
-
-    ax1.step(time, data1, color=c1)
-    ax1.set_xlabel('snapshot')
-    ax1.set_ylabel('Demand [MW/Snapshot]')
-
-    ax2.step(time, data2, color=c2)
-    ax2.set_ylabel('Market Clearing Price [€/MW]')
-    return ax1, ax2
-
-
-# Create some mock data
-t = range(len(example.dictPFC))
-s1 = list(example.markets["EOM"]['EOM_DE'].demand.values())
-s2 = example.dictPFC
-# Create axes
-fig, ax = plt.subplots()
-ax1, ax2 = two_scales(ax, t, s1, s2, 'r', 'b')
-
-
-# Change color of each axis
-def color_y_axis(ax, color):
-    """Color your axes."""
-    for t in ax.get_yticklabels():
-        t.set_color(color)
-    return None
-
-color_y_axis(ax1, 'r')
-color_y_axis(ax2, 'b')
-plt.title(example.simulationID)
-plt.show()
+    #%% plot EOM prices
+    def two_scales(ax1, time, data1, data2, c1, c2):
+    
+        ax2 = ax1.twinx()
+    
+        ax1.step(time, data1, color=c1)
+        ax1.set_xlabel('snapshot')
+        ax1.set_ylabel('Demand [MW/Snapshot]')
+    
+        ax2.step(time, data2, color=c2)
+        ax2.set_ylabel('Market Clearing Price [€/MW]')
+        return ax1, ax2
+    
+    
+    # Create some mock data
+    t = range(len(example.dictPFC)-4)
+    s1 = list(example.markets["EOM"]['EOM_DE'].demand.values())[:-4]
+    s2 = example.dictPFC[:-4]
+    # Create axes
+    fig, ax = plt.subplots()
+    ax1, ax2 = two_scales(ax, t, s1, s2, 'r', 'b')
+    
+    
+    # Change color of each axis
+    def color_y_axis(ax, color):
+        """Color your axes."""
+        for t in ax.get_yticklabels():
+            t.set_color(color)
+        return None
+    
+    color_y_axis(ax1, 'r')
+    color_y_axis(ax2, 'b')
+    plt.title(example.simulationID)
+    plt.show()
 
 #%% Plot network result
 if networkEnabled:
@@ -418,12 +482,19 @@ if networkEnabled:
     
     fig.set_size_inches(12,6)
     
-    (p_by_carrier/1e3).plot(kind="area",ax=ax,
+    # (p_by_carrier/1e3).plot(kind="area",ax=ax,
+    #                         linewidth=0,
+    #                         color=[colors[col] for col in p_by_carrier.columns],
+    #                         alpha=0.7)
+    
+    p_by_carrier[p_by_carrier>=0].plot(kind="area",ax=ax,
                             linewidth=0,
                             color=[colors[col] for col in p_by_carrier.columns],
                             alpha=0.7)
-    
-    
+    p_by_carrier[p_by_carrier<=0].plot(kind="area",ax=ax,
+                            linewidth=0,
+                            color=[colors[col] for col in p_by_carrier.columns],
+                            alpha=0.7)
     #ax.legend(loc="center left", fancybox=True, shadow=True)
     
     ax.set_ylabel("GW")

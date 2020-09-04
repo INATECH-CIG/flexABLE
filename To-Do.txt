@@ -5,8 +5,12 @@ To-dos:
 
     - Currently Import and Export will be dealt with as exogenous bids
         - This could be addressed later by doing an Abstract Merit order model to clear external zones and add all their extra bids
+    
+    - Add possibility to start and end at any point in the year
         
     EOM:
         - since the world is being referenced now, snapshot object should not be passed since we can always access it though self.world.snapshots
         
-    
+Changelog:
+    20.Aug : Added a redispatch price to the bids, which is automatically set to bid price if not assigned explicitly, this would allow
+    us later on to examine market "arbitrage"

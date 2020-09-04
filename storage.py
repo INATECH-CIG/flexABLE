@@ -164,7 +164,8 @@ class Storage():
                                     price = bidPrice_supply,
                                     amount = bidQuantity_supply,
                                     status = "Sent",
-                                    bidType = "Supply"))
+                                    bidType = "Supply",
+                                    node = self.node))
             
         elif self.world.dictPFC[t] < averagePrice:
 

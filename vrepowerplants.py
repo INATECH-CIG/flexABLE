@@ -32,7 +32,7 @@ class VREPowerplant():
                 heatingDistrict='BW',
                 company='UNIPER',
                 year=1988,
-                Node='Bus_DE',
+                node='Bus_DE',
                 world=None,
                 FeedInTimeseries=0):
 
@@ -82,7 +82,8 @@ class VREPowerplant():
                                 price = bidPrice_mr,
                                 amount = bidQuantity_mr,
                                 status = "Sent",
-                                bidType = "Supply"))
+                                bidType = "Supply",
+                                node = self.node))
 
         return bids
     

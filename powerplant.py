@@ -125,7 +125,8 @@ class Powerplant():
                                 price = bidPrice_mr,
                                 amount = bidQuantity_mr,
                                 status = "Sent",
-                                bidType = "Supply"))
+                                bidType = "Supply",
+                                node = self.node))
                 
             if bidQuantity_flex !=0:
                 bids.append(Bid(issuer = self,
@@ -134,7 +135,8 @@ class Powerplant():
                                 price = bidPrice_flex,
                                 amount = bidQuantity_flex,
                                 status = "Sent",
-                                bidType = "Supply"))
+                                bidType = "Supply",
+                                node = self.node))
         elif market=="DHM": 
             bids.extend(self.calculateBidDHM(t))
 
@@ -345,26 +347,30 @@ class Powerplant():
                                price = heatPrice_process,
                                amount = heatExtraction_process,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
             bidsDHM.append(Bid(issuer = self,
                                ID = "Bu{}t{}_auxFi".format(self.name,t),
                                price = heatPrice_auxFiring,
                                amount = heatExtraction_auxFiring,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
         else:
             bidsDHM.append(Bid(issuer = self,
                                ID = "Bu{}t{}_steam".format(self.name,t),
                                price = 0,
                                amount = 0,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
             bidsDHM.append(Bid(issuer = self,
                                ID = "Bu{}t{}_auxFi".format(self.name,t),
                                price = 0,
                                amount = 0,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
     
         return bidsDHM
 
@@ -401,7 +407,8 @@ class Powerplant():
                                amount = bidQuantityBPM_pos,
                                energyPrice = energyPrice,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
 
         else:
             bidsCRM.append(Bid(issuer=self,
@@ -410,7 +417,8 @@ class Powerplant():
                                amount = 0,
                                energyPrice = 0,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
     
         return bidsCRM
 
@@ -445,7 +453,8 @@ class Powerplant():
                                amount = bidQtyCRM_neg,
                                energyPrice = energyPrice,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
         else:
             bidsCRM.append(Bid(issuer=self,
                                ID = "Bu{}t{}_CRMNegDem".format(self.name,t),
@@ -453,7 +462,8 @@ class Powerplant():
                                amount = 0,
                                energyPrice = 0,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
         #bidsCRM = []
         return bidsCRM
 

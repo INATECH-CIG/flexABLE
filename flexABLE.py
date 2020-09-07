@@ -264,7 +264,7 @@ class World():
                               bus1=lines.bus1,
                               x= lines.x,
                               r= lines.r,
-                              s_nom= lines.s_nom*1000,
+                              s_nom= lines.s_nom,
                               s_nom_extendable=False,
                               s_nom_max=lines.s_nom*1.2,
                               s_nom_min=lines.s_nom,
@@ -283,7 +283,7 @@ class World():
             self.network.madd('Generator',
                               powerplantsList.index,
                               suffix='_mrEOM_posRedis',
-                              carrier= powerplantsList.technology,
+                              carrier= powerplantsList.technology + '_pos',
                               bus=powerplantsList.node,
                               p_nom=powerplantsList.maxPower,
                               p_min_pu=0,
@@ -291,7 +291,7 @@ class World():
             self.network.madd('Generator',
                               powerplantsList.index,
                               suffix='_flexEOM_posRedis',
-                              carrier= powerplantsList.technology,
+                              carrier= powerplantsList.technology + '_pos',
                               bus=powerplantsList.node,
                               p_nom=powerplantsList.maxPower,
                               p_min_pu=0,
@@ -299,7 +299,7 @@ class World():
             self.network.madd('Generator',
                               powerplantsList.index,
                               suffix='_mrEOM_negRedis',
-                              carrier= powerplantsList.technology,
+                              carrier= powerplantsList.technology + '_neg',
                               bus=powerplantsList.node,
                               p_nom=powerplantsList.maxPower,
                               p_min_pu=-1,
@@ -307,7 +307,7 @@ class World():
             self.network.madd('Generator',
                               powerplantsList.index,
                               suffix='_flexEOM_negRedis',
-                              carrier= powerplantsList.technology,
+                              carrier= powerplantsList.technology + '_neg',
                               bus=powerplantsList.node,
                               p_nom=powerplantsList.maxPower,
                               p_min_pu=-1,
@@ -365,22 +365,22 @@ class World():
             if importStorages: 
                 self.network.madd('Generator',
                                   storageList.index,
-                                  suffix='_supplyEOM_posRedis',
+                                  suffix='_supplyEOM_negRedis',
                                   carrier= 'PSPP_discharge',
-                                  bus=storageList.node,
-                                  p_nom=0,
-                                  sign=1,
-                                  p_min_pu=0,
-                                  p_max_pu=1)
-                self.network.madd('Generator',
-                                  storageList.index,
-                                  suffix='_demandEOM_negRedis',
-                                  carrier= 'PSPP_charge',
                                   bus=storageList.node,
                                   p_nom=0,
                                   sign=1,
                                   p_min_pu=-1,
                                   p_max_pu=0)
+                self.network.madd('Generator',
+                                  storageList.index,
+                                  suffix='_demandEOM_posRedis',
+                                  carrier= 'PSPP_charge',
+                                  bus=storageList.node,
+                                  p_nom=0,
+                                  sign=1,
+                                  p_min_pu=0,
+                                  p_max_pu=1)
                             
             logger.info("Network Loaded.")
         
@@ -392,8 +392,8 @@ if __name__=="__main__":
 
     snapLength = 16*1
     networkEnabled=True
-    importStorages=True
-    importCRM=True
+    importStorages=False
+    importCRM=False
     addBackup=False
     example = World(snapLength, networkEnabled=networkEnabled)
     
@@ -412,7 +412,7 @@ if __name__=="__main__":
     if importStorages:   
         example.storages[0].plotResults()
     example.powerplants[0].plotResults()
-
+    example.powerplants[1].plotResults()
     #%% plot EOM prices
     def two_scales(ax1, time, data1, data2, c1, c2):
     
@@ -466,23 +466,25 @@ if networkEnabled:
               'PSPP_discharge':'#0096E1',
               'PSPP_charge':'#323296'}
     
-    colors = {**{f'{k}_A': v for k, v in colors.items()},**{f'{k}_B': v for k, v in colors.items()}}
+    colors = {**{f'{k}_pos': v for k, v in colors.items()},**{f'{k}_neg': v for k, v in colors.items()}}
     p_by_carrier = example.network.generators_t.p.groupby(example.network.generators.carrier, axis=1).sum()
     
     
     cols = ['PSPP_charge','Biomass','nuclear','lignite', 'hard coal','oil', 'backup', 'combined cycle gas turbine',
              'open cycle gas turbine','PSPP_discharge','PV', 'Wind Onshore', 'Wind Offshore']
+    cols = [*[f'{k}_pos' for k in cols],*[f'{k}_neg' for k in cols]]
     for carrier in list(set(cols)- set(p_by_carrier.columns)):
         cols.remove(carrier)
     
         
     p_by_carrier = p_by_carrier[cols]
-    p_by_carrier['PSPP_charge'] = -p_by_carrier['PSPP_charge']
+    if importStorages:
+        p_by_carrier['PSPP_charge'] = -p_by_carrier['PSPP_charge']
     fig,ax = plt.subplots(1,1)
     
     fig.set_size_inches(12,6)
 
-    p_by_carrier=p_by_carrier[p_by_carrier>=0].join(p_by_carrier[p_by_carrier<0], lsuffix="_A", rsuffix="_B")
+    #p_by_carrier=p_by_carrier[p_by_carrier>=0].join(p_by_carrier[p_by_carrier<0], lsuffix="_A", rsuffix="_B")
     p_by_carrier.plot(kind="area",ax=ax,
                             linewidth=0,
                             color=[colors[col] for col in p_by_carrier.columns],

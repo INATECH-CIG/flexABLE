@@ -514,14 +514,14 @@ class Powerplant():
     
         return listPFC
     
-    def plotResults(self):
-        plt.figure()
-        plt.step(range(len(self.world.snapshots)), list(self.dictCapacity.values())[0:-1],'r-', label='Total Capacity')
-        plt.step(range(len(self.world.snapshots)), [-_ for _ in list(self.confQtyCRM_neg.values())],'b--', label='Negative CRM')
-        plt.step(range(len(self.world.snapshots)), list(self.confQtyCRM_pos.values()),'g--',  label='Positive CRM')
-        plt.step(range(len(self.world.snapshots)),[self.maxPower for _ in range(len(self.world.snapshots))],'r:', label='Maximum Power')
-        plt.step(range(len(self.world.snapshots)),[self.minPower for _ in range(len(self.world.snapshots))],'r:', label='Minimum Power')
-        plt.ylabel('Power [MW]')
-        plt.title(self.name)
-        plt.legend()
-        plt.show()
+    def plotResults(self, ax=None, legend=True, **kwargs):
+        ax = ax or plt.gci()
+        ax.step(range(len(self.world.snapshots)), list(self.dictCapacity.values())[0:-1],'r-', label='Total Capacity')
+        ax.step(range(len(self.world.snapshots)), [-_ for _ in list(self.confQtyCRM_neg.values())],'b--', label='Negative CRM')
+        ax.step(range(len(self.world.snapshots)), list(self.confQtyCRM_pos.values()),'g--',  label='Positive CRM')
+        ax.step(range(len(self.world.snapshots)),[self.maxPower for _ in range(len(self.world.snapshots))],'r:', label='Maximum Power')
+        ax.step(range(len(self.world.snapshots)),[self.minPower for _ in range(len(self.world.snapshots))],'r:', label='Minimum Power')
+        ax.set_ylabel('Power [MW]')
+        ax.set_title(self.name)
+        if legend: ax.legend()
+        return ax

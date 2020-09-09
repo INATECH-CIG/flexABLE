@@ -489,11 +489,13 @@ class EOM():
             perNodeGeneration = dict([(k, sum([x for _, x in g])) for k, g in groupby(perNodeGeneration, itemgetter(0))])
             del perNodeGeneration['DefaultNode_mcFeedIn']
             
+            # The original load should be set to Zero before re-assigning values to avoid having values from earlier steps
+            self.world.network.loads.p_set = 0
             self.world.network.loads.loc[perNodeGeneration.keys(),'p_set'] = pd.Series(perNodeGeneration)
             
             neg_redispatch = dict(map(lambda x: ['{}_negRedis'.format(x.ID), x.confirmedAmount], confirmedBidsSupply))
             self.world.network.generators.loc[self.world.network.generators.index.str.contains('_negRedis'),'p_nom'] = pd.Series(neg_redispatch)
-            marginal_cost = dict(map(lambda x: ['{}_negRedis'.format(x.ID), x.redispatch_price], confirmedBidsSupply))
+            marginal_cost = dict(map(lambda x: ['{}_negRedis'.format(x.ID), -mcp], confirmedBidsSupply))
             self.world.network.generators.loc[self.world.network.generators.index.str.contains('_negRedis'),'marginal_cost'] = pd.Series(marginal_cost)
             
             pos_redispatch_bids = rejectedBids + confirmedBids

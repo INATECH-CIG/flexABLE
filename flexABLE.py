@@ -287,7 +287,7 @@ class World():
                                   p_min_pu=0,
                                   p_max_pu=1,
                                   sign=-1,
-                                  marginal_cost=nodes[nodes.country !='DE'].averageMC,
+                                  marginal_cost=-nodes[nodes.country !='DE'].averageMC,
                                   carrier='Import')
             self.network.madd('Line',
                               lines.index,
@@ -396,37 +396,52 @@ class World():
             if importStorages: 
                 self.network.madd('Generator',
                                   storageList.index,
-                                  suffix='_supplyEOM_negRedis',
-                                  carrier= 'PSPP_discharge_neg',
+                                  suffix='_supplyEOM_posRedis',
+                                  carrier= 'PSPP_discharge_pos',
                                   bus=storageList.node,
                                   p_nom=0,
-                                  sign=1,
-                                  p_min_pu=-1,
-                                  p_max_pu=0)
+                                  p_min_pu=0,
+                                  p_max_pu=1)
                 self.network.madd('Generator',
                                   storageList.index,
                                   suffix='_demandEOM_posRedis',
                                   carrier= 'PSPP_charge_pos',
                                   bus=storageList.node,
                                   p_nom=0,
-                                  sign=1,
+                                  sign=-1,
+                                  p_min_pu=-1,
+                                  p_max_pu=0)
+                self.network.madd('Generator',
+                                  storageList.index,
+                                  suffix='_supplyEOM_negRedis',
+                                  carrier= 'PSPP_discharge_neg',
+                                  bus=storageList.node,
+                                  p_nom=0,
+                                  p_min_pu=-1,
+                                  p_max_pu=0)
+                self.network.madd('Generator',
+                                  storageList.index,
+                                  suffix='_demandEOM_negRedis',
+                                  carrier= 'PSPP_charge_neg',
+                                  bus=storageList.node,
+                                  p_nom=0,
+                                  sign=-1,
                                   p_min_pu=0,
                                   p_max_pu=1)
-                            
             logger.info("Network Loaded.")
         
 if __name__=="__main__":
     start = datetime.now()
-    print('Started at:', start)
+    logger.info('Started at: {}'.format(start))
     
     logger.info("Script started")
 
-    snapLength = 16*1
+    snapLength = 96*10
     networkEnabled=True
-    importStorages=False
+    importStorages=True
     importCRM=True
     addBackup=True
-    CBTransfers=True
+    CBTransfers=False
     CBTMainland='DE'
     example = World(snapLength, networkEnabled=networkEnabled)
     
@@ -444,10 +459,10 @@ if __name__=="__main__":
     example.runSimulation()
     
     finished = datetime.now()
-    print('Finished at:', finished)
-    print('Simulation time:', finished - start)#
+    logger.info('Finished at: {}'.format(finished))
+    logger.info('Simulation time: {}'.format(finished - start))#
     
-    if importStorages:   
+    if importStorages:
         example.storages[0].plotResults()
     #%%%
     import math 
@@ -514,27 +529,29 @@ if networkEnabled:
               'Wind Onshore':'#AFC4A5',
               'Wind Offshore':'#AFC4A5',
               'PSPP_discharge':'#0096E1',
-              'PSPP_charge':'#323296',
-              'Export':'pink',
-              'Import':'pink',
+              'PSPP_charge':'#323296', 
               }
     
     colors = {**{f'{k}_pos': v for k, v in colors.items()},**{f'{k}_neg': v for k, v in colors.items()}}
+    colors.update({'Export':'pink',
+                   'Import':'#C5E7A7'})
     p_by_carrier = example.network.generators_t.p.groupby(example.network.generators.carrier, axis=1).sum()
     
     
     cols = ['PSPP_charge','Biolamass','nuclear','lignite', 'hard coal','oil', 'backup', 'combined cycle gas turbine',
-             'open cycle gas turbine','PSPP_discharge','PV', 'Wind Onshore', 'Wind Offshore','Import','Export']
+             'open cycle gas turbine','PV', 'Wind Onshore', 'Wind Offshore','PSPP_discharge']
     cols = [*[f'{k}_pos' for k in cols],*[f'{k}_neg' for k in cols]]
+    cols.extend(['Export','Import'])
     for carrier in list(set(cols)- set(p_by_carrier.columns)):
         cols.remove(carrier)
     
-    # cols.extend(['Import','Export'])
-    colors['Export']='pink'
-    colors['Import']='pink'
-    colors['backup_pos']='pink'
-    #colors['backup_neg']='pink'
     p_by_carrier = p_by_carrier[cols]
+    
+    if importStorages:
+        p_by_carrier['PSPP_charge_neg'] = -p_by_carrier['PSPP_charge_neg']
+        p_by_carrier['PSPP_charge_pos'] = -p_by_carrier['PSPP_charge_pos']
+    if CBTransfers:
+        p_by_carrier['Import'] = -p_by_carrier['Import']
     fig,ax = plt.subplots(1,1)
     
     fig.set_size_inches(12,6)

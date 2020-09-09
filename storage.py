@@ -182,7 +182,8 @@ class Storage():
                                    price = bidPrice_demand,
                                    amount = bidQuantity_demand,
                                    status = "Sent",
-                                   bidType = "Demand"))
+                                   bidType = "Demand",
+                                   node = self.node))
 
         return bidsEOM
 

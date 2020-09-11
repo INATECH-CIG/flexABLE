@@ -151,22 +151,23 @@ class Storage():
             averagePrice = np.mean(self.world.dictPFC[t-self.foresight:t+self.foresight])
             
             
-        if self.world.dictPFC[t] >= 1.1 * averagePrice:
+        if self.world.dictPFC[t] >= averagePrice:
             bidQuantity_supply = min(max((SOC - self.minSOC - self.confQtyCRM_pos[t] * self.world.dt)
-                                         * self.efficiency_discharge / self.world.dt,
-                                         0), self.maxPower_discharge)
+                                          * self.efficiency_discharge / self.world.dt,
+                                          0), self.maxPower_discharge)
             
             bidPrice_supply = averagePrice
             
             if bidQuantity_supply >= self.world.minBidEOM:
                 bidsEOM.append(Bid(issuer = self,
-                                   ID = "Bu{}t{}_supplyEOM".format(self.name,t),
-                                   price = bidPrice_supply,
-                                   amount = bidQuantity_supply,
-                                   status = "Sent",
-                                   bidType = "Supply"))
+                                    ID = "{}_supplyEOM".format(self.name),
+                                    price = bidPrice_supply,
+                                    amount = bidQuantity_supply,
+                                    status = "Sent",
+                                    bidType = "Supply",
+                                    node = self.node))
             
-        elif self.world.dictPFC[t] <= 0.9 * averagePrice:
+        elif self.world.dictPFC[t] < averagePrice:
 
             bidQuantity_demand = min(max((self.maxSOC - SOC - 
                                          self.confQtyCRM_neg[t] * self.world.dt) / self.efficiency_charge / self.world.dt, 0),
@@ -175,12 +176,14 @@ class Storage():
             bidPrice_demand = averagePrice 
             
             if bidQuantity_demand >= self.world.minBidEOM:
+
                 bidsEOM.append(Bid(issuer = self,
-                                   ID = "Bu{}t{}_demandEOM".format(self.name,t),
+                                   ID = "{}_demandEOM".format(self.name),
                                    price = bidPrice_demand,
                                    amount = bidQuantity_demand,
                                    status = "Sent",
-                                   bidType = "Demand"))
+                                   bidType = "Demand",
+                                   node = self.node))
 
         return bidsEOM
 
@@ -221,7 +224,7 @@ class Storage():
             capacityPrice, energyPrice = self.calculatingBidPricesSTO_CRM(t)
             
             bidsCRM.append(Bid(issuer = self,
-                               ID = "Bu{}t{}_CRMPosDem".format(self.name,t),
+                               ID = "{}_CRMPosDem".format(self.name),
                                price = capacityPrice,
                                amount = bidQuantityBPM_pos,
                                energyPrice = energyPrice,
@@ -230,7 +233,7 @@ class Storage():
 
         else:
             bidsCRM.append(Bid(issuer=self,
-                               ID="Bu{}t{}_CRMPosDem".format(self.name,t),
+                               ID="{}_CRMPosDem".format(self.name),
                                price = 0,
                                amount = 0,
                                energyPrice = 0,
@@ -254,7 +257,7 @@ class Storage():
 
 
             bidsCRM.append(Bid(issuer = self,
-                               ID = "Bu{}t{}_CRMNegDem".format(self.name,t),
+                               ID = "{}_CRMNegDem".format(self.name),
                                price = 0,
                                amount = bidQtyCRM_neg,
                                energyPrice = 0,
@@ -263,7 +266,7 @@ class Storage():
 
         else:
             bidsCRM.append(Bid(issuer = self,
-                               ID = "Bu{}t{}_CRMNegDem".format(self.name,t),
+                               ID = "{}_CRMNegDem".format(self.name),
                                price = 0,
                                amount = 0,
                                energyPrice = 0,

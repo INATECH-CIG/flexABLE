@@ -33,7 +33,8 @@ class Powerplant():
                 company='UNIPER',
                 year=1988,
                 node='Bus_DE',
-                world=None):
+                world=None,
+                Redispatch=False):
 
         # bids status parameters
         self.dictCapacity = {n:0 for n in self.world.snapshots}
@@ -74,7 +75,7 @@ class Powerplant():
         else:
             self.marketSuccess.append(0)
         # Checks if the powerplant is shutdown and whether it can start-up
-        if (self.dictCapacity[self.world.currstep] < self.minPower) and self.currentDowntime==0 and self.marketSuccess[-1]>0:
+        if (self.dictCapacity[self.world.currstep] < 1*self.minPower) and self.currentDowntime==0 and self.marketSuccess[-1]>0:
             self.currentStatus = 0
             
         if self.currentStatus == 0:
@@ -120,19 +121,23 @@ class Powerplant():
             bidQuantity_mr, bidPrice_mr, bidQuantity_flex, bidPrice_flex = self.calculateBidEOM(t)
             if bidQuantity_mr != 0:
                 bids.append(Bid(issuer = self,
-                                ID = "Bu{}t{}_mrEOM".format(self.name,t),
+                                ID = "{}_mrEOM".format(self.name,t),
+                                #ID = "{}_mr".format(self.name),
                                 price = bidPrice_mr,
                                 amount = bidQuantity_mr,
                                 status = "Sent",
-                                bidType = "Supply"))
+                                bidType = "Supply",
+                                node = self.node))
                 
             if bidQuantity_flex !=0:
                 bids.append(Bid(issuer = self,
-                                ID = "Bu{}t{}_flexEOM".format(self.name,t),
+                                #ID = "{}_flex".format(self.name),
+                                ID = "{}_flexEOM".format(self.name,t),
                                 price = bidPrice_flex,
                                 amount = bidQuantity_flex,
                                 status = "Sent",
-                                bidType = "Supply"))
+                                bidType = "Supply",
+                                node = self.node))
         elif market=="DHM": 
             bids.extend(self.calculateBidDHM(t))
 
@@ -343,26 +348,30 @@ class Powerplant():
                                price = heatPrice_process,
                                amount = heatExtraction_process,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
             bidsDHM.append(Bid(issuer = self,
                                ID = "Bu{}t{}_auxFi".format(self.name,t),
                                price = heatPrice_auxFiring,
                                amount = heatExtraction_auxFiring,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
         else:
             bidsDHM.append(Bid(issuer = self,
                                ID = "Bu{}t{}_steam".format(self.name,t),
                                price = 0,
                                amount = 0,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
             bidsDHM.append(Bid(issuer = self,
                                ID = "Bu{}t{}_auxFi".format(self.name,t),
                                price = 0,
                                amount = 0,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
     
         return bidsDHM
 
@@ -399,7 +408,8 @@ class Powerplant():
                                amount = bidQuantityBPM_pos,
                                energyPrice = energyPrice,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
 
         else:
             bidsCRM.append(Bid(issuer=self,
@@ -408,7 +418,8 @@ class Powerplant():
                                amount = 0,
                                energyPrice = 0,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
     
         return bidsCRM
 
@@ -443,7 +454,8 @@ class Powerplant():
                                amount = bidQtyCRM_neg,
                                energyPrice = energyPrice,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
         else:
             bidsCRM.append(Bid(issuer=self,
                                ID = "Bu{}t{}_CRMNegDem".format(self.name,t),
@@ -451,7 +463,8 @@ class Powerplant():
                                amount = 0,
                                energyPrice = 0,
                                status = "Sent",
-                               bidType = "Supply"))
+                               bidType = "Supply",
+                               node = self.node))
         #bidsCRM = []
         return bidsCRM
 
@@ -501,12 +514,14 @@ class Powerplant():
     
         return listPFC
     
-    def plotResults(self):
-        plt.figure()
-        plt.step(range(len(self.world.snapshots)), list(self.dictCapacity.values())[1:], label='Total Capacity')
-        plt.step(range(len(self.world.snapshots)), [-_ for _ in list(self.confQtyCRM_neg.values())], label='Negative CRM')
-        plt.step(range(len(self.world.snapshots)), list(self.confQtyCRM_pos.values()), label='Positive CRM')
-        plt.ylabel('Power [MW]')
-        plt.title(self.name)
-        plt.legend()
-        plt.show()
+    def plotResults(self, ax=None, legend=True, **kwargs):
+        ax = ax or plt.gci()
+        ax.step(range(len(self.world.snapshots)), list(self.dictCapacity.values())[0:-1],'r-', label='Total Capacity')
+        ax.step(range(len(self.world.snapshots)), [-_ for _ in list(self.confQtyCRM_neg.values())],'b--', label='Negative CRM')
+        ax.step(range(len(self.world.snapshots)), list(self.confQtyCRM_pos.values()),'g--',  label='Positive CRM')
+        ax.step(range(len(self.world.snapshots)),[self.maxPower for _ in range(len(self.world.snapshots))],'r:', label='Maximum Power')
+        ax.step(range(len(self.world.snapshots)),[self.minPower for _ in range(len(self.world.snapshots))],'r:', label='Minimum Power')
+        ax.set_ylabel('Power [MW]')
+        ax.set_title(self.name)
+        if legend: ax.legend()
+        return ax

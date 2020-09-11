@@ -17,10 +17,10 @@ class VREPowerplant():
                 technology='nuclear',
                 fuel='uranium',
                 maxPower=1500,
-                minPower=600,
+                minPower=0,
                 efficiency=0.3,
-                rampUp=890,
-                rampDown=890,
+                rampUp=0,
+                rampDown=0,
                 variableCosts=10.3,
                 hotStartCosts=140,
                 warmStartCosts=140,
@@ -32,7 +32,7 @@ class VREPowerplant():
                 heatingDistrict='BW',
                 company='UNIPER',
                 year=1988,
-                Node='Bus_DE',
+                node='Bus_DE',
                 world=None,
                 FeedInTimeseries=0):
 
@@ -78,11 +78,13 @@ class VREPowerplant():
         if market=="EOM":
             if bidQuantity_mr != 0:
                 bids.append(Bid(issuer = self,
-                                ID = "Bu{}t{}_vre".format(self.name,t),
+                                ID = "{}".format(self.name,t),
                                 price = bidPrice_mr,
                                 amount = bidQuantity_mr,
                                 status = "Sent",
-                                bidType = "Supply"))
+                                bidType = "Supply",
+                                node = self.node,
+                                redispatch_price=-100))
 
         return bids
     

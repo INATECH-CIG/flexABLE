@@ -94,6 +94,7 @@ class World():
         self.dictPFC = [0]*snapshots
         self.networkEnabled = networkEnabled
         self.network = pypsa.Network()
+        self.demandDistrib = None # this is the per node distribution of load
         self.ResultsWriter = resultsWriter.ResultsWriter(databaseName=databaseName,
                                                          simulationID=simulationID,
                                                          startingDate=startingDate,
@@ -236,6 +237,7 @@ class World():
         self.addMarket('CRM_DE','CRM', demand=CRMdemand)
         
         logger.info("Demand data loaded.")
+        
         if self.networkEnabled:
             # Loading Network data
             logger.info("Setting up Network.")
@@ -250,6 +252,7 @@ class World():
                                             nrows=len(self.snapshots),
                                             index_col=0,
                                             encoding="Latin-1")
+            self.demandDistrib=load_distribution.mul(demand.demand,axis=0)
             PV_CF = pd.read_csv('input/{}/PV_CF.csv'.format(scenario),
                                             nrows=len(self.snapshots),
                                             index_col=0,
@@ -258,7 +261,7 @@ class World():
                                             nrows=len(self.snapshots),
                                             index_col=0,
                                             encoding="Latin-1")
-            self.network.set_snapshots(range(len(self.snapshots)))
+            #self.network.set_snapshots(range(len(self.snapshots)))
             self.network.madd('Bus',
                               nodes.index,
                               x=nodes.x,
@@ -319,7 +322,7 @@ class World():
                               nodes.index,
                               suffix='_load',
                               bus=nodes.index,
-                              p_set=load_distribution.mul(demand.demand,axis=0))
+                              p_set=0)
             self.network.madd('Load',
                               nodes.index,
                               suffix='_mcFeedIn',

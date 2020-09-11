@@ -278,7 +278,7 @@ class EOM():
                        energySurplus = 0,
                        timestamp = t)
 
-
+        self.world.ResultsWriter.writeMarketResult(result)
         # self.marketResults[t]=result
         self.world.dictPFC[t] = result.marketClearingPrice
 
@@ -495,7 +495,7 @@ class EOM():
             
             neg_redispatch = dict(map(lambda x: ['{}_negRedis'.format(x.ID), x.confirmedAmount if x.bidType=='Supply' else x.confirmedAmount], confirmedBids))
             self.world.network.generators.loc[self.world.network.generators.index.str.contains('_negRedis'),'p_nom'] = pd.Series(neg_redispatch)
-            marginal_cost = dict(map(lambda x: ['{}_negRedis'.format(x.ID), -mcp], confirmedBids))
+            marginal_cost = dict(map(lambda x: ['{}_negRedis'.format(x.ID), -(abs(mcp-x.redispatch_price))], confirmedBids))
             self.world.network.generators.loc[self.world.network.generators.index.str.contains('_negRedis'),'marginal_cost'] = pd.Series(marginal_cost)
             
             pos_redispatch_bids = rejectedBids + confirmedBids
@@ -506,8 +506,10 @@ class EOM():
             
             
             self.world.network.generators.p_nom.fillna(0, inplace=True)
-            self.world.network.generators.marginal_cost.fillna(3000, inplace=True)
-
+            # This should be inspected a little bit closer
+            #self.world.network.generators.marginal_cost[self.world.network.generators.index.str.contains('_negRedis')].fillna(-3000, inplace=True)
+            #self.world.network.generators.marginal_cost[self.world.network.generators.index.str.contains('_posRedis')].fillna(3000, inplace=True)
+            self.world.network.generators.marginal_cost.fillna(-3000, inplace=True)
             bidsDict = dict(map(lambda x: [x.ID, x], rejectedBids + confirmedBids))
             def confirmBidsNetwork(powerplant):
                 try:
@@ -533,7 +535,8 @@ class EOM():
                        energyDeficit = 0,
                        energySurplus = 0,
                        timestamp = t)
-
+            self.world.ResultsWriter.writeMarketResult(result)
+            
         
     def plotResults(self):
         def two_scales(ax1, time, data1, data2, c1, c2):

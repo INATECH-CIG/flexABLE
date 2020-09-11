@@ -9,7 +9,7 @@ To-dos:
     - Add possibility to start and end at any point in the year
         
     EOM:
-        - since the world is being referenced now, snapshot object should not be passed since we can always access it though self.world.snapshots
+        - We should check the NaN values handleing int he NetworkMarketClearing
         
 Changelog:
     20.Aug : Added a redispatch price to the bids, which is automatically set to bid price if not assigned explicitly, this would allow

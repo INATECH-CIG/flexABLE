@@ -24,6 +24,7 @@ import agent
 import EOM
 import DHM
 import CRM
+import resultsWriter
 
 import pandas as pd
 from tqdm import tqdm
@@ -70,7 +71,7 @@ class World():
     """
     This is the main container
     """
-    def __init__(self, snapshots, fuelPrices={}, simulationID=None, networkEnabled=False):
+    def __init__(self, snapshots, fuelPrices={}, simulationID=None, networkEnabled=False, databaseName='flexABLE',startingDate='2018-01-01T00:15:00'):
         self.simulationID = simulationID
         self.powerplants=[]
         self.storages = []
@@ -93,7 +94,10 @@ class World():
         self.dictPFC = [0]*snapshots
         self.networkEnabled = networkEnabled
         self.network = pypsa.Network()
-        
+        self.ResultsWriter = resultsWriter.ResultsWriter(databaseName=databaseName,
+                                                         simulationID=simulationID,
+                                                         startingDate=startingDate,
+                                                         world=self)
     def addAgent(self, name):
         self.agents[name] = agent.Agent(name, snapshots=self.snapshots , world=self)
         
@@ -120,7 +124,9 @@ class World():
         else:
             logger.info("Reached simulation end")
     def runSimulation(self):
-        if self.currstep==0: logger.info("Simulation started")
+        start = datetime.now()
+        logger.info("######## Simulation Started ########")
+        logger.info('Started at: {}'.format(start))
         progressBar = tqdm(total=len(self.snapshots))
         while True:
             if self.currstep < len(self.snapshots):
@@ -128,14 +134,23 @@ class World():
                 progressBar.update(1)
             else:
                 break
-        logger.info("reached simulation end")
+        finished = datetime.now()
+        logger.info('Simulation finished at: {}'.format(finished))
+        logger.info('Simulation time: {}'.format(finished - start))
+        logger.info("#########################")
     def loadScenario(self, scenario="Default", importStorages=True, importCRM=True, importDHM=True, addBackup=False, CBTransfers=False, CBTMainland=None):
         # Some of the input files should be restructured such as demand, so it
         # could include more than one zone
         
         # Loads fuel prices from the required Scenario
         if self.simulationID == None:
-            self.simulationID = '{}_s{}_c{}_h{}'.format(scenario, importStorages, importCRM, importDHM)
+            self.simulationID = '{}{}{}{}{}{}'.format(scenario,
+                                                                          '_Sto' if importStorages else '',
+                                                                          '_CRM' if importCRM else '',
+                                                                          '_DHM' if importDHM else '',
+                                                                          '_Net' if self.networkEnabled else '',
+                                                                          '_CBT' if CBTransfers else '',)
+        logger.info("Loading Scenario: {}, SimulationID:{}".format(scenario,self.simulationID))
         logger.info("Loading fuel data....")
         fuelData = pd.read_csv('input/{}/Fuel.csv'.format(scenario),
                                nrows=len(self.snapshots),
@@ -431,12 +446,9 @@ class World():
             logger.info("Network Loaded.")
         
 if __name__=="__main__":
-    start = datetime.now()
-    logger.info('Started at: {}'.format(start))
-    
-    logger.info("Script started")
 
-    snapLength = 96*10
+
+    snapLength = 96*7
     networkEnabled=True
     importStorages=True
     importCRM=True
@@ -458,16 +470,14 @@ if __name__=="__main__":
 
     example.runSimulation()
     
-    finished = datetime.now()
-    logger.info('Finished at: {}'.format(finished))
-    logger.info('Simulation time: {}'.format(finished - start))#
+
     
     if importStorages:
         example.storages[0].plotResults()
     #%%%
     import math 
     Tot=9
-    Cols = math.ceil(Tot**(0.5))
+    Cols = math.ceil(Tot*(0.5))
 
     Rows = Tot // Cols 
     Rows += Tot % Cols

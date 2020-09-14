@@ -488,20 +488,24 @@ class EOM():
             perNodeGeneration = sorted([('{}_mcFeedIn'.format(x.node), x.confirmedAmount if x.bidType=='Supply' else -x.confirmedAmount) for x in confirmedBids])
             perNodeGeneration = dict([(k, sum([x for _, x in g])) for k, g in groupby(perNodeGeneration, itemgetter(0))])
             del perNodeGeneration['DefaultNode_mcFeedIn']
-            
+            # Attaching load to nodes
+            perNodeLoad = {f'{k}_load': v for k, v in self.world.demandDistrib.loc[t].to_dict().items()}
+            nodalLoads = {**perNodeGeneration,**perNodeLoad}
             # The original load should be set to Zero before re-assigning values to avoid having values from earlier steps
             self.world.network.loads.p_set = 0
-            self.world.network.loads.loc[perNodeGeneration.keys(),'p_set'] = pd.Series(perNodeGeneration)
+            self.world.network.loads.loc[nodalLoads.keys(),'p_set'] = pd.Series(nodalLoads)
             
             neg_redispatch = dict(map(lambda x: ['{}_negRedis'.format(x.ID), x.confirmedAmount if x.bidType=='Supply' else x.confirmedAmount], confirmedBids))
             self.world.network.generators.loc[self.world.network.generators.index.str.contains('_negRedis'),'p_nom'] = pd.Series(neg_redispatch)
-            marginal_cost = dict(map(lambda x: ['{}_negRedis'.format(x.ID), -(abs(mcp-x.redispatch_price))], confirmedBids))
+            #marginal_cost = dict(map(lambda x: ['{}_negRedis'.format(x.ID), -(abs(mcp-x.redispatch_price))], confirmedBids))
+            marginal_cost = dict(map(lambda x: ['{}_negRedis'.format(x.ID), -mcp], confirmedBids))
             self.world.network.generators.loc[self.world.network.generators.index.str.contains('_negRedis'),'marginal_cost'] = pd.Series(marginal_cost)
             
             pos_redispatch_bids = rejectedBids + confirmedBids
             pos_redispatch = dict(map(lambda x: ['{}_posRedis'.format(x.ID), (x.amount-x.confirmedAmount) if x.bidType=='Supply' else -(x.confirmedAmount-x.amount)], pos_redispatch_bids))
             self.world.network.generators.loc[self.world.network.generators.index.str.contains('_posRedis'),'p_nom'] = pd.Series(pos_redispatch)
-            marginal_cost = dict(map(lambda x: ['{}_posRedis'.format(x.ID), x.redispatch_price], pos_redispatch_bids))
+            #marginal_cost = dict(map(lambda x: ['{}_posRedis'.format(x.ID), x.redispatch_price], pos_redispatch_bids))
+            marginal_cost = dict(map(lambda x: ['{}_posRedis'.format(x.ID), mcp], pos_redispatch_bids))
             self.world.network.generators.loc[self.world.network.generators.index.str.contains('_posRedis'),'marginal_cost'] = pd.Series(marginal_cost)
             
             
@@ -513,14 +517,13 @@ class EOM():
             bidsDict = dict(map(lambda x: [x.ID, x], rejectedBids + confirmedBids))
             def confirmBidsNetwork(powerplant):
                 try:
-                    bidsDict[powerplant.name[:-9]].redispatch(powerplant[t])
+                    bidsDict[powerplant.name[:-9]].redispatch(powerplant['now'])
                 except KeyError:
                     pass
 
-            solution= self.world.network.lopf(t,
-                                              solver_name= self.solver_name)
+            solution= self.world.network.lopf(solver_name= self.solver_name)
             
-            self.world.network.generators_t.p.iloc[[t],:].T.apply(
+            self.world.network.generators_t.p.T.apply(
                 lambda x:confirmBidsNetwork(x), axis=1)
 
             
@@ -536,8 +539,10 @@ class EOM():
                        energySurplus = 0,
                        timestamp = t)
             self.world.ResultsWriter.writeMarketResult(result)
-            
-        
+            #self.world.ResultsWriter.writeGeneratorsPower(self.world.network.generators_t.p,t)
+            self.world.ResultsWriter.writeRedispatchPower(self.world.network.generators_t.p,t)
+            #self.world.ResultsWriter.writeNodalPower(self.world.network, t)
+
     def plotResults(self):
         def two_scales(ax1, time, data1, data2, c1, c2):
 

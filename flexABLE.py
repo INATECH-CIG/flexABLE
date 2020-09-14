@@ -71,7 +71,7 @@ class World():
     """
     This is the main container
     """
-    def __init__(self, snapshots, fuelPrices={}, simulationID=None, networkEnabled=False, databaseName='flexABLE',startingDate='2018-01-01T00:15:00'):
+    def __init__(self, snapshots, fuelPrices={}, simulationID=None, networkEnabled=False, databaseName='flexABLE',startingDate='2018-01-01T00:00:00'):
         self.simulationID = simulationID
         self.powerplants=[]
         self.storages = []
@@ -94,6 +94,7 @@ class World():
         self.dictPFC = [0]*snapshots
         self.networkEnabled = networkEnabled
         self.network = pypsa.Network()
+        self.demandDistrib = None
         self.ResultsWriter = resultsWriter.ResultsWriter(databaseName=databaseName,
                                                          simulationID=simulationID,
                                                          startingDate=startingDate,
@@ -250,6 +251,7 @@ class World():
                                             nrows=len(self.snapshots),
                                             index_col=0,
                                             encoding="Latin-1")
+            self.demandDistrib =load_distribution.mul(demand.demand,axis=0)
             PV_CF = pd.read_csv('input/{}/PV_CF.csv'.format(scenario),
                                             nrows=len(self.snapshots),
                                             index_col=0,
@@ -258,7 +260,7 @@ class World():
                                             nrows=len(self.snapshots),
                                             index_col=0,
                                             encoding="Latin-1")
-            self.network.set_snapshots(range(len(self.snapshots)))
+            #self.network.set_snapshots(range(len(self.snapshots)))
             self.network.madd('Bus',
                               nodes.index,
                               x=nodes.x,
@@ -319,7 +321,7 @@ class World():
                               nodes.index,
                               suffix='_load',
                               bus=nodes.index,
-                              p_set=load_distribution.mul(demand.demand,axis=0))
+                              p_set=0)
             self.network.madd('Load',
                               nodes.index,
                               suffix='_mcFeedIn',
@@ -448,14 +450,14 @@ class World():
 if __name__=="__main__":
 
 
-    snapLength = 96*7
+    snapLength = 96*4
     networkEnabled=True
     importStorages=True
     importCRM=True
     addBackup=True
     CBTransfers=False
     CBTMainland='DE'
-    example = World(snapLength, networkEnabled=networkEnabled)
+    example = World(snapLength, networkEnabled=networkEnabled, simulationID='Testing')
     
     pfc = pd.read_csv("input/2016/PFC_run1.csv", nrows = snapLength, index_col=0)
     
@@ -522,7 +524,9 @@ if __name__=="__main__":
     plt.show()
 
 #%% Plot network result
-if networkEnabled:
+# This has been removed since the network snapshots feature was not used 
+# anymore and the results is directly saved in the database
+if False:
     import seaborn as sns
     sns.set(style="dark")
     colors = {'Waste':'brown',

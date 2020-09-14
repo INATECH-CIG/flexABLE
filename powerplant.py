@@ -86,8 +86,8 @@ class Powerplant():
             self.averageDownTime.append(self.currentDowntime)
             self.currentDowntime = 0
             self.currentStatus = 1
-
-
+        
+        self.world.ResultsWriter.writeCapacity(self,self.world.currstep)
 
     def feedback(self, bid):
         if bid.status == "Confirmed":

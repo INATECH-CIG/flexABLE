@@ -6,5 +6,5 @@ save_non_project_files = False
 
 [main]
 version = 0.2.0
-recent_files = ['flexABLE.py', 'EOM.py', 'bid.py', 'To-Do.txt', 'powerplant.py', 'vrepowerplants.py', 'storage.py', 'LICENSE', 'abstractDB.py', 'MarketResults.py', 'resultsWriter.py']
+recent_files = ['flexABLE.py', 'EOM.py', 'bid.py', 'To-Do.txt', 'powerplant.py', 'vrepowerplants.py', 'storage.py', 'MarketResults.py', 'resultsWriter.py', 'abstractRedispatch.py']
 

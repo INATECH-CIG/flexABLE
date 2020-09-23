@@ -497,15 +497,15 @@ class EOM():
             
             neg_redispatch = dict(map(lambda x: ['{}_negRedis'.format(x.ID), x.confirmedAmount if x.bidType=='Supply' else x.confirmedAmount], confirmedBids))
             self.world.network.generators.loc[self.world.network.generators.index.str.contains('_negRedis'),'p_nom'] = pd.Series(neg_redispatch)
-            #marginal_cost = dict(map(lambda x: ['{}_negRedis'.format(x.ID), -(abs(mcp-x.redispatch_price))], confirmedBids))
-            marginal_cost = dict(map(lambda x: ['{}_negRedis'.format(x.ID), -mcp], confirmedBids))
+            marginal_cost = dict(map(lambda x: ['{}_negRedis'.format(x.ID), -(abs(mcp-x.redispatch_price))], confirmedBids))
+            #marginal_cost = dict(map(lambda x: ['{}_negRedis'.format(x.ID), -mcp], confirmedBids))
             self.world.network.generators.loc[self.world.network.generators.index.str.contains('_negRedis'),'marginal_cost'] = pd.Series(marginal_cost)
             
             pos_redispatch_bids = rejectedBids + confirmedBids
             pos_redispatch = dict(map(lambda x: ['{}_posRedis'.format(x.ID), (x.amount-x.confirmedAmount) if x.bidType=='Supply' else -(x.confirmedAmount-x.amount)], pos_redispatch_bids))
             self.world.network.generators.loc[self.world.network.generators.index.str.contains('_posRedis'),'p_nom'] = pd.Series(pos_redispatch)
-            #marginal_cost = dict(map(lambda x: ['{}_posRedis'.format(x.ID), x.redispatch_price], pos_redispatch_bids))
-            marginal_cost = dict(map(lambda x: ['{}_posRedis'.format(x.ID), mcp], pos_redispatch_bids))
+            marginal_cost = dict(map(lambda x: ['{}_posRedis'.format(x.ID), x.redispatch_price], pos_redispatch_bids))
+            #marginal_cost = dict(map(lambda x: ['{}_posRedis'.format(x.ID), mcp], pos_redispatch_bids))
             self.world.network.generators.loc[self.world.network.generators.index.str.contains('_posRedis'),'marginal_cost'] = pd.Series(marginal_cost)
             
             

@@ -139,23 +139,26 @@ class World():
         logger.info('Simulation finished at: {}'.format(finished))
         logger.info('Simulation time: {}'.format(finished - start))
         logger.info("#########################")
-    def loadScenario(self, scenario="Default", importStorages=True, importCRM=True, importDHM=True, addBackup=False, CBTransfers=False, CBTMainland=None):
+    def loadScenario(self, scenario="Default", importStorages=True, importCRM=True, importDHM=True, addBackup=False, CBTransfers=False, CBTMainland=None, startingPoint=0):
         # Some of the input files should be restructured such as demand, so it
         # could include more than one zone
         
         # Loads fuel prices from the required Scenario
         if self.simulationID == None:
-            self.simulationID = '{}{}{}{}{}{}'.format(scenario,
-                                                                          '_Sto' if importStorages else '',
-                                                                          '_CRM' if importCRM else '',
-                                                                          '_DHM' if importDHM else '',
-                                                                          '_Net' if self.networkEnabled else '',
-                                                                          '_CBT' if CBTransfers else '',)
+            self.simulationID = '{}{}{}{}{}{}{}'.format(scenario,
+                                                        '_Sto' if importStorages else '',
+                                                        '_CRM' if importCRM else '',
+                                                        '_DHM' if importDHM else '',
+                                                        '_Net' if self.networkEnabled else '',
+                                                        '_CBT' if CBTransfers else '',
+                                                        startingPoint)
         logger.info("Loading Scenario: {}, SimulationID:{}".format(scenario,self.simulationID))
         logger.info("Loading fuel data....")
         fuelData = pd.read_csv('input/{}/Fuel.csv'.format(scenario),
-                               nrows=len(self.snapshots),
+                               nrows=len(self.snapshots)+startingPoint,
                                index_col=0)
+        fuelData.drop(fuelData.index[0:startingPoint],inplace=True)
+        fuelData.reset_index(drop=True,inplace=True)
         self.fuelPrices=dict(fuelData)
         emissionData = pd.read_csv('input/{}/EmissionFactors.csv'.format(scenario),
                                    index_col=0)
@@ -188,8 +191,10 @@ class World():
         if not(self.networkEnabled):           
             vrepowerplantFeedIn =pd.read_csv('input/{}/FES_DE.csv'.format(scenario),
                                              index_col=0,
-                                             nrows=len(self.snapshots),
+                                             nrows=len(self.snapshots)+startingPoint,
                                              encoding="Latin-1")
+            vrepowerplantFeedIn.drop(vrepowerplantFeedIn.index[0:startingPoint],inplace=True)
+            vrepowerplantFeedIn.reset_index(drop=True,inplace=True)
             self.addAgent('Renewables')
             for _ in vrepowerplantFeedIn:
                 self.agents['Renewables'].addVREPowerplant(_, FeedInTimeseries=vrepowerplantFeedIn[_].to_list())
@@ -200,12 +205,16 @@ class World():
         # information
         logger.info("Loading demand....")
         demand = pd.read_csv('input/{}/IED_DE.csv'.format(scenario),
-                               nrows=len(self.snapshots),
+                               nrows=len(self.snapshots)+startingPoint,
                                index_col=0)
+        demand.drop(demand.index[0:startingPoint],inplace=True)
+        demand.reset_index(drop=True,inplace=True)
         CBT = pd.read_csv('input/{}/CBT_DE.csv'.format(scenario),
-                          nrows=len(self.snapshots),
+                          nrows=len(self.snapshots)+startingPoint,
                           index_col=0)
-
+        CBT.drop(CBT.index[0:startingPoint],inplace=True)
+        CBT.reset_index(drop=True,inplace=True)
+        
         {"Import":{t:q for t,q in zip(self.snapshots,CBT["Import"].to_list())},
          "Export":{t:q for t,q in zip(self.snapshots,CBT["Export"].to_list())}}
         self.addMarket('EOM_DE','EOM', demand=dict(demand['demand']), CBtrades=CBT)
@@ -213,21 +222,26 @@ class World():
         
         logger.info("Loading District heating demand....")
         HLP_DH= pd.read_csv('input/{}/HLP_DH_DE.csv'.format(scenario),
-                            nrows=len(self.snapshots),
+                            nrows=len(self.snapshots)+startingPoint,
                                index_col=0)
+        HLP_DH.drop(HLP_DH.index[0:startingPoint],inplace=True)
+        HLP_DH.reset_index(drop=True,inplace=True)
         HLP_HH= pd.read_csv('input/{}/HLP_HH_DE.csv'.format(scenario),
-                            nrows=len(self.snapshots),
+                            nrows=len(self.snapshots)+startingPoint,
                             index_col=0)
+        HLP_HH.drop(HLP_HH.index[0:startingPoint],inplace=True)
+        HLP_HH.reset_index(drop=True,inplace=True)
         annualDemand= pd.read_csv('input/{}/DH_DE.csv'.format(scenario),
-                                  nrows=len(self.snapshots),
                                   index_col=0)
         
         self.addMarket('DHM_DE','DHM', HLP_DH=HLP_DH, HLP_HH=HLP_HH, annualDemand=annualDemand)
         
         logger.info("Loading control reserve demand....")
         CRM= pd.read_csv('input/{}/CRM_DE.csv'.format(scenario),
-                            nrows=len(self.snapshots),
+                            nrows=len(self.snapshots)+startingPoint,
                                index_col=0)
+        CRM.drop(CRM.index[0:startingPoint],inplace=True)
+        CRM.reset_index(drop=True,inplace=True)
         if importCRM ==False:
             CRM = CRM * 0
         CRMdemand = {"posCRMDemand":dict(CRM['positive Demand [MW]']),
@@ -248,19 +262,23 @@ class World():
                                 index_col=0,
                                 encoding="Latin-1")
             load_distribution = pd.read_csv('input/{}/IED_DE_Distrib.csv'.format(scenario),
-                                            nrows=len(self.snapshots),
+                                            nrows=len(self.snapshots)+startingPoint,
                                             index_col=0,
                                             encoding="Latin-1")
             self.demandDistrib =load_distribution.mul(demand.demand,axis=0)
             PV_CF = pd.read_csv('input/{}/PV_CF.csv'.format(scenario),
-                                            nrows=len(self.snapshots),
+                                            nrows=len(self.snapshots)+startingPoint,
                                             index_col=0,
                                             encoding="Latin-1")
+            PV_CF.drop(PV_CF.index[0:startingPoint],inplace=True)
+            PV_CF.reset_index(drop=True,inplace=True)
             wind_CF = pd.read_csv('input/{}/wind_CF.csv'.format(scenario),
-                                            nrows=len(self.snapshots),
+                                            nrows=len(self.snapshots)+startingPoint,
                                             index_col=0,
                                             encoding="Latin-1")
-            #self.network.set_snapshots(range(len(self.snapshots)))
+            wind_CF.drop(wind_CF.index[0:startingPoint],inplace=True)
+            wind_CF.reset_index(drop=True,inplace=True)
+
             self.network.madd('Bus',
                               nodes.index,
                               x=nodes.x,
@@ -314,8 +332,8 @@ class World():
                               r= lines.r,
                               s_nom= lines.s_nom,
                               s_nom_extendable=True,
-                              s_nom_max=lines.s_nom*1.0,
-                              s_nom_min=lines.s_nom,
+                              s_nom_max=lines.s_nom*1.00,
+                              s_nom_min=lines.s_nom*1.00,
                               capital_cost=20000)
             self.network.madd('Load',
                               nodes.index,
@@ -345,7 +363,7 @@ class World():
                               p_min_pu=0,
                               p_max_pu=1)
             self.network.madd('Generator',
-                              powerplantsList.index,
+                              powerplantsList[powerplantsList.Redispatch == True].index,
                               suffix='_mrEOM_negRedis',
                               carrier= powerplantsList.technology + '_neg',
                               bus=powerplantsList.node,
@@ -353,7 +371,7 @@ class World():
                               p_min_pu=-1,
                               p_max_pu=0)
             self.network.madd('Generator',
-                              powerplantsList.index,
+                              powerplantsList[powerplantsList.Redispatch == True].index,
                               suffix='_flexEOM_negRedis',
                               carrier= powerplantsList.technology + '_neg',
                               bus=powerplantsList.node,
@@ -449,17 +467,18 @@ class World():
         
 if __name__=="__main__":
 
-
-    snapLength = 96*4
+    Plot=False
+    startingPoint = 96*0
+    snapLength = 96*5
     networkEnabled=True
     importStorages=True
     importCRM=True
     addBackup=True
     CBTransfers=False
     CBTMainland='DE'
-    example = World(snapLength, networkEnabled=networkEnabled, simulationID='Testing')
+    example = World(snapLength, networkEnabled=networkEnabled, simulationID='Testing_altSP_NN_dy', startingDate='2018-01-01T00:00:00')
     
-    pfc = pd.read_csv("input/2016/PFC_run1.csv", nrows = snapLength, index_col=0)
+    pfc = pd.read_csv("input/2015_Network/PFC_run0.csv", nrows = snapLength, index_col=0)
     
     example.dictPFC = list(pfc['price'])
 
@@ -468,136 +487,137 @@ if __name__=="__main__":
                          importCRM=importCRM,
                          addBackup=addBackup,
                          CBTransfers=CBTransfers,
-                         CBTMainland=CBTMainland)
+                         CBTMainland=CBTMainland,
+                         startingPoint=startingPoint)
 
     example.runSimulation()
     
 
+    if Plot:    
+        if importStorages:
+            example.storages[0].plotResults()
+        #%%%
+        import math 
+        Tot=9
+        Cols = math.ceil(Tot*(0.5))
     
-    if importStorages:
-        example.storages[0].plotResults()
-    #%%%
-    import math 
-    Tot=9
-    Cols = math.ceil(Tot*(0.5))
-
-    Rows = Tot // Cols 
-    Rows += Tot % Cols
-    fig,ax = plt.subplots(Rows,Cols)
-    for _ in range(Tot):
-        example.powerplants[_].plotResults(ax=ax[_//Cols][_%Cols], legend=False)
+        Rows = Tot // Cols
+        Rows += Tot % Cols
+        fig,ax = plt.subplots(Rows,Cols)
+        for _ in range(Tot):
+            example.powerplants[_].plotResults(ax=ax[_//Cols][_%Cols], legend=False)
+        
+        handles, labels = ax[0][0].get_legend_handles_labels()
+        fig.legend(handles, labels)    
+        plt.show()
+        #%% plot EOM prices
+        def two_scales(ax1, time, data1, data2, c1, c2):
+        
+            ax2 = ax1.twinx()
+        
+            ax1.step(time, data1, color=c1)
+            ax1.set_xlabel('snapshot')
+            ax1.set_ylabel('Demand [MW/Snapshot]')
+        
+            ax2.step(time, data2, color=c2)
+            ax2.set_ylabel('Market Clearing Price [€/MW]')
+            return ax1, ax2
+        
+        t = range(len(example.dictPFC)-4)
+        s1 = list(example.markets["EOM"]['EOM_DE'].demand.values())[:-4]
+        s2 = example.dictPFC[:-4]
+        # Create axes
+        fig, ax = plt.subplots()
+        ax1, ax2 = two_scales(ax, t, s1, s2, 'r', 'b')
+        
+        
+        # Change color of each axis
+        def color_y_axis(ax, color):
+            """Color your axes."""
+            for t in ax.get_yticklabels():
+                t.set_color(color)
+            return None
+        
+        color_y_axis(ax1, 'r')
+        color_y_axis(ax2, 'b')
+        plt.title(example.simulationID)
+        plt.show()
     
-    handles, labels = ax[0][0].get_legend_handles_labels()
-    fig.legend(handles, labels)    
-    plt.show()
-    #%% plot EOM prices
-    def two_scales(ax1, time, data1, data2, c1, c2):
+    #%% Plot network result
+    # This has been removed since the network snapshots feature was not used 
+    # anymore and the results is directly saved in the database
+    if False:
+        import seaborn as sns
+        sns.set(style="dark")
+        colors = {'Waste':'brown',
+                  'nuclear':'#FF3232',
+                  'lignite':'brown',
+                  'hard coal':'k',
+                  'combined cycle gas turbine':'#FA964B',
+                  'oil':'#000000',
+                  'open cycle gas turbine':'#FA964B',
+                  'backup':'lightsteelblue',
+                  'Hydro':'mediumblue',
+                  'Biomass':'#009632',
+                  'PV':'#FFCD64',
+                  'Wind Onshore':'#AFC4A5',
+                  'Wind Offshore':'#AFC4A5',
+                  'PSPP_discharge':'#0096E1',
+                  'PSPP_charge':'#323296', 
+                  }
+        
+        colors = {**{f'{k}_pos': v for k, v in colors.items()},**{f'{k}_neg': v for k, v in colors.items()}}
+        colors.update({'Export':'pink',
+                       'Import':'#C5E7A7'})
+        p_by_carrier = example.network.generators_t.p.groupby(example.network.generators.carrier, axis=1).sum()
+        
+        
+        cols = ['PSPP_charge','Biolamass','nuclear','lignite', 'hard coal','oil', 'backup', 'combined cycle gas turbine',
+                 'open cycle gas turbine','PV', 'Wind Onshore', 'Wind Offshore','PSPP_discharge']
+        cols = [*[f'{k}_pos' for k in cols],*[f'{k}_neg' for k in cols]]
+        cols.extend(['Export','Import'])
+        for carrier in list(set(cols)- set(p_by_carrier.columns)):
+            cols.remove(carrier)
+        
+        p_by_carrier = p_by_carrier[cols]
+        
+        if importStorages:
+            p_by_carrier['PSPP_charge_neg'] = -p_by_carrier['PSPP_charge_neg']
+            p_by_carrier['PSPP_charge_pos'] = -p_by_carrier['PSPP_charge_pos']
+        if CBTransfers:
+            p_by_carrier['Import'] = -p_by_carrier['Import']
+        fig,ax = plt.subplots(1,1)
+        
+        fig.set_size_inches(12,6)
     
-        ax2 = ax1.twinx()
-    
-        ax1.step(time, data1, color=c1)
-        ax1.set_xlabel('snapshot')
-        ax1.set_ylabel('Demand [MW/Snapshot]')
-    
-        ax2.step(time, data2, color=c2)
-        ax2.set_ylabel('Market Clearing Price [€/MW]')
-        return ax1, ax2
-    
-    t = range(len(example.dictPFC)-4)
-    s1 = list(example.markets["EOM"]['EOM_DE'].demand.values())[:-4]
-    s2 = example.dictPFC[:-4]
-    # Create axes
-    fig, ax = plt.subplots()
-    ax1, ax2 = two_scales(ax, t, s1, s2, 'r', 'b')
-    
-    
-    # Change color of each axis
-    def color_y_axis(ax, color):
-        """Color your axes."""
-        for t in ax.get_yticklabels():
-            t.set_color(color)
-        return None
-    
-    color_y_axis(ax1, 'r')
-    color_y_axis(ax2, 'b')
-    plt.title(example.simulationID)
-    plt.show()
-
-#%% Plot network result
-# This has been removed since the network snapshots feature was not used 
-# anymore and the results is directly saved in the database
-if False:
-    import seaborn as sns
-    sns.set(style="dark")
-    colors = {'Waste':'brown',
-              'nuclear':'#FF3232',
-              'lignite':'brown',
-              'hard coal':'k',
-              'combined cycle gas turbine':'#FA964B',
-              'oil':'#000000',
-              'open cycle gas turbine':'#FA964B',
-              'backup':'lightsteelblue',
-              'Hydro':'mediumblue',
-              'Biomass':'#009632',
-              'PV':'#FFCD64',
-              'Wind Onshore':'#AFC4A5',
-              'Wind Offshore':'#AFC4A5',
-              'PSPP_discharge':'#0096E1',
-              'PSPP_charge':'#323296', 
-              }
-    
-    colors = {**{f'{k}_pos': v for k, v in colors.items()},**{f'{k}_neg': v for k, v in colors.items()}}
-    colors.update({'Export':'pink',
-                   'Import':'#C5E7A7'})
-    p_by_carrier = example.network.generators_t.p.groupby(example.network.generators.carrier, axis=1).sum()
-    
-    
-    cols = ['PSPP_charge','Biolamass','nuclear','lignite', 'hard coal','oil', 'backup', 'combined cycle gas turbine',
-             'open cycle gas turbine','PV', 'Wind Onshore', 'Wind Offshore','PSPP_discharge']
-    cols = [*[f'{k}_pos' for k in cols],*[f'{k}_neg' for k in cols]]
-    cols.extend(['Export','Import'])
-    for carrier in list(set(cols)- set(p_by_carrier.columns)):
-        cols.remove(carrier)
-    
-    p_by_carrier = p_by_carrier[cols]
-    
-    if importStorages:
-        p_by_carrier['PSPP_charge_neg'] = -p_by_carrier['PSPP_charge_neg']
-        p_by_carrier['PSPP_charge_pos'] = -p_by_carrier['PSPP_charge_pos']
-    if CBTransfers:
-        p_by_carrier['Import'] = -p_by_carrier['Import']
-    fig,ax = plt.subplots(1,1)
-    
-    fig.set_size_inches(12,6)
-
-    #p_by_carrier=p_by_carrier[p_by_carrier>=0].join(p_by_carrier[p_by_carrier<0], lsuffix="_A", rsuffix="_B")
-    p_by_carrier.plot(kind="area",
-                      ax=ax,
-                      linewidth=0,
-                      color=[colors[col] for col in p_by_carrier.columns],
-                      alpha=0.7)
-    
-    ax.set_ylabel("GW")
-    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
-    ax.set_xlim(0,snapLength-1)
-    plt.tight_layout()
-    
-    #plot the reactive power
-    import cartopy.crs as ccrs
-    fig,ax = plt.subplots(1,1,subplot_kw={"projection":ccrs.PlateCarree()})
-    
-    fig.set_size_inches(6,6)
-    
-    p = example.network.buses_t.p.sum()/(example.network.buses_t.p.sum().max()*10)
-    
-    loading = abs(example.network.lines_t.p0/example.network.lines.s_nom).mean()
-    
-    bus_colors = pd.Series("r",example.network.buses.index)
-    bus_colors[p< 0.] = "b"
-    
-    example.network.plot(bus_sizes=abs(p),
-                         ax=ax,
-                         bus_colors=bus_colors,
-                         line_colors=abs(loading),
-                         line_cmap=plt.cm.coolwarm,
-                         title="Redispatched Energy (red=-ve, blue=+ve)")
+        #p_by_carrier=p_by_carrier[p_by_carrier>=0].join(p_by_carrier[p_by_carrier<0], lsuffix="_A", rsuffix="_B")
+        p_by_carrier.plot(kind="area",
+                          ax=ax,
+                          linewidth=0,
+                          color=[colors[col] for col in p_by_carrier.columns],
+                          alpha=0.7)
+        
+        ax.set_ylabel("GW")
+        ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
+        ax.set_xlim(0,snapLength-1)
+        plt.tight_layout()
+        
+        #plot the reactive power
+        import cartopy.crs as ccrs
+        fig,ax = plt.subplots(1,1,subplot_kw={"projection":ccrs.PlateCarree()})
+        
+        fig.set_size_inches(6,6)
+        
+        p = example.network.buses_t.p.sum()/(example.network.buses_t.p.sum().max()*10)
+        
+        loading = abs(example.network.lines_t.p0/example.network.lines.s_nom).mean()
+        
+        bus_colors = pd.Series("r",example.network.buses.index)
+        bus_colors[p< 0.] = "b"
+        
+        example.network.plot(bus_sizes=abs(p),
+                             ax=ax,
+                             bus_colors=bus_colors,
+                             line_colors=abs(loading),
+                             line_cmap=plt.cm.coolwarm,
+                             title="Redispatched Energy (red=-ve, blue=+ve)")

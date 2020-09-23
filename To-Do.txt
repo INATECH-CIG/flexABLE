@@ -1,15 +1,7 @@
 To-dos:
     flexABLE.py :-
-        Loading the scenarios -> Splitting renewables to multiple powerplants instead of one
-        Check if an agent/PP already exists - do not replace it
-
-    - Currently Import and Export will be dealt with as exogenous bids
-        - This could be addressed later by doing an Abstract Merit order model to clear external zones and add all their extra bids
     
     - Add possibility to start and end at any point in the year
-        
-    EOM:
-        - We should check the NaN values handleing int he NetworkMarketClearing
         
 Changelog:
     20.Aug : Added a redispatch price to the bids, which is automatically set to bid price if not assigned explicitly, this would allow

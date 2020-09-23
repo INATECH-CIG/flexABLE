@@ -46,7 +46,7 @@ class ResultsWriter():
         df = generators_P.copy()
         df.set_index(pd.date_range(start=self.timeStamps[t], periods=1),inplace=True)
         
-        self.dfClient.write_points(df, 'reDispatch', protocol='line')
+        self.dfClient.write_points(df, 'reDispatch', protocol='line', tags= {"simulationID":"{}".format(self.world.simulationID)})
         
     def writeRedispatchPower(self,generators_P,t):
         df = generators_P.copy()
@@ -55,8 +55,14 @@ class ResultsWriter():
         if 'PSPP_charge_neg' in df.columns:
             df['PSPP_charge_neg'] = -df['PSPP_charge_neg']
             df['PSPP_charge_pos'] = -df['PSPP_charge_pos']
-        self.dfClient.write_points(df.loc[:, df.columns.str.contains('pos')], 'reDispatch_Tech_pos', protocol='line')
-        self.dfClient.write_points(df.loc[:, df.columns.str.contains('neg')], 'reDispatch_Tech_neg', protocol='line')
+        self.dfClient.write_points(df.loc[:, df.columns.str.contains('pos')],
+                                   'reDispatch_Tech_pos',
+                                   protocol='line',
+                                   tags= {"simulationID":"{}".format(self.world.simulationID)})
+        self.dfClient.write_points(df.loc[:, df.columns.str.contains('neg')],
+                                   'reDispatch_Tech_neg',
+                                   protocol='line',
+                                   tags= {"simulationID":"{}".format(self.world.simulationID)})
 
     def writeCapacity(self,powerplant,t):
         json_body = [
@@ -84,6 +90,7 @@ class ResultsWriter():
             "measurement": "Nodal_Power",
             "tags": {
                 "node": "{}".format(row.name),
+                "simulationID":"{}".format(self.world.simulationID),
             },
             "time": "{}".format(self.timeStamps[t]),
             "fields": {

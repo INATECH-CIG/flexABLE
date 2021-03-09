@@ -44,9 +44,9 @@ class Storage():
         # Unit status parameters
         self.marketSuccess = [0]
         self.currentCapacity = 0
-        self.Bids = {"EOM":{t:0 for t in self.world.snapshots},
-                     "posCRMDemand":{t:0 for t in self.world.snapshots},
-                     "negCRMDemand":{t:0 for t in self.world.snapshots}}
+        # self.Bids = {"EOM":{t:0 for t in self.world.snapshots},
+        #              "posCRMDemand":{t:0 for t in self.world.snapshots},
+        #              "negCRMDemand":{t:0 for t in self.world.snapshots}}
         self.sentBids = []
         self.foresight = int(6/self.world.dt)
 
@@ -115,15 +115,15 @@ class Storage():
         
         if market == "EOM":
             bids.extend(self.calculateBidEOM(t))
-            self.Bids[market][t] = bids
+            #self.Bids[market][t] = bids
             
         elif market == "posCRMDemand": 
             bids.extend(self.calculatingBidsSTO_CRM_pos(t))
-            self.Bids[market][t] = bids
+            #self.Bids[market][t] = bids
 
         elif market == "negCRMDemand":
             bids.extend(self.calculatingBidsSTO_CRM_neg(t))
-            self.Bids[market][t] = bids
+            #self.Bids[market][t] = bids
             
         # self.Bids[market][t] = bids
         return bids

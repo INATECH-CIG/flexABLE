@@ -26,32 +26,36 @@ class CRM():
         else:
             print("Length of given demand does not match snapshots length!")
 
-        self.bids = {"posCRMDemand":{t:[] for t in self.snapshots},
-                     "negCRMDemand":{t:[] for t in self.snapshots},
-                     "posCRMCall":{t:[] for t in self.snapshots},
-                     "negCRMCall":{t:[] for t in self.snapshots}}
+        self.bids = {"posCRMDemand":{t:[] for t in range(96)},
+                     "negCRMDemand":{t:[] for t in range(96)},
+                     "posCRMCall":{t:[] for t in range(96)},
+                     "negCRMCall":{t:[] for t in range(96)}}
         
-        self.marketResults = {"posCRMDemand":{t:0 for t in self.snapshots},
-                              "negCRMDemand":{t:0 for t in self.snapshots},
-                              "posCRMCall":{t:0 for t in self.snapshots},
-                              "negCRMCall":{t:0 for t in self.snapshots}}
+        self.marketResults = {"posCRMDemand":{t:0 for t in range(96)},
+                              "negCRMDemand":{t:0 for t in range(96)},
+                              "posCRMCall":{t:0 for t in range(96)},
+                              "negCRMCall":{t:0 for t in range(96)}}
         
         self.performance = 0
     def step(self,t,agents):
-        for product in ["posCRMDemand","negCRMDemand",'posCRMCall','negCRMCall']:
-            self.collectBids(agents, t, product)
-            self.marketClearing(t, product)
+        for product in ["posCRMDemand","negCRMDemand"]: # ,'posCRMCall','negCRMCall']
+            if t % self.world.dtu and product in ["posCRMDemand","negCRMDemand"]:
+                self.marketResults[product][t%96]  =self.marketResults[product][(t%96)-1]
+                self.bids[product][t%96] =self.bids[product][(t%96)-1]
+            else:
+                self.collectBids(agents, t, product)
+                self.marketClearing(t, product)
         
     def collectBids(self, agents, t, product):
+        self.bids[product][(t%96)]=[]
         if product == 'posCRMCall':
-            self.bids[product][t].extend(self.marketResults['posCRMDemand'][(t // 16)*16].confirmedBids)
+            self.bids[product][(t%96)].extend(self.marketResults['posCRMDemand'][((t%96) // 16)*16].confirmedBids)
         if product == 'negCRMCall':
-            self.bids[product][t].extend(self.marketResults['negCRMDemand'][(t // 16)*16].confirmedBids)
+            self.bids[product][(t%96)].extend(self.marketResults['negCRMDemand'][((t%96) // 16)*16].confirmedBids)
         for agent in agents.values():
-            self.bids[product][t].extend(agent.requestBid(t,product))
+            self.bids[product][(t%96)].extend(agent.requestBid(t,product))
 
     def marketClearing(self,t,product):
-        #print(sorted(self.bids[t].values(),key=operator.attrgetter('price')))
         # =============================================================================
         # A double ended que might be considered instead of lists if the amount of agents
         # is too high, in-order to speed up the matching process, an alternative would be
@@ -67,7 +71,7 @@ class CRM():
         confirmedBids = []
         rejectedBids = []
         partiallyConfirmedBids = []
-        for b in self.bids[product][t]:
+        for b in self.bids[product][(t%96)]:
             if b.bidType =='InelasticDemand':
                 continue
             bidsReceived[b.bidType].append(b)
@@ -256,7 +260,7 @@ class CRM():
                        timestamp=t)
 
 
-        self.marketResults[product][t]=result
+        self.marketResults[product][(t%96)]=result
         
     def plotResults(self,product):
         def two_scales(ax1, time, data1, data2, c1, c2):

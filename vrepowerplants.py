@@ -14,7 +14,7 @@ class VREPowerplant():
     @initializer
     def __init__(self,agent=None,
                 name='KKW ISAR 2',
-                technology='nuclear',
+                technology='Renewable',
                 fuel='uranium',
                 maxPower=1500,
                 minPower=0,
@@ -35,7 +35,7 @@ class VREPowerplant():
                 node='Bus_DE',
                 world=None,
                 FeedInTimeseries=0):
-
+        
         # bids status parameters
         self.dictFeedIn = {n:m for n,m in zip(self.world.snapshots,FeedInTimeseries)}
         self.dictCapacity = {n:None for n in self.world.snapshots}
@@ -78,15 +78,17 @@ class VREPowerplant():
         if market=="EOM":
             if bidQuantity_mr != 0:
                 bids.append(Bid(issuer = self,
-                                ID = "{}".format(self.name,t),
+                                ID = "{}_mrEOM".format(self.name,t),
                                 price = bidPrice_mr,
                                 amount = bidQuantity_mr,
                                 status = "Sent",
                                 bidType = "Supply",
                                 node = self.node,
-                                redispatch_price=-100))
+                                redispatch_price=0))
 
         return bids
     
     def calculateBidEOM(self, t):
         return self.dictFeedIn[t],-500
+    def plotResults(self, ax, legend):
+        pass

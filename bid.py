@@ -34,7 +34,7 @@ class Bid(object):
             self.redispatch_price = price
         else:
             self.redispatch_price = redispatch_price
-            
+
     def __repr__(self):
         return self.ID
 

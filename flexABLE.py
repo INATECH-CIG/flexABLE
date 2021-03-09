@@ -21,9 +21,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Importing classes
 import agent
+# import EOM_v2 as EOM
 import EOM
 import DHM
 import CRM
+import MeritOrder
 import resultsWriter
 
 import pandas as pd
@@ -91,10 +93,12 @@ class World():
         self.minBidDHM =1
         self.minBidReDIS =1
         self.dt = 0.25 # Although we are always dealing with power, dt is needed to calculate the revenue and for the energy market
+        self.dtu = 16 # The frequency of reserve market
         self.dictPFC = [0]*snapshots
         self.networkEnabled = networkEnabled
         self.network = pypsa.Network()
         self.demandDistrib = None
+        self.startingDate=startingDate
         self.ResultsWriter = resultsWriter.ResultsWriter(databaseName=databaseName,
                                                          simulationID=simulationID,
                                                          startingDate=startingDate,
@@ -116,7 +120,7 @@ class World():
             self.markets['DHM'].step(self.snapshots[self.currstep])
             for market in self.markets["EOM"].values():
                 market.step(self.snapshots[self.currstep],self.agents)
-            #self.network.step()
+
             for powerplant in self.powerplants:
                 powerplant.step()
             for storage in self.storages:
@@ -138,8 +142,52 @@ class World():
         finished = datetime.now()
         logger.info('Simulation finished at: {}'.format(finished))
         logger.info('Simulation time: {}'.format(finished - start))
+        start = datetime.now()
+        logger.info('Writing Capacities in Server - This may take couple of minutes.')
+        
+        tempDF = pd.DataFrame(self.dictPFC,index=pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T') ,columns=['Price'])
+        tempDF['Price']= tempDF['Price'].astype('float64')
+        self.ResultsWriter.writeDataFrame(tempDF,'PFC',
+                                     tags={'simulationID':self.simulationID,
+                                           "user": "EOM"})
+        for powerplant in self.powerplants:
+            tempDF = pd.DataFrame(powerplant.dictCapacity, index=['Power']).drop([-1],axis=1).T.set_index(pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T'))
+            tempDF['Power']= tempDF['Power'].astype('float64')
+            
+            self.ResultsWriter.writeDataFrame(tempDF,'Power',
+                                         tags={'simulationID':self.simulationID,
+                                               'UnitName':powerplant.name,
+                                               'Technology':powerplant.technology})
+        
+        for powerplant in self.storages:
+            tempDF = pd.DataFrame(powerplant.dictCapacity, index=['Power']).T.set_index(pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T'))
+            tempDF['Power']= tempDF['Power'].astype('float64')
+            self.ResultsWriter.writeDataFrame(tempDF.clip(upper=0),'Power',
+                                         tags={'simulationID':self.simulationID,
+                                               'UnitName':powerplant.name+'_charge',
+                                               'direction':'charge',
+                                               'Technology':powerplant.technology})
+            self.ResultsWriter.writeDataFrame(tempDF.clip(lower=0),'Power',
+                                         tags={'simulationID':self.simulationID,
+                                               'UnitName':powerplant.name+'_discharge',
+                                               'direction':'discharge',
+                                               'Technology':powerplant.technology})
+        finished = datetime.now()
+        logger.info('Writing results into database finished at: {}'.format(finished))
+        logger.info('Saving into database time: {}'.format(finished - start))
         logger.info("#########################")
-    def loadScenario(self, scenario="Default", importStorages=True, importCRM=True, importDHM=True, addBackup=False, CBTransfers=False, CBTMainland=None, startingPoint=0):
+    def loadScenario(self, scenario="Default",
+                     importStorages=False,
+                     importCRM=True,
+                     importDHM=True,
+                     meritOrder=True,
+                     addBackup=False,
+                     CBTransfers=False,
+                     CBTMainland=None,
+                     startingPoint=0,
+                     line_expansion= 1.5,
+                     line_expansion_price=1000,
+                     backupPerNode = 1000):
         # Some of the input files should be restructured such as demand, so it
         # could include more than one zone
         
@@ -215,8 +263,9 @@ class World():
         CBT.drop(CBT.index[0:startingPoint],inplace=True)
         CBT.reset_index(drop=True,inplace=True)
         
-        {"Import":{t:q for t,q in zip(self.snapshots,CBT["Import"].to_list())},
-         "Export":{t:q for t,q in zip(self.snapshots,CBT["Export"].to_list())}}
+
+        CBT["Import"]=CBT["Import"]*CBTransfers
+        CBT["Export"]=CBT["Export"]*CBTransfers
         self.addMarket('EOM_DE','EOM', demand=dict(demand['demand']), CBtrades=CBT)
 
         
@@ -251,6 +300,12 @@ class World():
         self.addMarket('CRM_DE','CRM', demand=CRMdemand)
         
         logger.info("Demand data loaded.")
+        
+        if meritOrder:
+            logger.info("Calculating PFC....")
+            meritOrder = MeritOrder.MeritOrder(demand, powerplantsList, vrepowerplantFeedIn, self.fuelPrices, self.emissionFactors, self.snapshots)
+            self.dictPFC = meritOrder.PFC()
+            logger.info("Merit Order calculated.")
         if self.networkEnabled:
             # Loading Network data
             logger.info("Setting up Network.")
@@ -288,20 +343,20 @@ class World():
                                   nodes.index,
                                   suffix='_backupP',
                                   bus=nodes.index,
-                                  p_nom=1000,
+                                  p_nom=backupPerNode,
                                   p_min_pu=0,
                                   p_max_pu=1,
-                                  marginal_cost=3000,
+                                  marginal_cost=75,
                                   carrier='backup_pos')
                 self.network.madd('Generator',
                                   nodes.index,
                                   suffix='_backupN',
                                   bus=nodes.index,
-                                  p_nom=1000,
+                                  p_nom=backupPerNode,
                                   p_min_pu=0,
                                   p_max_pu=1,
                                   sign=-1,
-                                  marginal_cost=3000,
+                                  marginal_cost=75,
                                   carrier='backup_neg')
             if CBTransfers:
                 self.network.madd('Generator',
@@ -332,9 +387,9 @@ class World():
                               r= lines.r,
                               s_nom= lines.s_nom,
                               s_nom_extendable=True,
-                              s_nom_max=lines.s_nom*1.00,
-                              s_nom_min=lines.s_nom*1.00,
-                              capital_cost=20000)
+                              s_nom_max=lines.s_nom*line_expansion,
+                              s_nom_min=lines.s_nom*1.30,
+                              capital_cost=line_expansion_price)
             self.network.madd('Load',
                               nodes.index,
                               suffix='_load',
@@ -387,7 +442,7 @@ class World():
                                       p_nom=data.PV,
                                       p_min_pu=-1,
                                       p_max_pu=0,
-                                      marginal_cost=-500,
+                                      marginal_cost=0,
                                       carrier='PV_neg')
                     self.agents['Renewables'].addVREPowerplant("{}_PV".format(_),
                                                                FeedInTimeseries=(PV_CF[str(data.region)]*data.PV).to_list(),
@@ -399,7 +454,7 @@ class World():
                                       p_nom=data.windOff,
                                       p_min_pu=-1,
                                       p_max_pu=0,
-                                      marginal_cost=-500,
+                                      marginal_cost=0,
                                       carrier='Wind Offshore_neg')
                     self.agents['Renewables'].addVREPowerplant("{}_windOff".format(_),
                                                                FeedInTimeseries=(wind_CF[str(_)]*data.windOff).to_list(),
@@ -411,7 +466,7 @@ class World():
                                       p_nom=data.windOn,
                                       p_min_pu=-1,
                                       p_max_pu=0,
-                                      marginal_cost=-500,
+                                      marginal_cost=0,
                                       carrier='Wind Onshore_neg')
                     self.agents['Renewables'].addVREPowerplant("{}_windOn".format(_),
                                                                FeedInTimeseries=(wind_CF[str(_)]*data.windOn).to_list(),
@@ -466,158 +521,33 @@ class World():
             logger.info("Network Loaded.")
         
 if __name__=="__main__":
-
-    Plot=False
-    startingPoint = 96*0
-    snapLength = 96*5
-    networkEnabled=True
+    
+    year = 2016
+    startingPoint = 0
+    snapLength = 96*366
+    networkEnabled=False
     importStorages=True
     importCRM=True
+    meritOrder=False
     addBackup=True
-    CBTransfers=False
+    CBTransfers=1
     CBTMainland='DE'
-    example = World(snapLength, networkEnabled=networkEnabled, simulationID='Testing_altSP_NN_dy', startingDate='2018-01-01T00:00:00')
-    
-    pfc = pd.read_csv("input/2015_Network/PFC_run0.csv", nrows = snapLength, index_col=0)
-    
-    example.dictPFC = list(pfc['price'])
+    timeStamps = pd.date_range('{}-01-01T00:00:00'.format(year), '{}-01-01T00:00:00'.format(year+1), freq='15T')
+    example = World(snapLength, networkEnabled=networkEnabled,
+                    simulationID='debugging', startingDate=timeStamps[startingPoint])
 
-    example.loadScenario(scenario='2015_Network',
+    
+    example.loadScenario(scenario='{}'.format(year),
                          importStorages=importStorages,
                          importCRM=importCRM,
+                         meritOrder=meritOrder,
                          addBackup=addBackup,
                          CBTransfers=CBTransfers,
                          CBTMainland=CBTMainland,
-                         startingPoint=startingPoint)
+                         startingPoint=startingPoint,
+                         line_expansion=1.5,
+                         line_expansion_price=1000,
+                         backupPerNode=100)
 
     example.runSimulation()
     
-
-    if Plot:    
-        if importStorages:
-            example.storages[0].plotResults()
-        #%%%
-        import math 
-        Tot=9
-        Cols = math.ceil(Tot*(0.5))
-    
-        Rows = Tot // Cols
-        Rows += Tot % Cols
-        fig,ax = plt.subplots(Rows,Cols)
-        for _ in range(Tot):
-            example.powerplants[_].plotResults(ax=ax[_//Cols][_%Cols], legend=False)
-        
-        handles, labels = ax[0][0].get_legend_handles_labels()
-        fig.legend(handles, labels)    
-        plt.show()
-        #%% plot EOM prices
-        def two_scales(ax1, time, data1, data2, c1, c2):
-        
-            ax2 = ax1.twinx()
-        
-            ax1.step(time, data1, color=c1)
-            ax1.set_xlabel('snapshot')
-            ax1.set_ylabel('Demand [MW/Snapshot]')
-        
-            ax2.step(time, data2, color=c2)
-            ax2.set_ylabel('Market Clearing Price [€/MW]')
-            return ax1, ax2
-        
-        t = range(len(example.dictPFC)-4)
-        s1 = list(example.markets["EOM"]['EOM_DE'].demand.values())[:-4]
-        s2 = example.dictPFC[:-4]
-        # Create axes
-        fig, ax = plt.subplots()
-        ax1, ax2 = two_scales(ax, t, s1, s2, 'r', 'b')
-        
-        
-        # Change color of each axis
-        def color_y_axis(ax, color):
-            """Color your axes."""
-            for t in ax.get_yticklabels():
-                t.set_color(color)
-            return None
-        
-        color_y_axis(ax1, 'r')
-        color_y_axis(ax2, 'b')
-        plt.title(example.simulationID)
-        plt.show()
-    
-    #%% Plot network result
-    # This has been removed since the network snapshots feature was not used 
-    # anymore and the results is directly saved in the database
-    if False:
-        import seaborn as sns
-        sns.set(style="dark")
-        colors = {'Waste':'brown',
-                  'nuclear':'#FF3232',
-                  'lignite':'brown',
-                  'hard coal':'k',
-                  'combined cycle gas turbine':'#FA964B',
-                  'oil':'#000000',
-                  'open cycle gas turbine':'#FA964B',
-                  'backup':'lightsteelblue',
-                  'Hydro':'mediumblue',
-                  'Biomass':'#009632',
-                  'PV':'#FFCD64',
-                  'Wind Onshore':'#AFC4A5',
-                  'Wind Offshore':'#AFC4A5',
-                  'PSPP_discharge':'#0096E1',
-                  'PSPP_charge':'#323296', 
-                  }
-        
-        colors = {**{f'{k}_pos': v for k, v in colors.items()},**{f'{k}_neg': v for k, v in colors.items()}}
-        colors.update({'Export':'pink',
-                       'Import':'#C5E7A7'})
-        p_by_carrier = example.network.generators_t.p.groupby(example.network.generators.carrier, axis=1).sum()
-        
-        
-        cols = ['PSPP_charge','Biolamass','nuclear','lignite', 'hard coal','oil', 'backup', 'combined cycle gas turbine',
-                 'open cycle gas turbine','PV', 'Wind Onshore', 'Wind Offshore','PSPP_discharge']
-        cols = [*[f'{k}_pos' for k in cols],*[f'{k}_neg' for k in cols]]
-        cols.extend(['Export','Import'])
-        for carrier in list(set(cols)- set(p_by_carrier.columns)):
-            cols.remove(carrier)
-        
-        p_by_carrier = p_by_carrier[cols]
-        
-        if importStorages:
-            p_by_carrier['PSPP_charge_neg'] = -p_by_carrier['PSPP_charge_neg']
-            p_by_carrier['PSPP_charge_pos'] = -p_by_carrier['PSPP_charge_pos']
-        if CBTransfers:
-            p_by_carrier['Import'] = -p_by_carrier['Import']
-        fig,ax = plt.subplots(1,1)
-        
-        fig.set_size_inches(12,6)
-    
-        #p_by_carrier=p_by_carrier[p_by_carrier>=0].join(p_by_carrier[p_by_carrier<0], lsuffix="_A", rsuffix="_B")
-        p_by_carrier.plot(kind="area",
-                          ax=ax,
-                          linewidth=0,
-                          color=[colors[col] for col in p_by_carrier.columns],
-                          alpha=0.7)
-        
-        ax.set_ylabel("GW")
-        ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
-        ax.set_xlim(0,snapLength-1)
-        plt.tight_layout()
-        
-        #plot the reactive power
-        import cartopy.crs as ccrs
-        fig,ax = plt.subplots(1,1,subplot_kw={"projection":ccrs.PlateCarree()})
-        
-        fig.set_size_inches(6,6)
-        
-        p = example.network.buses_t.p.sum()/(example.network.buses_t.p.sum().max()*10)
-        
-        loading = abs(example.network.lines_t.p0/example.network.lines.s_nom).mean()
-        
-        bus_colors = pd.Series("r",example.network.buses.index)
-        bus_colors[p< 0.] = "b"
-        
-        example.network.plot(bus_sizes=abs(p),
-                             ax=ax,
-                             bus_colors=bus_colors,
-                             line_colors=abs(loading),
-                             line_cmap=plt.cm.coolwarm,
-                             title="Redispatched Energy (red=-ve, blue=+ve)")

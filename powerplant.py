@@ -36,6 +36,8 @@ class Powerplant():
                 world=None,
                 Redispatch=False):
 
+        self.minDowntime /= self.world.dt          # This was added to consider dt 15 mins
+        self.minOperatingTime /= self.world.dt     # This was added to consider dt 15 mins
         # bids status parameters
         self.dictCapacity = {n:0 for n in self.world.snapshots}
         self.dictCapacity[-1] = self.maxPower/2
@@ -48,6 +50,7 @@ class Powerplant():
         self.performance = 0
         
         # Unit status parameters
+        self.meanMarketSuccess = 0
         self.marketSuccess = [0]
         self.currentDowntime = self.minDowntime # Keeps track of the powerplant if it reached the minimum shutdown time
         self.currentStatus = 0 # 0 means the power plant is currently off, 1 means it is on
@@ -61,10 +64,15 @@ class Powerplant():
         for bid in self.sentBids:
             if 'mrEOM' in bid.ID or 'flexEOM' in bid.ID:
                 self.dictCapacity[self.world.currstep] += bid.confirmedAmount
-        self.sentBids=[]
-        self.dictCapacity[self.world.currstep] += self.confQtyCRM_pos[self.world.currstep]
-        self.dictCapacity[self.world.currstep] -= self.confQtyCRM_neg[self.world.currstep]
+                
         
+        if self.world.currstep % 16:
+            self.confQtyCRM_pos[self.world.currstep] = self.confQtyCRM_pos[self.world.currstep-1]
+            self.confQtyCRM_neg[self.world.currstep] = self.confQtyCRM_neg[self.world.currstep-1]
+            
+        # self.dictCapacity[self.world.currstep] += self.confQtyCRM_pos[self.world.currstep]
+        # self.dictCapacity[self.world.currstep] -= self.confQtyCRM_neg[self.world.currstep]
+        self.dictCapacity[self.world.currstep] += self.powerLoss_CHP[self.world.currstep]
         if self.dictCapacity[self.world.currstep] < 0:
             self.dictCapacity[self.world.currstep] = 0
             self.performance -=2
@@ -73,34 +81,66 @@ class Powerplant():
         if self.dictCapacity[self.world.currstep] > 0:
             self.marketSuccess[-1] += 1
         else:
-            self.marketSuccess.append(0)
-        # Checks if the powerplant is shutdown and whether it can start-up
-        if (self.dictCapacity[self.world.currstep] < 1*self.minPower) and self.currentDowntime==0 and self.marketSuccess[-1]>0:
-            self.currentStatus = 0
+            if self.marketSuccess[-1] !=0:
+                self.meanMarketSuccess = sum(self.marketSuccess)/len(self.marketSuccess)
+                self.marketSuccess.append(0)
             
-        if self.currentStatus == 0:
+        # Checks if the powerplant is shutdown and whether it can start-up
+        if self.currentStatus==0:
+            #Power plant is off
             if self.dictCapacity[self.world.currstep - 1] == 0:
+                # Adds to the counter of the number of steps it was off
                 self.currentDowntime +=1
                 
-        if self.currentDowntime >= self.minDowntime:
-            self.averageDownTime.append(self.currentDowntime)
-            self.currentDowntime = 0
-            self.currentStatus = 1
-        
-        self.world.ResultsWriter.writeCapacity(self,self.world.currstep)
+            if self.currentDowntime >= self.minDowntime:
+                # Powerplant can turn on
+                if self.dictCapacity[self.world.currstep]>=self.minPower:
+                    self.averageDownTime.append(self.currentDowntime)
+                    self.currentDowntime = 0
+                    self.currentStatus = 1
 
+                else:
+                    self.dictCapacity[self.world.currstep] = 0
+                    self.currentStatus = 0
+        else:
+            if (self.dictCapacity[self.world.currstep] < self.minPower):
+                self.currentStatus = 0
+                self.currentDowntime = 1
+            else:
+                self.currentStatus = 1
+
+        # if (self.dictCapacity[self.world.currstep] < 1*self.minPower) and self.currentDowntime==0 and self.marketSuccess[-1]>0:
+        #     self.currentStatus = 0
+            
+        # if self.currentStatus == 0:
+        #     if self.dictCapacity[self.world.currstep - 1] == 0:
+        #         self.currentDowntime +=1
+                
+        # if self.currentDowntime >= self.minDowntime and self.dictCapacity[self.world.currstep]>0:
+        #     self.averageDownTime.append(self.currentDowntime)
+        #     self.currentDowntime = 0
+        #     self.currentStatus = 1
+
+        
+        # self.world.ResultsWriter.writeCapacity(self,self.world.currstep, writeBidsInDB=False)
+        self.sentBids=[]
+        
     def feedback(self, bid):
         if bid.status == "Confirmed":
             if 'CRMPosDem' in bid.ID:
-                self.confQtyCRM_pos[self.world.currstep] = bid.confirmedAmount
+                self.confQtyCRM_pos.update({self.world.currstep+_:bid.confirmedAmount for _ in range(16)})
             if 'CRMNegDem' in bid.ID:
-                self.confQtyCRM_neg[self.world.currstep] = bid.confirmedAmount
+                self.confQtyCRM_neg.update({self.world.currstep+_:bid.confirmedAmount for _ in range(16)})
+            if 'steam' in bid.ID:
+                self.confQtyDHM_steam[self.world.currstep] = bid.confirmedAmount
             self.performance+=1
         elif bid.status =="PartiallyConfirmed":
             if 'CRMPosDem' in bid.ID:
-                self.confQtyCRM_pos[self.world.currstep] = bid.confirmedAmount
+                self.confQtyCRM_pos.update({self.world.currstep+_:bid.confirmedAmount for _ in range(16)})
             if 'CRMNegDem' in bid.ID:
-                self.confQtyCRM_neg[self.world.currstep] = bid.confirmedAmount
+                self.confQtyCRM_neg.update({self.world.currstep+_:bid.confirmedAmount for _ in range(16)})
+            if 'steam' in bid.ID:
+                self.confQtyDHM_steam[self.world.currstep] = bid.confirmedAmount
             self.performance+=0.5
         else:
             self.performance-=2
@@ -119,25 +159,20 @@ class Powerplant():
         bids = []
         if market=="EOM":
             bidQuantity_mr, bidPrice_mr, bidQuantity_flex, bidPrice_flex = self.calculateBidEOM(t)
-            if bidQuantity_mr != 0:
-                bids.append(Bid(issuer = self,
-                                ID = "{}_mrEOM".format(self.name,t),
-                                #ID = "{}_mr".format(self.name),
-                                price = bidPrice_mr,
-                                amount = bidQuantity_mr,
-                                status = "Sent",
-                                bidType = "Supply",
-                                node = self.node))
-                
-            if bidQuantity_flex !=0:
-                bids.append(Bid(issuer = self,
-                                #ID = "{}_flex".format(self.name),
-                                ID = "{}_flexEOM".format(self.name,t),
-                                price = bidPrice_flex,
-                                amount = bidQuantity_flex,
-                                status = "Sent",
-                                bidType = "Supply",
-                                node = self.node))
+            bids.append(Bid(issuer = self,
+                            ID = "{}_mrEOM".format(self.name,t),
+                            price = bidPrice_mr,
+                            amount = bidQuantity_mr,
+                            status = "Sent",
+                            bidType = "Supply",
+                            node = self.node))
+            bids.append(Bid(issuer = self,
+                            ID = "{}_flexEOM".format(self.name,t),
+                            price = bidPrice_flex,
+                            amount = bidQuantity_flex,
+                            status = "Sent",
+                            bidType = "Supply",
+                            node = self.node))
         elif market=="DHM": 
             bids.extend(self.calculateBidDHM(t))
 
@@ -146,6 +181,7 @@ class Powerplant():
 
         elif market=="negCRMDemand":
             bids.extend(self.calculatingBidsFPP_CRM_neg(t))
+            
             
         return bids
     
@@ -217,6 +253,7 @@ class Powerplant():
         maxDowntime_warmStart = 192
         if ((self.currentStatus) or (not(self.currentStatus) and (self.currentDowntime >= self.minDowntime))):
             # =============================================================================
+            # Powerplant is either on, or is able to turn on
             # Calculating possible bid amount          
             # =============================================================================
             mustRunPowerFPP = (max(self.dictCapacity[t-1] - self.rampDown + self.confQtyCRM_neg[t], self.minPower + self.confQtyCRM_neg[t]))
@@ -235,7 +272,7 @@ class Powerplant():
                 # The powerplant is currently off and calculates a startup markup as an extra
                 # to the marginal cost
                 # Calculating the average uninterrupted operating period
-                averageOperatingTime = max(mean(self.marketSuccess), self.minOperatingTime, 1)
+                averageOperatingTime = max(self.meanMarketSuccess, self.minOperatingTime, 1) #1 prevents division by 0
 
                 
                 if self.currentDowntime < maxDowntime_hotStart:
@@ -250,12 +287,15 @@ class Powerplant():
                 
                 marginalCosts_eta = self.marginalCostsFPP(t, 1, mustRunPowerFPP)
                 
+                if self.confQtyCRM_neg[t] > 0:
+                    marginalCosts_eta=0
+                
                 bidPrice_mr = min(marginalCosts_eta + markup, 3000.12)
             else:
                 '''
                 Check the description provided by Thomas in last version, the average downtime is not available
                 '''
-                avgDT = max(self.minDowntime,1)
+                avgDT = max(self.minDowntime,1) # minDownTime is divided by 4 since it is given in 15 min resolution
                 
                 if avgDT < maxDowntime_hotStart:
                     startingCosts = (self.hotStartCosts * self.maxPower)
@@ -270,10 +310,14 @@ class Powerplant():
                     eqHeatGenCosts = (self.confQtyDHM_steam[t] * (self.world.fuelPrices[self.fuel][t]/ 0.9)) / abs(bidQuantity_mr)
                 else:
                     eqHeatGenCosts = 0.00
-                
+                    
                 marginalCosts_eta = self.marginalCostsFPP(t, 1, totalOutputCapacity)
                 
+                if self.confQtyCRM_neg[t] > 0:
+                    marginalCosts_eta=0
+                    
                 bidPrice_mr = max(-priceReduction_restart - eqHeatGenCosts + marginalCosts_eta, -2999.00)
+
             
             if self.confQtyDHM_steam[t] > 0:
                 powerLossRatio = round((self.powerLoss_CHP[t] / (self.confQtyDHM_steam[t])), 2)
@@ -281,8 +325,7 @@ class Powerplant():
                 powerLossRatio = 0
                 
             # Flex-bid price formulation
-            bidPrice_flex = (1 - powerLossRatio) * self.marginalCostsFPP(t, 1, totalOutputCapacity) if abs(
-                bidQuantity_flex) > 0 else 0.00
+            bidPrice_flex = (1 - powerLossRatio) * self.marginalCostsFPP(t, 1, totalOutputCapacity) if abs(bidQuantity_flex) > 0 else 0.00
             
         return (bidQuantity_mr,bidPrice_mr, bidQuantity_flex, bidPrice_flex)
 
@@ -519,6 +562,9 @@ class Powerplant():
         ax.step(range(len(self.world.snapshots)), list(self.dictCapacity.values())[0:-1],'r-', label='Total Capacity')
         ax.step(range(len(self.world.snapshots)), [-_ for _ in list(self.confQtyCRM_neg.values())],'b--', label='Negative CRM')
         ax.step(range(len(self.world.snapshots)), list(self.confQtyCRM_pos.values()),'g--',  label='Positive CRM')
+        
+        ax.step(range(len(self.world.snapshots)), [i+j for i,j in zip(list(self.confQtyCRM_pos.values()),list(self.dictCapacity.values())[0:-1]) ],'y--',  label='Positive CRM')
+        
         ax.step(range(len(self.world.snapshots)),[self.maxPower for _ in range(len(self.world.snapshots))],'r:', label='Maximum Power')
         ax.step(range(len(self.world.snapshots)),[self.minPower for _ in range(len(self.world.snapshots))],'r:', label='Minimum Power')
         ax.set_ylabel('Power [MW]')

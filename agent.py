@@ -16,7 +16,7 @@ class Agent():
         self.powerplants = {}
         self.storages = {}
         
-        self.bids = {t:{} for t in snapshots}
+        #self.bids = {t:{} for t in snapshots}
         self.world = world
         
     def addPowerplant(self, name,**kwargs):
@@ -40,5 +40,4 @@ class Agent():
         return bids
     
     def requestBid(self,t, market="EOM"):
-        self.bids[t]= self.calculateBid(t, market)
-        return self.bids[t]
+        return self.calculateBid(t, market)

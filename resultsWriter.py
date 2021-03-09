@@ -6,7 +6,7 @@ Created on Thu Sep 10 17:48:29 2020
 """
 from influxdb import InfluxDBClient
 import pandas as pd
-
+import json
 from influxdb import DataFrameClient
 
 class ResultsWriter():
@@ -18,7 +18,10 @@ class ResultsWriter():
         self.simulationID = simulationID
         self.startingDate = startingDate
         self.world=world
-        self.timeStamps = pd.date_range(self.startingDate, periods=len(self.world.snapshots), freq='15T')
+        if not(world is None):
+            self.timeStamps = pd.date_range(self.startingDate, periods=len(self.world.snapshots), freq='15T')
+
+        # self.MarketResults = []
         # Creating connection and Database to save results
         self.client = InfluxDBClient(host='localhost', port=8086)
         self.client.create_database(databaseName)
@@ -28,6 +31,7 @@ class ResultsWriter():
         self.dfClient.switch_database(self.databaseName)
         
     def writeMarketResult(self,MarketResult):
+        
         json_body = [
     {
         "measurement": "PFC",
@@ -37,7 +41,7 @@ class ResultsWriter():
         },
         "time": "{}".format(self.timeStamps[MarketResult.timestamp]),
         "fields": {
-            "Price": MarketResult.marketClearingPrice
+            "Price": float(MarketResult.marketClearingPrice)
         }
     }]
         self.client.write_points(json_body)
@@ -48,23 +52,8 @@ class ResultsWriter():
         
         self.dfClient.write_points(df, 'reDispatch', protocol='line', tags= {"simulationID":"{}".format(self.world.simulationID)})
         
-    def writeRedispatchPower(self,generators_P,t):
-        df = generators_P.copy()
-        df = df.groupby(self.world.network.generators.carrier, axis=1).sum()
-        df.set_index(pd.date_range(start=self.timeStamps[t], periods=1),inplace=True)
-        if 'PSPP_charge_neg' in df.columns:
-            df['PSPP_charge_neg'] = -df['PSPP_charge_neg']
-            df['PSPP_charge_pos'] = -df['PSPP_charge_pos']
-        self.dfClient.write_points(df.loc[:, df.columns.str.contains('pos')],
-                                   'reDispatch_Tech_pos',
-                                   protocol='line',
-                                   tags= {"simulationID":"{}".format(self.world.simulationID)})
-        self.dfClient.write_points(df.loc[:, df.columns.str.contains('neg')],
-                                   'reDispatch_Tech_neg',
-                                   protocol='line',
-                                   tags= {"simulationID":"{}".format(self.world.simulationID)})
 
-    def writeCapacity(self,powerplant,t):
+    def writeCapacity(self,powerplant,t, writeBidsInDB=False):
         json_body = [
     {
         "measurement": "Power",
@@ -78,27 +67,32 @@ class ResultsWriter():
             "Power": float(powerplant.dictCapacity[t])
         }
     }]
-        self.client.write_points(json_body)
-        
-    def writeNodalPower(self,network,t):
-        df = pd.DataFrame(network.buses_t.p.T).copy()
-        df.columns=['Power']
-        df[['x','y']] = network.buses[['x','y']].copy()
-        def jsonBuild(row):
-            json_body = [
-        {
-            "measurement": "Nodal_Power",
-            "tags": {
-                "node": "{}".format(row.name),
-                "simulationID":"{}".format(self.world.simulationID),
-            },
-            "time": "{}".format(self.timeStamps[t]),
-            "fields": {
-                "Power": float(row.Power),
-                "x":"{}".format(row.x),
-                "y":"{}".format(row.y)
-            }
-        }]
-            self.client.write_points(json_body)
-        df.apply(jsonBuild,axis=1)
+        # self.client.write_points(json_body)
 
+    def writeDataFrame(self,df, measurementName, tags={'simulationID':'Historic_Data'}):
+        self.dfClient.write_points(df,
+                                   measurementName,
+                                   tags=tags,
+                                   protocol='line')
+
+if __name__=='__main__':
+    with open('year_2020.json', 'r') as myfile:
+        data=myfile.read()
+
+    # parse file
+    obj = json.loads(data)
+    
+    data = pd.DataFrame()
+    required=['Day Ahead Auction', 'Intraday Continuous Index Price',
+            'Intraday Continuous Average Price', 'Intraday Continuous Low Price',
+            'Intraday Continuous High Price', 'Intraday Continuous ID3-Price']
+    for _ in obj:
+        if _['key'][0]['en'] in required:
+            tempData = pd.DataFrame(_['values'])
+            tempData[0] = tempData[0].astype('datetime64[ms]')
+            tempData.set_index(0, inplace=True, drop=True)
+            data[_['key'][0]['en']]=tempData[1]
+
+    resultsWriter = ResultsWriter(databaseName='flexABLE', simulationID='paper_v1')
+    resultsWriter.writeDataFrame(data, 'PFC', )
+    

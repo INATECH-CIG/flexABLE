@@ -89,6 +89,7 @@ class VREPowerplant():
         return bids
     
     def calculateBidEOM(self, t):
+        marginalCost = 20.0 if 'Biomass' in self.name else -500
         return self.dictFeedIn[t],-500
     def plotResults(self, ax, legend):
         pass

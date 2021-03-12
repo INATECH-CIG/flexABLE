@@ -34,6 +34,11 @@ class Agent():
     def calculateBid(self,t, market="EOM"):
         bids = []
         for unit in self.powerplants.values():
+            try:
+                if t in unit.Availability:
+                    continue
+            except AttributeError:
+                pass
             bids.extend(unit.requestBid(t, market))
         for unit in self.storages.values():
             bids.extend(unit.requestBid(t, market))

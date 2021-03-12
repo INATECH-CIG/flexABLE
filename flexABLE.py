@@ -95,6 +95,7 @@ class World():
         self.dt = 0.25 # Although we are always dealing with power, dt is needed to calculate the revenue and for the energy market
         self.dtu = 16 # The frequency of reserve market
         self.dictPFC = [0]*snapshots
+        self.IEDPrice = [2999.9]*snapshots
         self.networkEnabled = networkEnabled
         self.network = pypsa.Network()
         self.demandDistrib = None
@@ -147,6 +148,11 @@ class World():
         
         tempDF = pd.DataFrame(self.dictPFC,index=pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T') ,columns=['Price'])
         tempDF['Price']= tempDF['Price'].astype('float64')
+        self.ResultsWriter.writeDataFrame(tempDF,'PFC',
+                                     tags={'simulationID':self.simulationID,
+                                           "user": "EOM"})
+        tempDF = pd.DataFrame(self.IEDPrice,index=pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T') ,columns=['IED_Price'])
+        tempDF['IED_Price']= tempDF['IED_Price'].astype('float64')
         self.ResultsWriter.writeDataFrame(tempDF,'PFC',
                                      tags={'simulationID':self.simulationID,
                                            "user": "EOM"})
@@ -282,7 +288,7 @@ class World():
         HLP_HH.reset_index(drop=True,inplace=True)
         annualDemand= pd.read_csv('input/{}/DH_DE.csv'.format(scenario),
                                   index_col=0)
-        
+        annualDemand *=4
         self.addMarket('DHM_DE','DHM', HLP_DH=HLP_DH, HLP_HH=HLP_HH, annualDemand=annualDemand)
         
         logger.info("Loading control reserve demand....")
@@ -522,13 +528,13 @@ class World():
         
 if __name__=="__main__":
     
-    year = 2016
+    year = 2018
     startingPoint = 0
-    snapLength = 96*366
+    snapLength = 96*365
     networkEnabled=False
     importStorages=True
     importCRM=True
-    meritOrder=False
+    meritOrder=True
     addBackup=True
     CBTransfers=1
     CBTMainland='DE'

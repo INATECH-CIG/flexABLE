@@ -45,7 +45,7 @@ class Powerplant():
         self.confQtyCRM_pos = {n:0 for n in self.world.snapshots}
         self.confQtyDHM_steam = {n:0 for n in self.world.snapshots}
         self.powerLoss_CHP = {n:0 for n in self.world.snapshots}
-        
+        self.maxExtraction /= self.world.dt
         # performance parameter for ML
         self.performance = 0
         
@@ -58,6 +58,8 @@ class Powerplant():
         self.currentCapacity = 0
         self.sentBids=[]
         
+        #self.Availability = [12192+i for i in range(96*3)] if name in ['KKW ISAR 2','KKW BROKDORF', 'KKW PHILIPPSBURG 2'] else []
+        self.maxAvailability = [self.maxPower for _ in self.world.snapshots]
     def step(self):
         # Calculate the sum of confirmed bids
         self.dictCapacity[self.world.currstep] = 0
@@ -109,20 +111,9 @@ class Powerplant():
             else:
                 self.currentStatus = 1
 
-        # if (self.dictCapacity[self.world.currstep] < 1*self.minPower) and self.currentDowntime==0 and self.marketSuccess[-1]>0:
-        #     self.currentStatus = 0
-            
-        # if self.currentStatus == 0:
-        #     if self.dictCapacity[self.world.currstep - 1] == 0:
-        #         self.currentDowntime +=1
-                
-        # if self.currentDowntime >= self.minDowntime and self.dictCapacity[self.world.currstep]>0:
-        #     self.averageDownTime.append(self.currentDowntime)
-        #     self.currentDowntime = 0
-        #     self.currentStatus = 1
-
         
-        # self.world.ResultsWriter.writeCapacity(self,self.world.currstep, writeBidsInDB=False)
+        # self.world.ResultsWriter.writeCapacity(self,self.world.currstep, writeBidsInDB=True)
+        # self.world.ResultsWriter.writeBids(self,self.world.currstep)
         self.sentBids=[]
         
     def feedback(self, bid):
@@ -151,7 +142,7 @@ class Powerplant():
     def powerLossFPP(self, t, bid):
         if bid.confirmedAmount > 0:
             if self.technology in ['lignite', 'hard coal', 'combined cycle gas turbine']:
-                powerLoss = (self.maxPower - ((-0.12 * min((bid.confirmedAmount) / self.maxPower, 1.2) + 1) * self.maxPower))
+                powerLoss = (self.maxPower - ((-0.12 * min((bid.confirmedAmount) / self.maxPower, 1.25) + 1) * self.maxPower))
                 # über ein Wärme-Strom-Verhältnis von 1.2 hinaus setzt die Zusatzfeuerung ein
                 self.powerLoss_CHP[t] = powerLoss
 
@@ -287,8 +278,6 @@ class Powerplant():
                 
                 marginalCosts_eta = self.marginalCostsFPP(t, 1, mustRunPowerFPP)
                 
-                if self.confQtyCRM_neg[t] > 0:
-                    marginalCosts_eta=0
                 
                 bidPrice_mr = min(marginalCosts_eta + markup, 3000.12)
             else:
@@ -310,11 +299,8 @@ class Powerplant():
                     eqHeatGenCosts = (self.confQtyDHM_steam[t] * (self.world.fuelPrices[self.fuel][t]/ 0.9)) / abs(bidQuantity_mr)
                 else:
                     eqHeatGenCosts = 0.00
-                    
+
                 marginalCosts_eta = self.marginalCostsFPP(t, 1, totalOutputCapacity)
-                
-                if self.confQtyCRM_neg[t] > 0:
-                    marginalCosts_eta=0
                     
                 bidPrice_mr = max(-priceReduction_restart - eqHeatGenCosts + marginalCosts_eta, -2999.00)
 
@@ -326,7 +312,7 @@ class Powerplant():
                 
             # Flex-bid price formulation
             bidPrice_flex = (1 - powerLossRatio) * self.marginalCostsFPP(t, 1, totalOutputCapacity) if abs(bidQuantity_flex) > 0 else 0.00
-            
+
         return (bidQuantity_mr,bidPrice_mr, bidQuantity_flex, bidPrice_flex)
 
     def calculateBidDHM(self, t, dt=1):
@@ -343,13 +329,13 @@ class Powerplant():
     
                 # Steam extraction: Twice the amount of output electricity, limited to 1.2 times the normalized nominal electricity output
                 thPower_process = min(elCapacity * 2, self.maxPower * 1.2)
-                heatExtraction_process = thPower_process * dt
+                heatExtraction_process = thPower_process
     
                 # Auxiliary firing on plant site
-                heatExtraction_auxFiring = max(self.maxExtraction - (self.maxPower * 1.2 * dt), 0)
-    
+                heatExtraction_auxFiring = max(self.maxExtraction - (self.maxPower * 1.2), 0)
+                
                 # heat to power-ratio
-                heat_to_power_ratio = heatExtraction_process / (elCapacity * dt)
+                heat_to_power_ratio = heatExtraction_process / (elCapacity)
     
                 # Evaluation of power loss ratio
                 if thPower_process > 0:
@@ -372,10 +358,10 @@ class Powerplant():
     
             # Open cycle gas turbine
             else:
-                heatExtraction_process = elCapacity * 2 * dt
-                heatExtraction_auxFiring = max(self.maxExtraction - (self.maxPower * 2 * dt), 0)
+                heatExtraction_process = elCapacity * 2
+                heatExtraction_auxFiring = max(self.maxExtraction - (self.maxPower * 2), 0)
     
-                heat_to_power_ratio = heatExtraction_process/(elCapacity * dt)
+                heat_to_power_ratio = heatExtraction_process/(elCapacity)
     
                 powerLossRatio = -0.0000026638327514537 * (heat_to_power_ratio ** 2) \
                                  + 0.00105199966687901 * heat_to_power_ratio \

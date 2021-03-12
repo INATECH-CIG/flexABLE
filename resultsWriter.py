@@ -68,7 +68,26 @@ class ResultsWriter():
         }
     }]
         # self.client.write_points(json_body)
-
+    def writeBids(self, powerplant,t):
+        for bid in powerplant.sentBids:
+            json_body = [
+        {
+            "measurement": "Bids",
+            "tags": {
+                "user": "{}".format(powerplant.name),
+                "Technology":"{}".format(powerplant.technology),
+                "simulationID":"{}".format(self.world.simulationID),
+                "bidID":"{}".format(bid.ID.split('_')[1])
+            },
+            "time": "{}".format(self.timeStamps[t]),
+            "fields": {
+                "Amount": float(bid.amount),
+                "Confirmed Amount": float(bid.confirmedAmount),
+                "Price": float(bid.price)
+            }
+        }]
+            self.client.write_points(json_body)
+    
     def writeDataFrame(self,df, measurementName, tags={'simulationID':'Historic_Data'}):
         self.dfClient.write_points(df,
                                    measurementName,
@@ -76,7 +95,7 @@ class ResultsWriter():
                                    protocol='line')
 
 if __name__=='__main__':
-    with open('year_2020.json', 'r') as myfile:
+    with open('year_2017.json', 'r') as myfile:
         data=myfile.read()
 
     # parse file
@@ -85,14 +104,15 @@ if __name__=='__main__':
     data = pd.DataFrame()
     required=['Day Ahead Auction', 'Intraday Continuous Index Price',
             'Intraday Continuous Average Price', 'Intraday Continuous Low Price',
-            'Intraday Continuous High Price', 'Intraday Continuous ID3-Price']
+            'Intraday Continuous High Price', 'Intraday Continuous ID3-Price', 'CO2 Emission Allowances, DE']
     for _ in obj:
         if _['key'][0]['en'] in required:
             tempData = pd.DataFrame(_['values'])
             tempData[0] = tempData[0].astype('datetime64[ms]')
             tempData.set_index(0, inplace=True, drop=True)
             data[_['key'][0]['en']]=tempData[1]
-
-    resultsWriter = ResultsWriter(databaseName='flexABLE', simulationID='paper_v1')
+    
+    data.resample('15T').interpolate()['CO2 Emission Allowances, DE'].to_csv('CO2_prices_2017.csv')
+    resultsWriter = ResultsWriter(databaseName='flexABLE', simulationID='Historic_Data')
     resultsWriter.writeDataFrame(data, 'PFC', )
     

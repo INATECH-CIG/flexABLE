@@ -12,10 +12,10 @@ class MeritOrder():
 
         self.snapshots = snapshots
 
-        self.demand = list(demand.values)
+        self.demand = demand
         
         self.powerplants = powerplantsList
-        self.renewableSupply = vrepowerplantFeedIn
+        self.renewableSupply = vrepowerplantFeedIn.sum(axis=1)
         
         self.fuelPrices = fuelPrices
         self.emissionFactors = emissionFactors
@@ -26,9 +26,10 @@ class MeritOrder():
     # Marginal Cost
     # =============================================================================
     def marginalCost(self, powerplant, t):
-
-        fuelPrice = self.fuelPrices[powerplant.fuel][t]
-        co2price = self.co2price[t]
+        
+        fuelPrice = self.fuelPrices[powerplant.fuel].iat[t]
+            
+        co2price = self.co2price.iat[t]
         emissionFactor = self.emissionFactors[powerplant.fuel]
         
         marginalCosts = (fuelPrice / powerplant.efficiency) + (co2price * (emissionFactor / powerplant.efficiency)) + powerplant.variableCosts
@@ -62,12 +63,12 @@ class MeritOrder():
         return mcp
     
     def PFC(self):
-        progressBar = tqdm(total=len(self.snapshots))
+        # progressBar = tqdm(total=len(self.snapshots))
         pfc = []
         for t in range(len(self.snapshots)):
-            pfc.append(self.meritOrder(self.demand[t], sum(self.renewableSupply.iloc[t]), t))
-            progressBar.update(1)
-            
+            pfc.append(self.meritOrder(self.demand['demand'].iat[t], self.renewableSupply.iat[t], t))
+            # progressBar.update(1)
+                    
         return pfc
 
 

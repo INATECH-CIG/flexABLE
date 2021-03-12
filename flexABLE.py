@@ -21,8 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Importing classes
 import agent
-# import EOM_v2 as EOM
-import EOM
+import EOM_v2 as EOM
+# import EOM
 import DHM
 import CRM
 import MeritOrder
@@ -73,7 +73,7 @@ class World():
     """
     This is the main container
     """
-    def __init__(self, snapshots, fuelPrices={}, simulationID=None, networkEnabled=False, databaseName='flexABLE',startingDate='2018-01-01T00:00:00'):
+    def __init__(self, snapshots, fuelPrices={}, simulationID=None, networkEnabled=False, databaseName='flexABLE_SimulationPC',startingDate='2018-01-01T00:00:00'):
         self.simulationID = simulationID
         self.powerplants=[]
         self.storages = []
@@ -294,18 +294,23 @@ class World():
         if importCRM ==False:
             CRM = CRM * 0
         CRMdemand = {"posCRMDemand":dict(CRM['positive Demand [MW]']),
-                  "negCRMDemand":dict(CRM['negative Demand [MW]']),
-                  "posCRMCall":dict(CRM['positive Call-Off [MW]']),
-                  "negCRMCall":dict(CRM['negative Call-Off [MW]'])}
+                     "negCRMDemand":dict(CRM['negative Demand [MW]']),
+                     "posCRMCall":dict(CRM['positive Call-Off [MW]']),
+                     "negCRMCall":dict(CRM['negative Call-Off [MW]'])}
         self.addMarket('CRM_DE','CRM', demand=CRMdemand)
         
         logger.info("Demand data loaded.")
         
         if meritOrder:
+            start = datetime.now()
             logger.info("Calculating PFC....")
             meritOrder = MeritOrder.MeritOrder(demand, powerplantsList, vrepowerplantFeedIn, self.fuelPrices, self.emissionFactors, self.snapshots)
             self.dictPFC = meritOrder.PFC()
-            logger.info("Merit Order calculated.")
+            finished = datetime.now()
+            logger.info('Merit Order calculated at: {}'.format(finished))
+            logger.info('Merit Order calculation time: {}'.format(finished - start))
+            print(' ')
+            
         if self.networkEnabled:
             # Loading Network data
             logger.info("Setting up Network.")
@@ -522,19 +527,19 @@ class World():
         
 if __name__=="__main__":
     
-    year = 2016
+    year = 2019
     startingPoint = 0
-    snapLength = 96*366
+    snapLength = 96*365
     networkEnabled=False
     importStorages=True
     importCRM=True
-    meritOrder=False
+    meritOrder=True
     addBackup=True
     CBTransfers=1
     CBTMainland='DE'
     timeStamps = pd.date_range('{}-01-01T00:00:00'.format(year), '{}-01-01T00:00:00'.format(year+1), freq='15T')
     example = World(snapLength, networkEnabled=networkEnabled,
-                    simulationID='debugging', startingDate=timeStamps[startingPoint])
+                    simulationID='EOM_v2_real_tol', startingDate=timeStamps[startingPoint])
 
     
     example.loadScenario(scenario='{}'.format(year),

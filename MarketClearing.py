@@ -25,8 +25,9 @@ class MarketClearing():
         self.model.demandPrice = pyo.Param(self.model.indexDemand)
         self.model.demandTotal = pyo.Param(self.model.indexDemand)
         
+        # self.model.mrOrder = pyo.Var(self.model.indexSupplyMR, domain = pyo.Binary)
+        self.model.mrOrder = pyo.Var(self.model.indexSupplyMR, domain = pyo.NonNegativeReals, bounds=(0,1))
         self.model.flexOrder = pyo.Var(self.model.indexSupplyFlex, domain = pyo.NonNegativeReals, bounds=(0,1))
-        self.model.mrOrder = pyo.Var(self.model.indexSupplyMR, domain = pyo.Binary)
         self.model.demandOrder = pyo.Var(self.model.indexDemand, domain = pyo.NonNegativeReals, bounds=(0,1))
         
         # relaxation variables
@@ -52,7 +53,7 @@ class MarketClearing():
     def clear(self, data):
 
         self.instance = self.model.create_instance(data)
-        self.opt.solve(self.instance)
+        self.opt.solve(self.instance, options={'tol': 1e-1})
         
         return self.instance
 

@@ -23,11 +23,11 @@ class ResultsWriter():
 
         # self.MarketResults = []
         # Creating connection and Database to save results
-        self.client = InfluxDBClient(host='localhost', port=8086)
+        self.client = InfluxDBClient(host='10.5.139.84', port=8086)
         self.client.create_database(databaseName)
         self.client.switch_database(databaseName)
         
-        self.dfClient = DataFrameClient(host='localhost', port=8086, username=self.user, password=self.password, database=self.databaseName)
+        self.dfClient = DataFrameClient(host='10.5.139.84', port=8086, username=self.user, password=self.password, database=self.databaseName)
         self.dfClient.switch_database(self.databaseName)
         
     def writeMarketResult(self,MarketResult):

@@ -278,7 +278,7 @@ class EOM():
                        energySurplus = 0,
                        timestamp = t)
 
-        #self.world.ResultsWriter.writeMarketResult(result)
+        # self.world.ResultsWriter.writeMarketResult(result)
         # self.marketResults[t]=result
         self.world.dictPFC[t] = result.marketClearingPrice
 

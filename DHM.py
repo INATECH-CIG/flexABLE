@@ -256,7 +256,6 @@ class DHM():
                        energySurplus=0,
                        timestamp=t)
     
-    
         # self.marketResults[region][t]=result
     def feedback(self,award):
         self.performance +=award

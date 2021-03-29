@@ -61,7 +61,8 @@ class VREPowerplant():
         for bid in self.sentBids:
             self.dictCapacity[self.world.currstep] += bid.confirmedAmount
         self.sentBids=[]
-
+    def checkAvailability(self, t):
+        pass
     def feedback(self, bid):
         if bid.status == "Confirmed": 
             self.performance+=1
@@ -89,6 +90,7 @@ class VREPowerplant():
         return bids
     
     def calculateBidEOM(self, t):
+        marginalCost = -500 if 'Biomass' in self.name else -500
         return self.dictFeedIn[t],-500
     def plotResults(self, ax, legend):
         pass

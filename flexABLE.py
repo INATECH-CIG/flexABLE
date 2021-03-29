@@ -95,6 +95,7 @@ class World():
         self.dt = 0.25 # Although we are always dealing with power, dt is needed to calculate the revenue and for the energy market
         self.dtu = 16 # The frequency of reserve market
         self.dictPFC = [0]*snapshots
+        self.IEDPrice = [2999.9]*snapshots
         self.networkEnabled = networkEnabled
         self.network = pypsa.Network()
         self.demandDistrib = None
@@ -115,7 +116,10 @@ class World():
         if marketType == "CRM":
             self.markets["CRM"] = CRM.CRM(name, demand=demand, world=self)
     def step(self):
+
         if self.currstep < len(self.snapshots):
+            for powerplant in self.powerplants:
+                powerplant.checkAvailability(self.snapshots[self.currstep])
             self.markets['CRM'].step(self.snapshots[self.currstep],self.agents)
             self.markets['DHM'].step(self.snapshots[self.currstep])
             for market in self.markets["EOM"].values():
@@ -132,7 +136,7 @@ class World():
         start = datetime.now()
         logger.info("######## Simulation Started ########")
         logger.info('Started at: {}'.format(start))
-        progressBar = tqdm(total=len(self.snapshots))
+        progressBar = tqdm(total=len(self.snapshots), position=1, leave=True)
         while True:
             if self.currstep < len(self.snapshots):
                 self.step()
@@ -147,6 +151,11 @@ class World():
         
         tempDF = pd.DataFrame(self.dictPFC,index=pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T') ,columns=['Price'])
         tempDF['Price']= tempDF['Price'].astype('float64')
+        self.ResultsWriter.writeDataFrame(tempDF,'PFC',
+                                     tags={'simulationID':self.simulationID,
+                                           "user": "EOM"})
+        tempDF = pd.DataFrame(self.IEDPrice,index=pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T') ,columns=['IED_Price'])
+        tempDF['IED_Price']= tempDF['IED_Price'].astype('float64')
         self.ResultsWriter.writeDataFrame(tempDF,'PFC',
                                      tags={'simulationID':self.simulationID,
                                            "user": "EOM"})
@@ -220,7 +229,16 @@ class World():
         for _ in powerplantsList.company.unique():
             self.addAgent(_)
         for powerplant, data in powerplantsList.iterrows():
-            self.agents[data['company']].addPowerplant(powerplant,**dict(data))
+            try:
+                availability= pd.read_csv('input/{}/Availability/{}.csv'.format(scenario,powerplant),
+                                          nrows=len(self.snapshots)+startingPoint,
+                                          index_col=0)
+                availability.drop(availability.index[0:startingPoint],inplace=True)
+                availability.reset_index(drop=True,inplace=True)
+                availability=availability.Total.to_list()
+                self.agents[data['company']].addPowerplant(powerplant, availability=availability,**dict(data))
+            except FileNotFoundError:
+                self.agents[data['company']].addPowerplant(powerplant,**dict(data))
         # =====================================================================
         # Adding Storages     
         # =====================================================================
@@ -282,7 +300,7 @@ class World():
         HLP_HH.reset_index(drop=True,inplace=True)
         annualDemand= pd.read_csv('input/{}/DH_DE.csv'.format(scenario),
                                   index_col=0)
-        
+        annualDemand *=4
         self.addMarket('DHM_DE','DHM', HLP_DH=HLP_DH, HLP_HH=HLP_HH, annualDemand=annualDemand)
         
         logger.info("Loading control reserve demand....")
@@ -521,33 +539,33 @@ class World():
             logger.info("Network Loaded.")
         
 if __name__=="__main__":
+    scenarios = [(2016,366),(2017,365),(2018,365),(2019,365)]
+    for year, days in scenarios:
+        startingPoint = 0
+        snapLength = 96*days
+        networkEnabled=False
+        importStorages=True
+        importCRM=True
+        meritOrder=True
+        addBackup=True
+        CBTransfers=1
+        CBTMainland='DE'
+        timeStamps = pd.date_range('{}-01-01T00:00:00'.format(year), '{}-01-01T00:00:00'.format(year+1), freq='15T')
+        example = World(snapLength, networkEnabled=networkEnabled,
+                        simulationID='debugging_v1', startingDate=timeStamps[startingPoint])
     
-    year = 2016
-    startingPoint = 0
-    snapLength = 96*366
-    networkEnabled=False
-    importStorages=True
-    importCRM=True
-    meritOrder=False
-    addBackup=True
-    CBTransfers=1
-    CBTMainland='DE'
-    timeStamps = pd.date_range('{}-01-01T00:00:00'.format(year), '{}-01-01T00:00:00'.format(year+1), freq='15T')
-    example = World(snapLength, networkEnabled=networkEnabled,
-                    simulationID='debugging', startingDate=timeStamps[startingPoint])
-
+        
+        example.loadScenario(scenario='{}'.format(year),
+                             importStorages=importStorages,
+                             importCRM=importCRM,
+                             meritOrder=meritOrder,
+                             addBackup=addBackup,
+                             CBTransfers=CBTransfers,
+                             CBTMainland=CBTMainland,
+                             startingPoint=startingPoint,
+                             line_expansion=1.5,
+                             line_expansion_price=1000,
+                             backupPerNode=100)
     
-    example.loadScenario(scenario='{}'.format(year),
-                         importStorages=importStorages,
-                         importCRM=importCRM,
-                         meritOrder=meritOrder,
-                         addBackup=addBackup,
-                         CBTransfers=CBTransfers,
-                         CBTMainland=CBTMainland,
-                         startingPoint=startingPoint,
-                         line_expansion=1.5,
-                         line_expansion_price=1000,
-                         backupPerNode=100)
-
-    example.runSimulation()
-    
+        example.runSimulation()
+        

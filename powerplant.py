@@ -6,8 +6,8 @@ Created on Sun Apr  19 16:06:57 2020
 """
 from auxFunc import initializer
 from bid import Bid
-from statistics import mean
 import matplotlib.pyplot as plt
+import random
 
 class Powerplant():
     
@@ -34,7 +34,8 @@ class Powerplant():
                 year=1988,
                 node='Bus_DE',
                 world=None,
-                Redispatch=False):
+                Redispatch=False,
+                maxAvailability=None):
 
         self.minDowntime /= self.world.dt          # This was added to consider dt 15 mins
         self.minOperatingTime /= self.world.dt     # This was added to consider dt 15 mins
@@ -45,10 +46,13 @@ class Powerplant():
         self.confQtyCRM_pos = {n:0 for n in self.world.snapshots}
         self.confQtyDHM_steam = {n:0 for n in self.world.snapshots}
         self.powerLoss_CHP = {n:0 for n in self.world.snapshots}
-        
+        self.maxExtraction /= self.world.dt
         # performance parameter for ML
         self.performance = 0
         
+        self.hotStartCosts*=self.maxPower
+        self.warmStartCosts*=self.maxPower
+        self.coldStartCosts*=self.maxPower
         # Unit status parameters
         self.meanMarketSuccess = 0
         self.marketSuccess = [0]
@@ -57,7 +61,10 @@ class Powerplant():
         self.averageDownTime = [0] # average downtime during the simulation
         self.currentCapacity = 0
         self.sentBids=[]
-        
+        if maxAvailability is None:
+            self.maxAvailability = [self.maxPower for _ in self.world.snapshots]
+        else:
+            self.maxAvailability = maxAvailability
     def step(self):
         # Calculate the sum of confirmed bids
         self.dictCapacity[self.world.currstep] = 0
@@ -72,7 +79,7 @@ class Powerplant():
             
         # self.dictCapacity[self.world.currstep] += self.confQtyCRM_pos[self.world.currstep]
         # self.dictCapacity[self.world.currstep] -= self.confQtyCRM_neg[self.world.currstep]
-        self.dictCapacity[self.world.currstep] += self.powerLoss_CHP[self.world.currstep]
+        #self.dictCapacity[self.world.currstep] += self.powerLoss_CHP[self.world.currstep]
         if self.dictCapacity[self.world.currstep] < 0:
             self.dictCapacity[self.world.currstep] = 0
             self.performance -=2
@@ -109,22 +116,12 @@ class Powerplant():
             else:
                 self.currentStatus = 1
 
-        # if (self.dictCapacity[self.world.currstep] < 1*self.minPower) and self.currentDowntime==0 and self.marketSuccess[-1]>0:
-        #     self.currentStatus = 0
-            
-        # if self.currentStatus == 0:
-        #     if self.dictCapacity[self.world.currstep - 1] == 0:
-        #         self.currentDowntime +=1
-                
-        # if self.currentDowntime >= self.minDowntime and self.dictCapacity[self.world.currstep]>0:
-        #     self.averageDownTime.append(self.currentDowntime)
-        #     self.currentDowntime = 0
-        #     self.currentStatus = 1
-
         
-        # self.world.ResultsWriter.writeCapacity(self,self.world.currstep, writeBidsInDB=False)
+        # self.world.ResultsWriter.writeCapacity(self,self.world.currstep, writeBidsInDB=True)
+        # self.world.ResultsWriter.writeBids(self,self.world.currstep)
         self.sentBids=[]
-        
+    def checkAvailability(self,t):
+        self.maxPower = self.maxAvailability[t]
     def feedback(self, bid):
         if bid.status == "Confirmed":
             if 'CRMPosDem' in bid.ID:
@@ -151,12 +148,14 @@ class Powerplant():
     def powerLossFPP(self, t, bid):
         if bid.confirmedAmount > 0:
             if self.technology in ['lignite', 'hard coal', 'combined cycle gas turbine']:
-                powerLoss = (self.maxPower - ((-0.12 * min((bid.confirmedAmount) / self.maxPower, 1.2) + 1) * self.maxPower))
+                powerLoss = (self.maxPower - ((-0.12 * min((bid.confirmedAmount) / self.maxPower, 1.25) + 1) * self.maxPower))
                 # über ein Wärme-Strom-Verhältnis von 1.2 hinaus setzt die Zusatzfeuerung ein
                 self.powerLoss_CHP[t] = powerLoss
 
     def requestBid(self, t, market="EOM"):
         bids = []
+        if self.maxPower == 0:
+            return bids
         if market=="EOM":
             bidQuantity_mr, bidPrice_mr, bidQuantity_flex, bidPrice_flex = self.calculateBidEOM(t)
             bids.append(Bid(issuer = self,
@@ -276,19 +275,17 @@ class Powerplant():
 
                 
                 if self.currentDowntime < maxDowntime_hotStart:
-                    startingCosts = (self.hotStartCosts * self.maxPower)
+                    startingCosts = (self.hotStartCosts)
                 elif self.currentDowntime >= maxDowntime_hotStart and self.currentDowntime < maxDowntime_warmStart:
-                    startingCosts = (self.warmStartCosts * self.maxPower)
+                    startingCosts = (self.warmStartCosts)
                 else:
-                    startingCosts = (self.coldStartCosts * self.maxPower)
+                    startingCosts = (self.coldStartCosts)
                 
                 # start-up markup   
                 markup = startingCosts / averageOperatingTime / bidQuantity_mr
                 
                 marginalCosts_eta = self.marginalCostsFPP(t, 1, mustRunPowerFPP)
                 
-                if self.confQtyCRM_neg[t] > 0:
-                    marginalCosts_eta=0
                 
                 bidPrice_mr = min(marginalCosts_eta + markup, 3000.12)
             else:
@@ -298,23 +295,20 @@ class Powerplant():
                 avgDT = max(self.minDowntime,1) # minDownTime is divided by 4 since it is given in 15 min resolution
                 
                 if avgDT < maxDowntime_hotStart:
-                    startingCosts = (self.hotStartCosts * self.maxPower)
+                    startingCosts = (self.hotStartCosts)
                 elif avgDT >= maxDowntime_hotStart and avgDT < maxDowntime_warmStart:
-                    startingCosts = (self.warmStartCosts * self.maxPower)
+                    startingCosts = (self.warmStartCosts)
                 else:
-                    startingCosts = (self.coldStartCosts * self.maxPower)
+                    startingCosts = (self.coldStartCosts)
                 # restart markup
                 priceReduction_restart = startingCosts / avgDT / abs(bidQuantity_mr)
                 
                 if self.confQtyDHM_steam[t] > 0:
-                    eqHeatGenCosts = (self.confQtyDHM_steam[t] * (self.world.fuelPrices[self.fuel][t]/ 0.9)) / abs(bidQuantity_mr)
+                    eqHeatGenCosts = (self.confQtyDHM_steam[t] * (self.world.fuelPrices['natural gas'][t]/ 0.9)) / abs(bidQuantity_mr)
                 else:
                     eqHeatGenCosts = 0.00
-                    
+
                 marginalCosts_eta = self.marginalCostsFPP(t, 1, totalOutputCapacity)
-                
-                if self.confQtyCRM_neg[t] > 0:
-                    marginalCosts_eta=0
                     
                 bidPrice_mr = max(-priceReduction_restart - eqHeatGenCosts + marginalCosts_eta, -2999.00)
 
@@ -326,7 +320,7 @@ class Powerplant():
                 
             # Flex-bid price formulation
             bidPrice_flex = (1 - powerLossRatio) * self.marginalCostsFPP(t, 1, totalOutputCapacity) if abs(bidQuantity_flex) > 0 else 0.00
-            
+
         return (bidQuantity_mr,bidPrice_mr, bidQuantity_flex, bidPrice_flex)
 
     def calculateBidDHM(self, t, dt=1):
@@ -343,13 +337,13 @@ class Powerplant():
     
                 # Steam extraction: Twice the amount of output electricity, limited to 1.2 times the normalized nominal electricity output
                 thPower_process = min(elCapacity * 2, self.maxPower * 1.2)
-                heatExtraction_process = thPower_process * dt
+                heatExtraction_process = thPower_process
     
                 # Auxiliary firing on plant site
-                heatExtraction_auxFiring = max(self.maxExtraction - (self.maxPower * 1.2 * dt), 0)
-    
+                heatExtraction_auxFiring = max(self.maxExtraction - (self.maxPower * 1.2), 0)
+                
                 # heat to power-ratio
-                heat_to_power_ratio = heatExtraction_process / (elCapacity * dt)
+                heat_to_power_ratio = heatExtraction_process / (elCapacity)
     
                 # Evaluation of power loss ratio
                 if thPower_process > 0:
@@ -372,10 +366,10 @@ class Powerplant():
     
             # Open cycle gas turbine
             else:
-                heatExtraction_process = elCapacity * 2 * dt
-                heatExtraction_auxFiring = max(self.maxExtraction - (self.maxPower * 2 * dt), 0)
+                heatExtraction_process = elCapacity * 2
+                heatExtraction_auxFiring = max(self.maxExtraction - (self.maxPower * 2), 0)
     
-                heat_to_power_ratio = heatExtraction_process/(elCapacity * dt)
+                heat_to_power_ratio = heatExtraction_process/(elCapacity)
     
                 powerLossRatio = -0.0000026638327514537 * (heat_to_power_ratio ** 2) \
                                  + 0.00105199966687901 * heat_to_power_ratio \

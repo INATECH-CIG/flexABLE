@@ -192,11 +192,12 @@ class EOM():
                 # =============================================================================
                 elif confQty_demand <= confQty_supply and currBidPrice_demand > currBidPrice_supply:
                     try:
+
                         confirmedBidsDemand.append(bidsReceived["Demand"].pop())
                         confQty_demand += confirmedBidsDemand[-1].amount
                         currBidPrice_demand = confirmedBidsDemand[-1].price
                         confirmedBidsDemand[-1].confirm()
-                        
+                        self.world.IEDPrice[t] = currBidPrice_supply
                     except IndexError:
                         confirmedBidsSupply[-1].partialConfirm(confirmedBidsSupply[-1].amount-(confQty_supply - confQty_demand))
                         case = 'Case3.2'

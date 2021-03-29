@@ -116,7 +116,10 @@ class World():
         if marketType == "CRM":
             self.markets["CRM"] = CRM.CRM(name, demand=demand, world=self)
     def step(self):
+
         if self.currstep < len(self.snapshots):
+            for powerplant in self.powerplants:
+                powerplant.checkAvailability(self.snapshots[self.currstep])
             self.markets['CRM'].step(self.snapshots[self.currstep],self.agents)
             self.markets['DHM'].step(self.snapshots[self.currstep])
             for market in self.markets["EOM"].values():
@@ -133,7 +136,7 @@ class World():
         start = datetime.now()
         logger.info("######## Simulation Started ########")
         logger.info('Started at: {}'.format(start))
-        progressBar = tqdm(total=len(self.snapshots))
+        progressBar = tqdm(total=len(self.snapshots), position=1, leave=True)
         while True:
             if self.currstep < len(self.snapshots):
                 self.step()
@@ -226,7 +229,16 @@ class World():
         for _ in powerplantsList.company.unique():
             self.addAgent(_)
         for powerplant, data in powerplantsList.iterrows():
-            self.agents[data['company']].addPowerplant(powerplant,**dict(data))
+            try:
+                availability= pd.read_csv('input/{}/Availability/{}.csv'.format(scenario,powerplant),
+                                          nrows=len(self.snapshots)+startingPoint,
+                                          index_col=0)
+                availability.drop(availability.index[0:startingPoint],inplace=True)
+                availability.reset_index(drop=True,inplace=True)
+                availability=availability.Total.to_list()
+                self.agents[data['company']].addPowerplant(powerplant, availability=availability,**dict(data))
+            except FileNotFoundError:
+                self.agents[data['company']].addPowerplant(powerplant,**dict(data))
         # =====================================================================
         # Adding Storages     
         # =====================================================================
@@ -527,33 +539,33 @@ class World():
             logger.info("Network Loaded.")
         
 if __name__=="__main__":
+    scenarios = [(2016,366),(2017,365),(2018,365),(2019,365)]
+    for year, days in scenarios:
+        startingPoint = 0
+        snapLength = 96*days
+        networkEnabled=False
+        importStorages=True
+        importCRM=True
+        meritOrder=True
+        addBackup=True
+        CBTransfers=1
+        CBTMainland='DE'
+        timeStamps = pd.date_range('{}-01-01T00:00:00'.format(year), '{}-01-01T00:00:00'.format(year+1), freq='15T')
+        example = World(snapLength, networkEnabled=networkEnabled,
+                        simulationID='debugging_v1', startingDate=timeStamps[startingPoint])
     
-    year = 2018
-    startingPoint = 0
-    snapLength = 96*365
-    networkEnabled=False
-    importStorages=True
-    importCRM=True
-    meritOrder=True
-    addBackup=True
-    CBTransfers=1
-    CBTMainland='DE'
-    timeStamps = pd.date_range('{}-01-01T00:00:00'.format(year), '{}-01-01T00:00:00'.format(year+1), freq='15T')
-    example = World(snapLength, networkEnabled=networkEnabled,
-                    simulationID='debugging', startingDate=timeStamps[startingPoint])
-
+        
+        example.loadScenario(scenario='{}'.format(year),
+                             importStorages=importStorages,
+                             importCRM=importCRM,
+                             meritOrder=meritOrder,
+                             addBackup=addBackup,
+                             CBTransfers=CBTransfers,
+                             CBTMainland=CBTMainland,
+                             startingPoint=startingPoint,
+                             line_expansion=1.5,
+                             line_expansion_price=1000,
+                             backupPerNode=100)
     
-    example.loadScenario(scenario='{}'.format(year),
-                         importStorages=importStorages,
-                         importCRM=importCRM,
-                         meritOrder=meritOrder,
-                         addBackup=addBackup,
-                         CBTransfers=CBTransfers,
-                         CBTMainland=CBTMainland,
-                         startingPoint=startingPoint,
-                         line_expansion=1.5,
-                         line_expansion_price=1000,
-                         backupPerNode=100)
-
-    example.runSimulation()
-    
+        example.runSimulation()
+        

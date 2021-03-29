@@ -6,8 +6,8 @@ Created on Sun Apr  19 16:06:57 2020
 """
 from auxFunc import initializer
 from bid import Bid
-from statistics import mean
 import matplotlib.pyplot as plt
+import random
 
 class Powerplant():
     
@@ -34,7 +34,8 @@ class Powerplant():
                 year=1988,
                 node='Bus_DE',
                 world=None,
-                Redispatch=False):
+                Redispatch=False,
+                maxAvailability=None):
 
         self.minDowntime /= self.world.dt          # This was added to consider dt 15 mins
         self.minOperatingTime /= self.world.dt     # This was added to consider dt 15 mins
@@ -49,6 +50,9 @@ class Powerplant():
         # performance parameter for ML
         self.performance = 0
         
+        self.hotStartCosts*=self.maxPower
+        self.warmStartCosts*=self.maxPower
+        self.coldStartCosts*=self.maxPower
         # Unit status parameters
         self.meanMarketSuccess = 0
         self.marketSuccess = [0]
@@ -57,9 +61,10 @@ class Powerplant():
         self.averageDownTime = [0] # average downtime during the simulation
         self.currentCapacity = 0
         self.sentBids=[]
-        
-        #self.Availability = [12192+i for i in range(96*3)] if name in ['KKW ISAR 2','KKW BROKDORF', 'KKW PHILIPPSBURG 2'] else []
-        self.maxAvailability = [self.maxPower for _ in self.world.snapshots]
+        if maxAvailability is None:
+            self.maxAvailability = [self.maxPower for _ in self.world.snapshots]
+        else:
+            self.maxAvailability = maxAvailability
     def step(self):
         # Calculate the sum of confirmed bids
         self.dictCapacity[self.world.currstep] = 0
@@ -74,7 +79,7 @@ class Powerplant():
             
         # self.dictCapacity[self.world.currstep] += self.confQtyCRM_pos[self.world.currstep]
         # self.dictCapacity[self.world.currstep] -= self.confQtyCRM_neg[self.world.currstep]
-        self.dictCapacity[self.world.currstep] += self.powerLoss_CHP[self.world.currstep]
+        #self.dictCapacity[self.world.currstep] += self.powerLoss_CHP[self.world.currstep]
         if self.dictCapacity[self.world.currstep] < 0:
             self.dictCapacity[self.world.currstep] = 0
             self.performance -=2
@@ -115,7 +120,8 @@ class Powerplant():
         # self.world.ResultsWriter.writeCapacity(self,self.world.currstep, writeBidsInDB=True)
         # self.world.ResultsWriter.writeBids(self,self.world.currstep)
         self.sentBids=[]
-        
+    def checkAvailability(self,t):
+        self.maxPower = self.maxAvailability[t]
     def feedback(self, bid):
         if bid.status == "Confirmed":
             if 'CRMPosDem' in bid.ID:
@@ -148,6 +154,8 @@ class Powerplant():
 
     def requestBid(self, t, market="EOM"):
         bids = []
+        if self.maxPower == 0:
+            return bids
         if market=="EOM":
             bidQuantity_mr, bidPrice_mr, bidQuantity_flex, bidPrice_flex = self.calculateBidEOM(t)
             bids.append(Bid(issuer = self,
@@ -267,11 +275,11 @@ class Powerplant():
 
                 
                 if self.currentDowntime < maxDowntime_hotStart:
-                    startingCosts = (self.hotStartCosts * self.maxPower)
+                    startingCosts = (self.hotStartCosts)
                 elif self.currentDowntime >= maxDowntime_hotStart and self.currentDowntime < maxDowntime_warmStart:
-                    startingCosts = (self.warmStartCosts * self.maxPower)
+                    startingCosts = (self.warmStartCosts)
                 else:
-                    startingCosts = (self.coldStartCosts * self.maxPower)
+                    startingCosts = (self.coldStartCosts)
                 
                 # start-up markup   
                 markup = startingCosts / averageOperatingTime / bidQuantity_mr
@@ -287,16 +295,16 @@ class Powerplant():
                 avgDT = max(self.minDowntime,1) # minDownTime is divided by 4 since it is given in 15 min resolution
                 
                 if avgDT < maxDowntime_hotStart:
-                    startingCosts = (self.hotStartCosts * self.maxPower)
+                    startingCosts = (self.hotStartCosts)
                 elif avgDT >= maxDowntime_hotStart and avgDT < maxDowntime_warmStart:
-                    startingCosts = (self.warmStartCosts * self.maxPower)
+                    startingCosts = (self.warmStartCosts)
                 else:
-                    startingCosts = (self.coldStartCosts * self.maxPower)
+                    startingCosts = (self.coldStartCosts)
                 # restart markup
                 priceReduction_restart = startingCosts / avgDT / abs(bidQuantity_mr)
                 
                 if self.confQtyDHM_steam[t] > 0:
-                    eqHeatGenCosts = (self.confQtyDHM_steam[t] * (self.world.fuelPrices[self.fuel][t]/ 0.9)) / abs(bidQuantity_mr)
+                    eqHeatGenCosts = (self.confQtyDHM_steam[t] * (self.world.fuelPrices['natural gas'][t]/ 0.9)) / abs(bidQuantity_mr)
                 else:
                     eqHeatGenCosts = 0.00
 

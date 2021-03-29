@@ -19,8 +19,8 @@ class Agent():
         #self.bids = {t:{} for t in snapshots}
         self.world = world
         
-    def addPowerplant(self, name,**kwargs):
-        self.powerplants[name] = powerplant.Powerplant(name=name, world=self.world, **kwargs)
+    def addPowerplant(self, name, availability=None,**kwargs):
+        self.powerplants[name] = powerplant.Powerplant(name=name, world=self.world, maxAvailability=availability, **kwargs)
         self.world.powerplants.append(self.powerplants[name])
         
     def addVREPowerplant(self, name,**kwargs):

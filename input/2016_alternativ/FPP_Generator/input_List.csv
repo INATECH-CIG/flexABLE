@@ -1,0 +1,709 @@
+﻿ID,Name,Node,Latitude,Longitude,Technology,Fuel,Commissioning,Capacity,Efficiency,Emission,Transport,Electrical Storage,CHP technology,CHP network,Power to heat factor,Electricity reduction,Max. heat 
+BNA0005,Ahrensfelde,363,52.59,13.56,Gas turbine,Natural gas,1990,37.5,0.354,0.570,0.00,0,,,,,
+BNA0006,Ahrensfelde,363,52.59,13.56,Gas turbine,Natural gas,1990,37.5,0.354,0.570,0.00,0,,,,,
+BNA0007,Ahrensfelde,363,52.59,13.56,Gas turbine,Natural gas,1990,37.5,0.354,0.570,0.00,0,,,,,
+BNA0008,Ahrensfelde,363,52.59,13.56,Gas turbine,Natural gas,1990,37.5,0.354,0.570,0.00,0,,,,,
+BNA0012b,Werkskraftwerk Sappi Alfeld,223,51.99,9.82,Steam turbine,Natural gas,1947,20,0.327,0.618,0.00,0,EXT,DH_DE_Ind,0.39,0.15,37
+BNA0015,Heizkraftwerk Altbach/Deizisau,46,48.72,9.37,Gas turbine,Natural gas,1997,65,0.372,0.542,0.00,0,EXT,DH_DE_Neckar,0.50,0.00,130
+BNA0016,Heizkraftwerk Altbach/Deizisau,46,48.72,9.37,Gas turbine,Natural gas,1971,50,0.305,0.663,0.00,0,,,,0.00,
+BNA0017,Heizkraftwerk Altbach/Deizisau,46,48.72,9.37,Gas turbine,Natural gas,1973,57,0.310,0.651,0.00,0,,,,0.00,
+BNA0018,Heizkraftwerk Altbach/Deizisau,46,48.72,9.37,Gas turbine,Natural gas,1975,81,0.315,0.641,0.00,0,,,,0.00,
+BNA0019,Heizkraftwerk Altbach/Deizisau,46,48.72,9.37,Steam turbine,Hard coal,1997,336,0.440,0.773,3.35,0,EXT,DH_DE_Neckar,0.52,0.15,280
+BNA0020,Heizkraftwerk Altbach/Deizisau,46,48.72,9.37,Steam turbine,Hard coal,1985,433,0.455,0.747,3.24,0,EXT,DH_DE_Neckar,0.60,0.15,280
+BNA0025,Kesselhaus Zuckerfabrik,417,53.86,13.71,Steam turbine,Natural gas,1993,15.1,0.377,0.535,0.00,0,BKP,DH_DE_Ind,0.48,,31
+BNA0033,Gasturbine,296,48.40,10.94,Gas turbine,Natural gas,2004,28.8,0.390,0.517,0.00,0,EXT,DH_DE_Rem,0.70,0.00,41
+BNA0051,KWK-Anlage Barby,373,51.98,11.88,Steam turbine,Natural gas,2013,18,0.377,0.535,0.00,0,BKP,DH_DE_Ind,0.65,,28
+BNA0059b,"GuD Baunatal, VW Werksgelände",226,51.25,9.44,Combined cycle,Natural gas,2013,78,0.599,0.337,0.00,0,EXT,DH_DE_Ind,0.70,0.00,111
+BNA0067,Bergkamen,145,51.64,7.62,Steam turbine,Hard coal,1981,717,0.378,0.901,2.60,0,,,,,
+BNA0070,HKW Adlershof,364,52.43,13.56,Gas turbine,Natural gas,2010,8,0.406,0.497,0.00,0,,,,,
+BNA0071,HKW Adlershof,364,52.43,13.56,Gas turbine,Natural gas,1996,5,0.370,0.546,0.00,0,,,,,
+BNA0072,HKW Adlershof,364,52.43,13.56,Gas turbine,Natural gas,2002,7,0.385,0.524,0.00,0,,,,,
+BNA0073,Mitte,369,52.51,13.42,Combined cycle,Natural gas,1996,444,0.522,0.387,0.00,0,EXT,DH_DE_Berlin,0.48,0.15,638
+BNA0074,Charlottenburg,370,52.52,13.31,Gas turbine,Natural gas,1975,211,0.380,0.531,0.00,0,EXT,DH_DE_Berlin,0.53,0.17,300
+BNA0075,Lichterfelde,370,52.43,13.31,Steam turbine,Natural gas,1972,144,0.383,0.527,0.00,0,EXT,DH_DE_Berlin,0.42,0.15,240
+BNA0076,Lichterfelde,370,52.43,13.31,Steam turbine,Natural gas,1974,144,0.383,0.527,0.00,0,EXT,DH_DE_Berlin,0.42,0.15,240
+BNA0080,Lichterfelde,370,52.43,13.31,Steam turbine,Natural gas,1973,144,0.383,0.527,0.00,0,EXT,DH_DE_Berlin,0.42,0.15,240
+BNA0081,Klingenberg,364,52.49,13.50,Steam turbine,Lignite,1981,164,0.357,1.018,0.00,0,BKP,DH_DE_Berlin,0.38,,432
+BNA0082,Reuter,371,52.53,13.25,Steam turbine,Hard coal,1969,124,0.348,0.979,1.41,0,EXT,DH_DE_Berlin,0.36,0.15,244
+BNA0083,Wilmersdorf,370,52.48,13.31,Steam turbine,Oil(light),1977,276,0.360,0.740,0.00,0,BKP,DH_DE_Berlin,0.84,,330
+BNA0084,Reuter,371,52.53,13.25,Steam turbine,Waste,1998,36,0.330,0.000,0.00,0,BKP,DH_DE_Berlin,0.36,,100
+BNA0085a,Moabit,370,52.54,13.35,Steam turbine,Hard coal,1990,89,0.400,0.850,1.23,0,EXT,DH_DE_Berlin,0.50,0.15,136
+BNA0085b,Moabit,370,52.54,13.35,Gas turbine,Oil(light),1971,51,0.305,0.873,0.00,0,,,,,
+BNA0086,Reuter West,371,52.54,13.24,Steam turbine,Hard coal,1987,282,0.393,0.866,1.25,0,EXT,DH_DE_Berlin,0.48,0.15,363
+BNA0087,Reuter West,371,52.54,13.24,Steam turbine,Hard coal,1988,282,0.395,0.861,1.24,0,EXT,DH_DE_Berlin,0.48,0.15,363
+BNA0088a,Industriekraftwerk Bernburg (IKB),373,51.80,11.75,Combined cycle,Natural gas,1994,35,0.330,0.612,0.00,0,BKP,DH_DE_Ind,0.45,,78
+BNA0088b,Dampfturbinenanlage der EBS-Kessel,373,51.80,11.75,Combined cycle,Waste,2010,66,0.513,0.000,0.00,0,BKP,DH_DE_Ind,1.25,,53
+BNA0093,Kraftwerk Bexbach,244,49.36,7.24,Steam turbine,Hard coal,1983,721,0.383,0.889,3.85,0,,,,,
+BNA0097,MVA Bielefeld,213,52.04,8.61,Steam turbine,Waste,1981,34,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.32,,106
+BNA0098,HKW Schildescher Straße,214,52.03,8.54,Steam turbine,Natural gas,1978,23,0.361,0.559,0.00,0,EXT,DH_DE_Rem,0.50,0.00,46
+BNA0099,Gasturbinenkraftwerk Bielefeld Ummeln,211,51.98,8.45,Gas turbine,Natural gas,1975,55,0.315,0.641,0.00,0,,,,,
+BNA0100,GuD Kraftwerk Hillegossen,214,52.03,8.54,Combined cycle,Natural gas,2005,37.5,0.563,0.359,0.00,0,EXT,DH_DE_Rem,1.50,0.17,22
+BNA0101,HKW Schildescher Straße,214,52.03,8.54,Steam turbine,Natural gas,1966,41,0.348,0.581,0.00,0,EXT,DH_DE_Rem,0.39,0.15,87
+BNA0105,GuD Bitterfeld,337,51.63,12.30,Combined cycle,Natural gas,2000,106,0.540,0.374,0.00,0,EXT,DH_DE_Ind,0.79,0.17,110
+BNA0110,Bochum,89,51.48,7.22,Steam turbine,Natural gas,2004,20.7,0.389,0.518,0.00,0,BKP,DH_DE_Gelsenkirchen,0.48,,43
+BNA0111,HKW Hiltrop,122,51.51,7.25,Steam turbine,Natural gas,2014,44,0.400,0.504,0.00,0,EXT,DH_DE_Gelsenkirchen,0.20,0.00,220
+BNA0115,Lippendorf,344,51.18,12.37,Steam turbine,Lignite,2000,875,0.400,0.908,0.00,0,EXT,DH_DE_Rem,0.60,0.15,449
+BNA0116,Braunkohlekraftwerk Lippendorf,344,51.18,12.37,Steam turbine,Lignite,1999,875,0.398,0.914,0.00,0,EXT,DH_DE_Ind,0.40,0.15,449
+BNA0117a,Heizkraftwerk Karlstraße,445,50.73,7.08,Steam turbine,Waste,1991,12,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.34,,35
+BNA0117b,Heizkraftwerk Karlstraße,445,50.73,7.08,Steam turbine,Natural gas,2013,95,0.399,0.505,0.00,0,EXT,DH_DE_Rem,0.55,0.15,136
+BNA0122,Boxberg,354,51.42,14.56,Steam turbine,Lignite,1979,465,0.383,0.948,0.00,0,EXT,DH_DE_Rem,0.60,0.15,238
+BNA0123,Boxberg,354,51.42,14.56,Steam turbine,Lignite,1980,465,0.386,0.942,0.00,0,EXT,DH_DE_Rem,0.45,0.15,238
+BNA0124,Boxberg,354,51.42,14.56,Steam turbine,Lignite,2000,857,0.400,0.908,0.00,0,,0,,,
+BNA0129,HKW,358,51.51,13.97,Steam turbine,Natural gas,1997,36,0.382,0.529,0.00,0,BKP,DH_DE_Rem,0.65,,55
+BNA0130,Kirchmöser,372,52.39,12.42,Combined cycle,Natural gas,1994,160,0.513,0.393,0.00,0,,,,,
+BNA0135,HKW-Mitte,133,52.28,10.51,Combined cycle,Natural gas,1971,20,0.410,0.493,0.00,0,EXT,DH_DE_Rem,0.50,0.00,40
+BNA0136,HKW-Mitte,133,52.28,10.51,Combined cycle,Natural gas,2010,74,0.585,0.345,0.00,0,EXT,DH_DE_Rem,1.06,0.17,60
+BNA0137,HKW-Nord,133,52.28,10.51,Gas turbine,Natural gas,1965,25,0.289,0.698,0.00,0,EXT,DH_DE_Rem,0.31,0.00,80
+BNA0138,HKW-Mitte,133,52.28,10.51,Combined cycle,Hard coal,1984,43.3,0.468,0.727,1.05,0,EXT,DH_DE_Ind,0.20,0.15,124
+BNA0139,KW Hafen,399,53.12,8.73,Steam turbine,Waste,2009,33,0.330,0.000,0.00,0,,,,,
+BNA0141,KW Mittelsbüren,399,53.13,8.69,Gas turbine,Oil(light),1974,88,0.312,0.851,0.00,0,,,,,
+BNA0142,KW Mittelsbüren,399,53.13,8.69,Steam turbine,Other fuels,1975,160,0.330,0.000,0.00,0,,,,,
+BNA0144,KW Hastedt,401,53.06,8.87,Steam turbine,Hard coal,1989,119,0.398,0.856,0.62,0,EXT,DH_DE_Rem,0.48,0.15,155
+BNA0146,KW Hafen,399,53.12,8.73,Steam turbine,Hard coal,1979,300,0.373,0.913,0.66,0,,,,,
+BNA0147,Farge,402,53.20,8.52,Steam turbine,Hard coal,1969,350,0.443,0.769,0.56,0,,,,,
+BNA0156b,Egger Kraftwerk Briilon,209,51.41,8.60,Gas turbine,Natural gas,1996,13.5,0.370,0.546,0.00,0,EXT,DH_DE_Ind,0.65,0.00,21
+BNA0157,Brokdorf,429,53.85,9.35,Steam turbine,Nuclear,1986,1410,0.330,0.000,0.00,0,,,,,
+BNA0161,Brunsbüttel,430,53.89,9.20,Gas turbine,Oil(light),1973,63.5,0.310,0.859,0.00,0,,,,,
+BNA0162,Brunsbüttel,430,53.89,9.20,Gas turbine,Oil(light),1973,63.5,0.310,0.859,0.00,0,,,,,
+BNA0163,Brunsbüttel,430,53.89,9.20,Gas turbine,Oil(light),1973,63.5,0.310,0.859,0.00,0,,,,,
+BNA0164,Brunsbüttel,430,53.89,9.20,Gas turbine,Oil(light),1973,63.5,0.310,0.859,0.00,0,,,,,
+BNA0174,Industriepark Werk Gendorf,315,48.18,12.73,Steam turbine,Natural gas,2002,49,0.387,0.521,0.00,0,BKP,DH_DE_Ind,1.50,,33
+BNA0177,HKW Chemnitz  Nord II,349,50.86,12.92,Steam turbine,Lignite,1988,56.8,0.371,0.979,0.00,0,EXT,DH_DE_Rem,0.20,0.15,162
+BNA0178,HKW Chemnitz  Nord II,349,50.86,12.92,Steam turbine,Natural gas,1986,57.2,0.370,0.546,0.00,0,EXT,DH_DE_Rem,0.20,0.15,165
+BNA0179,HKW Chemnitz  Nord II,349,50.86,12.92,Steam turbine,Lignite,1990,90.8,0.424,0.857,0.00,0,EXT,DH_DE_Rem,0.45,0.15,140
+BNA0183,HKW Cottbus,357,51.76,14.37,Steam turbine,Lignite,1999,74,0.398,0.914,0.00,0,EXT,DH_DE_Rem,0.48,0.15,117
+BNA0194,Kraftwerk Dessau,337,51.83,12.23,Steam turbine,Lignite,1996,49,0.390,0.931,0.00,0,EXT,DH_DE_Rem,0.48,0.15,78
+BNA0196,Deuben,341,51.11,12.08,Steam turbine,Lignite,1936,67,0.246,1.474,0.00,0,EXT,DH_DE_Rem,0.35,0.15,134
+BNA0199,Dormagen,171,51.08,6.83,Combined cycle,Natural gas,2000,586.3,0.540,0.374,0.00,0,EXT,DH_DE_Ind,1.05,0.17,480
+BNA0202,Dortmund,121,51.52,7.48,Steam turbine,Natural gas,2004,26,0.389,0.518,0.00,0,EXT,DH_DE_Ind,1.50,0.17,16
+BNA0203,Knepper,153,51.57,7.35,Steam turbine,Hard coal,1971,345,0.353,0.965,2.79,0,,,,,
+BNA0207,HKW Dresden-Nossener Brücke,351,51.04,13.71,Combined cycle,Natural gas,1995,263,0.518,0.390,0.00,0,BKP,DH_DE_Dresden,0.58,,455
+BNA0211,HKW I,14,51.43,6.75,Steam turbine,Hard coal,1985,95,0.388,0.878,2.54,0,EXT,DH_DE_Rem,0.48,0.15,139
+BNA0213,HKW III/A,100,51.39,6.75,Steam turbine,Natural gas,2002,40,0.387,0.521,0.00,0,EXT,DH_DE_Rem,1.50,0.17,24
+BNA0214,HKW III/B,100,51.39,6.75,Combined cycle,Natural gas,2005,234,0.563,0.359,0.00,0,EXT,DH_DE_Rem,1.23,0.17,167
+BNA0216a,KW Walsum,142,51.53,6.72,Steam turbine,Hard coal,1988,370,0.395,0.861,2.49,0,EXT,DH_DE_Rem,0.48,0.15,295
+BNA0216b,KW Walsum,142,51.53,6.72,Steam turbine,Hard coal,2013,725,0.458,0.743,2.15,0,,,,,
+BNA0217,Duisburg Ruhrort 2,14,51.46,6.73,Steam turbine,Other fuels,1955,60,0.330,0.000,0.00,0,,,,,
+BNA0218,Duisburg Ruhrort 3,14,51.46,6.73,Steam turbine,Other fuels,1963,90,0.330,0.000,0.00,0,,,,,
+BNA0219,Duisburg Ruhrort 4,14,51.46,6.73,Steam turbine,Other fuels,1968,165,0.330,0.000,0.00,0,,,,,
+BNA0220,GuD,115,51.22,6.73,Combined cycle,Natural gas,2000,100,0.540,0.374,0.00,0,EXT,DH_DE_Rem,1.16,0.17,75
+BNA0221a,GT,115,51.22,6.73,Gas turbine,Natural gas,1974,64.7,0.312,0.646,0.00,0,,,,,
+BNA0221b,GT,115,51.22,6.73,Gas turbine,Natural gas,1974,66.7,0.312,0.646,0.00,0,,,,,
+BNA0221c,Gasblock,115,51.22,6.73,Steam turbine,Natural gas,1976,293,0.359,0.563,0.00,0,EXT,DH_DE_Rem,0.92,0.17,149
+BNA0222,GT,117,51.22,6.81,Gas turbine,Oil(light),1977,86.2,0.320,0.831,0.00,0,,,,,
+BNA0223b,DT,117,51.22,6.81,Steam turbine,Waste,2000,53.7,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.45,0.15,90
+BNA0232c,Werkskraftwerk Sappi Ehingen,297,48.27,9.73,Steam turbine,Natural gas,1976,4,0.359,0.563,0.00,0,EXT,DH_DE_Rem,0.50,0.00,8
+BNA0233,Kombikraftwerk,345,51.47,12.59,Steam turbine,Natural gas,1993,46.6,0.377,0.535,0.00,0,EXT,DH_DE_Rem,0.48,0.15,74
+BNA0237,EBS-Heizkraftwerk,356,52.17,14.64,Steam turbine,Other fuels,2011,23.5,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.45,0.15,39
+BNA0238a,IKW,356,52.17,14.63,Steam turbine,Other fuels,1953,45,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.28,0.15,105
+BNA0238b,IKW,356,52.17,14.63,Steam turbine,Other fuels,2013,56,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.45,,124
+BNA0239,Huntorf,403,53.19,8.41,Gas turbine,Natural gas,1978,321,0.396,0.510,0.00,0,,,,,
+BNA0243,HKW Eltmann,81,49.98,10.65,Steam turbine,Natural gas,2008,57,0.394,0.512,0.00,0,EXT,DH_DE_Ind,0.55,0.15,81
+BNA0245a,Emden Gas,409,53.34,7.21,Gas turbine,Natural gas,1973,50,0.355,0.568,0.00,0,,,,,
+BNA0251,Grohnde,217,52.04,9.41,Steam turbine,Nuclear,1985,1360,0.330,0.000,0.00,0,,,,,
+BNA0252,Kraftwerk Ensdorf,26,49.29,6.77,Steam turbine,Hard coal,2001,283,0.430,0.791,3.43,0,EXT,DH_DE_Saar,0.43,0.15,145
+BNA0253,Kraftwerk Ensdorf,26,49.29,6.77,Steam turbine,Hard coal,1963,106,0.430,0.791,3.43,0,EXT,DH_DE_Saar,0.40,0.15,66
+BNA0255,HKW Iderhoffstraße,333,50.98,11.05,Steam turbine,Natural gas,1996,11,0.381,0.530,0.00,0,BKP,DH_DE_Rem,0.48,,23
+BNA0256a,HKW Erfurt-Ost,333,50.99,11.03,Combined cycle,Natural gas,2000,76.5,0.540,0.374,0.00,0,BKP,DH_DE_Rem,0.23,,333
+BNA0256b,HKW Erfurt-Ost,333,50.99,11.03,Combined cycle,Natural gas,2014,32.6,0.603,0.335,0.00,0,EXT,DH_DE_Rem,0.55,0.15,47
+BNA0261a,HKW Erlangen,324,49.59,11.00,Combined cycle,Natural gas,2005,21.6,0.563,0.359,0.00,0,EXT,DH_DE_Rem,1.50,0.17,13
+BNA0261b,HKW Erlangen,324,49.59,11.00,Steam turbine,Hard coal,1980,17.4,0.375,0.907,5.90,0,BKP,DH_DE_Rem,0.20,,87
+BNA0261c,HKW Erlangen,324,49.59,11.00,Combined cycle,Natural gas,2014,6.7,0.603,0.335,0.00,0,EXT,DH_DE_Rem,0.70,0.00,10
+BNA0263,Isar 2,317,48.60,12.30,Steam turbine,Nuclear,1988,1410,0.330,0.000,0.00,0,,,,,
+BNA0270,Heizkraftwerk FL,437,54.80,9.43,Steam turbine,Hard coal,1992,27,0.405,0.840,0.61,0,EXT,DH_DE_Rem,0.52,0.15,40
+BNA0271,Heizkraftwerk FL,437,54.80,9.43,Steam turbine,Hard coal,1988,29,0.395,0.861,0.62,0,EXT,DH_DE_Rem,0.48,0.15,46
+BNA0272,Heizkraftwerk FL,437,54.80,9.43,Steam turbine,Hard coal,1985,33,0.388,0.878,0.63,0,EXT,DH_DE_Rem,0.48,0.15,52
+BNA0273,Heizkraftwerk FL,437,54.80,9.43,Steam turbine,Hard coal,1982,35,0.380,0.895,0.65,0,EXT,DH_DE_Rem,0.48,0.15,56
+BNA0274,Heizkraftwerk FL,437,54.80,9.43,Steam turbine,Hard coal,1978,23,0.370,0.919,0.66,0,EXT,DH_DE_Rem,0.43,0.15,40
+BNA0284,Heizkraftwerk FFO,356,52.35,14.55,Steam turbine,Lignite,1997,45,0.393,0.925,0.00,0,EXT,DH_DE_Rem,0.48,0.15,71
+BNA0285,HKW Niederrad,195,50.09,8.63,Combined cycle,Natural gas,2005,70,0.563,0.359,0.00,0,EXT,DH_DE_Rem,0.41,0.17,120
+BNA0286,HKW West,195,50.10,8.65,Gas turbine,Natural gas,1994,99,0.364,0.554,0.00,0,EXT,DH_DE_Rem,0.65,0.00,150
+BNA0287a,MHKW Frankfurt,195,50.16,8.64,Steam turbine,Waste,1998,26,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.36,,72
+BNA0287b,MHKW Frankfurt,195,50.16,8.64,Steam turbine,Waste,2006,46.5,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.29,0.15,105
+BNA0288,HKW Niederrad,195,50.09,8.63,Combined cycle,Natural gas,1973,56,0.419,0.482,0.00,0,EXT,DH_DE_Rem,0.42,0.15,98
+BNA0289a,HKW West,195,50.10,8.65,Steam turbine,Other fuels,1954,19.7,0.330,0.000,0.00,0,,,,,
+BNA0289b,HKW West,195,50.10,8.65,Steam turbine,Hard coal,1989,61.5,0.398,0.856,3.09,0,EXT,DH_DE_Rem,0.48,0.15,98
+BNA0290,HKW West,195,50.10,8.65,Steam turbine,Hard coal,1989,61.5,0.398,0.856,3.09,0,EXT,DH_DE_Rem,0.48,0.15,98
+BNA0292,Frechen/Wachtberg,168,50.90,6.79,Steam turbine,Lignite,1959,118,0.371,0.979,0.00,0,EXT,DH_DE_Rem,0.32,0.15,251
+BNA0293,GuD Anlage WVK,268,48.02,7.85,Combined cycle,Natural gas,1998,60.1,0.531,0.380,0.00,0,BKP,DH_DE_Ind,0.65,,92
+BNA0313,Frimmersdorf,113,51.06,6.58,Steam turbine,Lignite,1966,284,0.376,0.966,0.00,0,EXT,DH_DE_Rem,0.28,0.15,654
+BNA0314,Frimmersdorf,113,51.06,6.58,Steam turbine,Lignite,1970,278,0.376,0.966,0.00,0,,,,,
+BNA0318,Kraftwerk Fulda,227,50.57,9.69,Steam turbine,Oil(light),2011,24.8,0.397,0.670,0.00,0,,,,,
+BNA0331,Scholven,151,51.60,7.01,Steam turbine,Hard coal,1969,345,0.348,0.979,2.83,0,,,,,
+BNA0332,Scholven,151,51.60,7.01,Steam turbine,Hard coal,1968,345,0.345,0.986,2.85,0,EXT,DH_DE_Gelsenkirchen,0.40,0.15,381
+BNA0336,FWK Buer,151,51.60,7.00,Steam turbine,Hard coal,1985,70,0.388,0.878,2.54,0,EXT,DH_DE_Gelsenkirchen,0.20,0.15,200
+BNA0343,Heizkraftwerk Gera-Nord,339,50.91,12.06,Steam turbine,Natural gas,1996,74,0.381,0.530,0.00,0,BKP,DH_DE_Ind,1.25,,59
+BNA0354,HKW Göttingen,222,51.55,9.93,Steam turbine,Natural gas,1998,18.8,0.383,0.527,0.00,0,EXT,DH_DE_Rem,0.65,0.00,29
+BNA0355,Grafenrheinfeld,231,49.98,10.18,Steam turbine,Nuclear,1982,1275,0.330,0.000,0.00,0,,,,,
+BNA0360,"HKW ""Helmshäger Berg""",417,54.07,13.40,Gas turbine,Natural gas,1996,14.7,0.370,0.546,0.00,0,BKP,DH_DE_Rem,0.65,,23
+BNA0361,Kraftwerk Grenzach-Wyhlen,80,47.54,7.71,Steam turbine,Natural gas,2004,40,0.389,0.518,0.00,0,EXT,DH_DE_Ind,0.70,0.00,57
+BNA0369,Spitzenlastkraftwerk Sermuth,346,51.16,12.78,Steam turbine,Oil(light),1995,17,0.380,0.701,0.00,0,,,,,
+BNA0373,Spitzenlastkraftwerk Großkayna,143,51.29,11.95,Gas turbine,Oil(light),1994,120,0.364,0.730,0.00,0,,,,,
+BNA0374,Staudinger,192,50.09,8.95,Steam turbine,Natural gas,1977,622,0.360,0.561,0.00,0,,,,,
+BNA0377,Staudinger,192,50.09,8.95,Steam turbine,Hard coal,1992,510,0.405,0.840,3.03,0,,,,,
+BNA0378,Ingolstadt,313,48.76,11.50,Steam turbine,Oil(light),1973,386,0.355,0.749,0.00,0,EXT,DH_DE_Rem,0.43,0.17,643
+BNA0379,Ingolstadt,313,48.76,11.50,Steam turbine,Oil(light),1974,386,0.356,0.746,0.00,0,EXT,DH_DE_Rem,0.43,0.17,643
+BNA0380,EEW Großräschen,358,51.59,14.02,Steam turbine,Waste,2008,23.3,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.45,,52
+BNA0381,Kernkraft Gundremmingen ,294,48.52,10.40,Steam turbine,Nuclear,1984,1284,0.330,0.000,0.00,0,,,,,
+BNA0382,Kernkraft Gundremmingen ,294,48.52,10.40,Steam turbine,Nuclear,1984,1288,0.330,0.000,0.00,0,,,,,
+BNA0386,Energiezentrum Mohn Media,211,51.91,8.41,Steam turbine,Natural gas,1994,22,0.378,0.533,0.00,0,BKP,DH_DE_Ind,0.65,,34
+BNA0389,Heizkraftwerk Hagen-Kabel,178,51.41,7.49,Combined cycle,Natural gas,1980,230,0.558,0.362,0.00,0,EXT,DH_DE_Ind,0.92,0.17,211
+BNA0392a,HKW Halle Trotha,143,51.48,11.96,Steam turbine,Natural gas,2005,97,0.391,0.517,0.00,0,BKP,DH_DE_Ind,1.25,,78
+BNA0392b,HKW Halle Trotha,143,51.52,11.94,Combined cycle,Natural gas,2013,54,0.599,0.337,0.00,0,BKP,DH_DE_Rem,1.25,,43
+BNA0395,Duisburg Hamborn 3,98,51.49,6.73,Steam turbine,Other fuels,1958,60,0.330,0.000,0.00,0,,0,,,
+BNA0396,Duisburg Hamborn 4,98,51.49,6.73,Steam turbine,Other fuels,1976,100,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.32,0.15,213
+BNA0397,Duisburg Hamborn 5,85,51.50,6.73,Combined cycle,Other fuels,2003,225,0.330,0.000,0.00,0,,0,,,
+BNA0398,MVR Müllverwertung Rugenberger Damm GmbH & Co. KG,414,53.52,9.93,Steam turbine,Waste,1999,24,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.36,,67
+BNA0400,GuD Tiefstack,415,53.53,10.07,Combined cycle,Natural gas,2009,127,0.581,0.348,0.00,0,EXT,DH_DE_Hamburg,0.58,0.17,170
+BNA0401,Heizkraftwerk,414,53.52,9.95,Steam turbine,Natural gas,1992,22.5,0.376,0.536,0.00,0,BKP,DH_DE_Rem,0.65,,35
+BNA0402,Tiefstack,415,53.53,10.06,Steam turbine,Hard coal,1993,194,0.408,0.835,0.60,0,BKP,DH_DE_Hamburg,0.24,,814
+BNA0403,Wedel,410,53.57,9.72,Steam turbine,Hard coal,1962,123,0.408,0.835,0.60,0,EXT,DH_DE_Hamburg,0.52,0.15,63
+BNA0404,Wedel,410,53.57,9.72,Steam turbine,Hard coal,1961,137,0.408,0.835,0.60,0,EXT,DH_DE_Hamburg,0.32,0.15,290
+BNA0407,Enertec Hameln,217,52.10,9.39,Steam turbine,Waste,1912,14.7,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.32,,46
+BNA0410,Trianel Gaskraftwerk ,65,51.67,7.93,Combined cycle,Natural gas,2008,417.1,0.576,0.350,0.00,0,,,,,
+BNA0411,Trianel Gaskraftwerk ,65,51.67,7.93,Combined cycle,Natural gas,2008,420.9,0.576,0.350,0.00,0,,,,,
+BNA0413a,Westfalen,36,51.68,7.97,Steam turbine,Hard coal,1969,284,0.348,0.979,2.83,0,,,,,
+BNA0413c,Westfalen,36,51.68,7.97,Steam turbine,Hard coal,2014,765,0.460,0.739,2.14,0,,,,,
+BNA0417,EEW Energy from Waste Hannover GmbH,383,52.41,9.85,Steam turbine,Waste,2005,22.5,0.330,0.000,0.00,0,,,,,
+BNA0418,GKL,383,52.37,9.71,Combined cycle,Natural gas,2013,230,0.599,0.337,0.00,0,EXT,DH_DE_Rem,1.07,0.17,185
+BNA0419,KWH,383,52.42,9.65,Steam turbine,Natural gas,1975,102,0.358,0.564,0.00,0,EXT,DH_DE_Rem,0.36,0.00,280
+BNA0420,GKH,385,52.42,9.65,Steam turbine,Hard coal,1989,136,0.398,0.856,1.24,0,EXT,DH_DE_Rem,0.52,0.15,203
+BNA0421,GKH,385,52.42,9.65,Steam turbine,Hard coal,1989,136,0.398,0.856,1.24,0,EXT,DH_DE_Rem,0.52,0.15,203
+BNA0427,Kraftwerk Hausham,305,47.75,11.84,Gas turbine,Oil(light),1982,23.2,0.333,0.798,0.00,0,,,,,
+BNA0428,Kraftwerk Hausham,305,47.75,11.84,Gas turbine,Oil(light),1982,23.2,0.333,0.798,0.00,0,,,,,
+BNA0429,Kraftwerk Hausham,305,47.75,11.84,Gas turbine,Oil(light),1982,23.2,0.333,0.798,0.00,0,,,,,
+BNA0430,Kraftwerk Hausham,305,47.75,11.84,Gas turbine,Oil(light),1982,23.2,0.333,0.798,0.00,0,,,,,
+BNA0432,Heizkraftwerk Heilbronn,255,49.18,9.21,Steam turbine,Hard coal,1965,125,0.450,0.756,3.28,0,EXT,DH_DE_Rem,0.40,0.15,64
+BNA0433,Heizkraftwerk Heilbronn,255,49.18,9.21,Steam turbine,Hard coal,1966,125,0.450,0.756,3.28,0,,0,,,
+BNA0434,Heizkraftwerk Heilbronn,255,49.18,9.21,Steam turbine,Hard coal,1985,778,0.448,0.760,3.29,0,EXT,DH_DE_Rem,0.48,0.15,550
+BNA0438,TRV Buschhaus,376,52.17,10.98,Steam turbine,Waste,1998,37.5,0.330,0.000,0.00,0,,,,,
+BNA0439,Buschhaus,376,52.17,10.98,Steam turbine,Lignite,1985,352,0.364,0.998,0.00,0,,,,,
+BNA0442,Cuno Heizkraftwerk Herdecke,177,51.40,7.42,Combined cycle,Natural gas,2007,417,0.572,0.353,0.00,0,,,,,
+BNA0444,Wintershall,180,50.89,10.00,Combined cycle,Natural gas,1967,109.5,0.392,0.515,0.00,0,BKP,DH_DE_Ind,0.37,,299
+BNA0449,KW Herne,92,51.55,7.19,Steam turbine,Hard coal,1966,280,0.398,0.856,2.47,0,,,,,
+BNA0450,KW Herne,92,51.55,7.19,Steam turbine,Hard coal,1989,449,0.458,0.743,2.15,0,EXT,DH_DE_Ruhr,0.48,0.15,550
+BNA0464,KWM,381,52.32,10.09,Steam turbine,Hard coal,1979,690,0.433,0.786,1.14,0,,,,,
+BNA0485,Huckingen,100,51.37,6.72,Combined cycle,Other fuels,1975,303,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.45,0.15,155
+BNA0486,Huckingen,100,51.37,6.72,Combined cycle,Other fuels,1976,303,0.330,0.000,0.00,0,,0,,,
+BNA0490a,Goldenberg,168,50.86,6.84,Steam turbine,Lignite,1993,40,0.383,0.948,0.00,0,BKP,DH_DE_Rem,0.38,,105
+BNA0490b,Goldenberg,168,50.86,6.84,Steam turbine,Lignite,1993,45,0.383,0.948,0.00,0,,,,,
+BNA0491,Ville/Berrenrath,168,50.86,6.84,Steam turbine,Lignite,1991,52,0.378,0.960,0.00,0,BKP,DH_DE_Rem,0.38,,137
+BNA0492,RAG Anthrazit Ibbenbüren GmbH,440,52.29,7.75,Steam turbine,Other fuels,1985,33.4,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.34,0.15,68
+BNA0493,Ibbenbüren,440,52.29,7.75,Steam turbine,Hard coal,1985,794,0.448,0.760,1.65,0,,,,,
+BNA0497,ADS-Anlage,31,50.09,8.53,Gas turbine,Natural gas,2012,96.5,0.411,0.491,0.00,0,EXT,DH_DE_Ind,0.60,0.17,126
+BNA0498,Heizkraftwerk,31,50.09,8.53,Combined cycle,Hard coal,1989,66,0.491,0.693,3.01,0,EXT,DH_DE_Ind,0.48,0.15,105
+BNA0499,Heizkraftwerk,31,50.09,8.53,Combined cycle,Natural gas,2003,86,0.554,0.365,0.00,0,EXT,DH_DE_Ind,0.27,0.15,204
+BNA0504,HKW Jena,334,50.90,11.59,Combined cycle,Natural gas,1996,182,0.522,0.387,0.00,0,BKP,DH_DE_Rem,0.81,,225
+BNA0510a,HKW Karcherstr.,243,49.43,7.76,Steam turbine,Natural gas,1989,11.6,0.373,0.541,0.00,0,BKP,DH_DE_Ind,0.65,,18
+BNA0510b,HKW Karcherstr.,243,49.43,7.76,Steam turbine,Hard coal,1996,13.4,0.415,0.820,3.55,0,EXT,DH_DE_Rem,0.52,0.15,20
+BNA0514,Rheinhafen-Dampfkraftwerk,264,49.01,8.30,Combined cycle,Natural gas,1998,353,0.531,0.380,0.00,0,,,,,
+BNA0515,Heizkraftwerk West,263,49.01,8.35,Steam turbine,Natural gas,1984,37,0.367,0.549,0.00,0,EXT,DH_DE_Rem,0.58,0.00,64
+BNA0516,MiRO,264,49.06,8.32,Steam turbine,Oil(light),1995,45,0.380,0.701,0.00,0,BKP,DH_DE_Ind,0.70,,64
+BNA0517,MiRO,264,49.06,8.32,Steam turbine,Oil(light),1995,25,0.380,0.701,0.00,0,EXT,DH_DE_Ind,0.55,0.15,36
+BNA0518a,Rheinhafen-Dampfkraftwerk,264,49.01,8.30,Steam turbine,Hard coal,1985,505,0.438,0.777,3.37,0,EXT,DH_DE_Rem,0.60,0.15,259
+BNA0518b,Rheinhafen-Dampfkraftwerk,264,49.01,8.30,Steam turbine,Hard coal,2014,842,0.460,0.739,3.20,0,EXT,DH_DE_Rem,0.60,0.15,432
+BNA0519,Karnap,6,51.52,6.99,Steam turbine,Waste,1987,38,0.330,0.000,0.00,0,BKP,DH_DE_Ruhr,0.32,,119
+BNA0521,Kombi-HKW,226,51.28,9.48,Steam turbine,Natural gas,1987,50,0.371,0.544,0.00,0,EXT,DH_DE_Rem,0.92,0.17,46
+BNA0523,FKK,226,51.28,9.48,Steam turbine,Lignite,1988,33.5,0.371,0.979,0.00,0,BKP,DH_DE_Rem,0.38,,88
+BNA0526,Gemeinschaftskraftwerk Kiel,433,54.34,10.18,Steam turbine,Hard coal,1970,323,0.405,0.840,0.61,0,EXT,DH_DE_Rem,0.43,0.15,295
+BNA0527,HKW Humboldtstr.,433,54.33,10.13,Steam turbine,Natural gas,1970,31,0.352,0.573,0.00,0,BKP,DH_DE_Rem,0.42,,74
+BNA0531,KW Kirchlengern,214,52.20,8.65,Combined cycle,Natural gas,1980,201.5,0.450,0.448,0.00,0,,,,,
+BNA0543,HKW Merkenich,104,51.02,6.96,Steam turbine,Lignite,2010,75.3,0.424,0.857,0.00,0,EXT,DH_DE_Rem,0.60,0.15,100
+BNA0544,HKW Südstadt,111,50.92,6.96,Combined cycle,Natural gas,1994,35,0.513,0.393,0.00,0,EXT,DH_DE_Rem,0.92,0.17,32
+BNA0545,HKW Niehl 2,109,50.97,6.99,Combined cycle,Natural gas,2005,413,0.576,0.350,0.00,0,EXT,DH_DE_Rem,0.95,0.17,370
+BNA0546,HKW Merkenich,104,51.02,6.96,Combined cycle,Natural gas,2004,108,0.558,0.362,0.00,0,EXT,DH_DE_Rem,1.18,0.17,80
+BNA0547,Raffineriekraftwerk Köln Godorf,106,50.85,6.98,Combined cycle,Oil(heavy),2004,80,0.380,0.771,0.00,0,BKP,DH_DE_Ind,0.34,,235
+BNA0548a,Knapsack Gas I,168,50.86,6.84,Combined cycle,Natural gas,2006,800,0.567,0.356,0.00,0,,,,,
+BNA0548b,Knapsack Gas II,168,50.86,6.84,Combined cycle,Natural gas,2013,430,0.599,0.337,0.00,0,,,,,
+BNA0556a,KWK-Anlage Krefeld DT,88,51.34,6.66,Steam turbine,Natural gas,2005,25.8,0.389,0.518,0.00,0,EXT,DH_DE_Ind,1.50,0.17,15
+BNA0556b,KWK-Anlage Krefeld VM,8,51.34,6.66,Combustion Engine,Natural gas,1995,14,0.448,0.451,0.00,0,EXT,DH_DE_Ind,1.50,0.17,8
+BNA0557a,Kraftwerk L 57,83,51.37,6.66,Steam turbine,Hard coal,1957,26,0.318,1.071,3.10,0,EXT,DH_DE_Ind,0.40,0.15,47
+BNA0557b,Kraftwerk N 230,83,51.37,6.66,Steam turbine,Hard coal,1971,110,0.353,0.965,2.79,0,EXT,DH_DE_Ind,0.20,0.15,314
+BNA0574a,Landesbergen Gas,386,52.55,9.11,Gas turbine,Natural gas,1973,56,0.355,0.568,0.00,0,,,,,
+BNA0588,Heizkraftwerk Leipzig-Nord,345,51.35,12.38,Combined cycle,Natural gas,1996,167,0.585,0.345,0.00,0,EXT,DH_DE_Rem,0.48,0.15,200
+BNA0590,TREA Leuna,143,51.30,12.02,Steam turbine,Waste,2005,16.3,0.330,0.000,0.00,0,,,,,
+BNA0591,TREA Leuna,143,51.30,12.02,Steam turbine,Waste,2007,16.3,0.330,0.000,0.00,0,,,,,
+BNA0592,GuD Leuna,143,51.30,12.02,Combined cycle,Natural gas,1998,52,0.531,0.380,0.00,0,BKP,DH_DE_Ind,1.25,,42
+BNA0593,ILK-GuD,143,51.30,12.02,Combined cycle,Natural gas,1994,35,0.513,0.393,0.00,0,EXT,DH_DE_Ind,1.25,0.17,25
+BNA0594,ILK-GuD,143,51.30,12.02,Combined cycle,Natural gas,1994,35,0.513,0.393,0.00,0,EXT,DH_DE_Ind,1.25,0.17,25
+BNA0595,ILK-GuD,143,51.30,12.02,Combined cycle,Natural gas,1994,37,0.513,0.393,0.00,0,EXT,DH_DE_Ind,1.25,0.17,26
+BNA0596,Raffineriekraftwerk,143,51.30,12.02,Combined cycle,Oil(heavy),1997,92.5,0.380,0.771,0.00,0,BKP,DH_DE_Ind,0.44,,208
+BNA0597,ILK-GuD,143,51.30,12.02,Combined cycle,Other fuels,1994,8.7,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.36,,24
+BNA0598a,ILK-EKT,373,51.80,11.76,Steam turbine,Other fuels,2000,14,0.330,0.000,0.00,0,,,,,
+BNA0598b,ILK-GuD,143,51.30,12.02,Combined cycle,Other fuels,2010,20,0.330,0.000,0.00,0,,,,,
+BNA0599,MHKW Leverkusen,110,51.05,7.00,Steam turbine,Waste,2011,6,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.45,,26
+BNA0600a,X-Kraftwerk,110,51.01,6.99,Steam turbine,Natural gas,1981,27,0.364,0.554,0.00,0,BKP,DH_DE_Ind,0.50,,54
+BNA0600b,G-Kraftwerk,83,51.37,6.65,Steam turbine,Hard coal,1962,103,0.330,1.031,2.98,0,EXT,DH_DE_Ind,0.43,0.15,178
+BNA0602,Emsland,392,52.48,7.31,Combined cycle,Natural gas,2011,116,0.590,0.342,0.00,0,,,,,
+BNA0603,Emsland,392,52.48,7.31,Combined cycle,Natural gas,2011,116,0.590,0.342,0.00,0,,,,,
+BNA0604,Emsland,392,52.48,7.31,Combined cycle,Natural gas,1973,359,0.419,0.482,0.00,0,,,,,
+BNA0605,Emsland,392,52.48,7.31,Combined cycle,Natural gas,1974,359,0.423,0.477,0.00,0,,,,,
+BNA0606,Emsland,392,52.48,7.31,Combined cycle,Natural gas,2010,887,0.585,0.345,0.00,0,,0,,,
+BNA0607,Kernkraftwerk Emsland,392,52.48,7.31,Steam turbine,Nuclear,1988,1336,0.330,0.000,0.00,0,,,,,
+BNA0614a,KW Mitte,250,49.51,8.43,Gas turbine,Natural gas,1992,43,0.359,0.562,0.00,0,BKP,DH_DE_Ind,0.65,,66
+BNA0614b,Kraftwerk Mitte,250,49.51,8.43,Combined cycle,Natural gas,2005,490,0.563,0.359,0.00,0,BKP,DH_DE_Ind,0.91,,540
+BNA0615,Kraftwerk Süd,250,49.51,8.43,Combined cycle,Natural gas,1997,390,0.527,0.383,0.00,0,BKP,DH_DE_Ind,0.93,,420
+BNA0616a,Kläranlage,131,48.55,8.41,Steam turbine,Waste,1992,12,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.34,,35
+BNA0616b,Kraftwerk Nord,252,48.55,8.41,Combined cycle,Other fuels,1964,56,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.20,0.15,160
+BNA0618,KW Lünen,91,51.61,7.48,Steam turbine,Hard coal,1962,149,0.415,0.820,2.37,0,,,,,
+BNA0619,KW Lünen,91,51.61,7.48,Steam turbine,Hard coal,1969,324,0.418,0.815,2.35,0,EXT,DH_DE_Ind,0.40,0.15,589
+BNA0622,MHKW Rothensee,375,52.19,11.68,Steam turbine,Waste,2005,29.2,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.45,,65
+BNA0623,MHKW Rothensee,375,52.19,11.68,Steam turbine,Waste,2006,29.2,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.45,,65
+BNA0626,Kraftwerk Mainz,200,50.03,8.24,Combined cycle,Natural gas,2001,434.2,0.545,0.371,0.00,0,EXT,DH_DE_Rem,1.50,0.17,220
+BNA0627,Kraftwerk Mainz,200,50.03,8.24,Combined cycle,Natural gas,1977,335,0.437,0.462,0.00,0,EXT,DH_DE_Rem,0.42,0.15,172
+BNA0640,HKW Mannheim,250,49.52,8.45,Steam turbine,Waste,2005,8.7,0.330,0.000,0.00,0,,,,,
+BNA0641a,HKW Mannheim,250,49.52,8.45,Steam turbine,Waste,2009,22.1,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.45,0.15,37
+BNA0641b,HKW Mannheim,250,49.52,8.45,Steam turbine,Waste,2012,8.1,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.45,0.15,14
+BNA0641c,HKW Mannheim,250,49.52,8.45,Steam turbine,Waste,2012,5.8,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.45,0.15,10
+BNA0643,GKM ,252,49.45,8.49,Steam turbine,Hard coal,1970,202.5,0.350,0.972,4.21,0,,,,,
+BNA0644,GKM ,252,49.45,8.49,Steam turbine,Hard coal,2005,255,0.438,0.777,3.37,0,EXT,DH_DE_Mannheim,0.60,0.15,204
+BNA0645,GKM ,34,49.45,8.49,Steam turbine,Hard coal,1982,425,0.380,0.895,3.88,0,EXT,DH_DE_Mannheim,0.48,0.15,250
+BNA0646a,GKM ,252,49.45,8.49,Steam turbine,Hard coal,1993,435,0.408,0.835,3.62,0,EXT,DH_DE_Mannheim,0.52,0.15,121
+BNA0646b,GKM ,34,49.45,8.49,Steam turbine,Hard coal,2015,843,0.463,0.735,3.19,0,EXT,DH_DE_Mannheim,0.52,0.15,121
+BNA0647,Dampfkraftwerk Marbach am Neckar,270,48.93,9.23,Gas turbine,Oil(light),1971,77.4,0.305,0.873,0.00,0,,,,,
+BNA0648,Dampfkraftwerk Marbach am Neckar,270,48.93,9.23,Combined cycle,Oil(light),1975,85,0.380,0.700,0.00,0,,,,,
+BNA0649,Dampfkraftwerk Marbach am Neckar,270,48.93,9.23,Combined cycle,Oil(light),1975,262,0.380,0.700,0.00,0,,,,,
+BNA0658,Kraftwerk III,148,51.68,7.10,Combined cycle,Natural gas,1973,61.1,0.554,0.365,0.00,0,EXT,DH_DE_Ind,0.50,0.00,122
+BNA0659,Kraftwerk III,148,51.68,7.10,Combined cycle,Natural gas,1974,77.6,0.554,0.365,0.00,0,EXT,DH_DE_Ind,0.50,0.00,155
+BNA0660,Kraftwerk I  ,148,51.68,7.10,Steam turbine,Hard coal,1971,55.3,0.353,0.965,2.79,0,EXT,DH_DE_Ind,0.20,0.15,158
+BNA0661,Kraftwerk II,148,51.68,7.10,Steam turbine,Hard coal,1966,60.4,0.340,1.000,2.89,0,EXT,DH_DE_Ind,0.40,0.15,110
+BNA0662a,Kraftwerk I ,148,51.68,7.10,Steam turbine,Hard coal,1983,60.2,0.383,0.889,2.57,0,BKP,DH_DE_Ind,0.52,,116
+BNA0662b,Kraftwerk I,148,51.68,7.10,Steam turbine,Hard coal,1939,120,0.273,1.248,3.61,0,EXT,DH_DE_Ind,0.40,0.15,218
+BNA0680,Mumsdorf,341,51.07,12.26,Steam turbine,Lignite,1968,60,0.323,1.124,0.00,0,,,,,
+BNA0681,Freimann GT 1,308,48.19,11.59,Gas turbine,Natural gas,1975,78.6,0.315,0.641,0.00,0,EXT,DH_DE_Muenchen,0.30,0.00,260
+BNA0682,Freimann GT 2,308,48.19,11.59,Gas turbine,Natural gas,1975,78.6,0.315,0.641,0.00,0,,,,,
+BNA0683a,Süd DT1,308,48.14,11.58,Combined cycle,Natural gas,1980,79.7,0.450,0.448,0.00,0,EXT,DH_DE_Muenchen,0.28,0.17,177
+BNA0683b,Süd GT3,308,48.14,11.58,Combined cycle,Natural gas,1980,97.9,0.450,0.448,0.00,0,EXT,DH_DE_Muenchen,0.38,0.17,177
+BNA0683c,Süd GT2,308,48.14,11.58,Combined cycle,Natural gas,1980,97.9,0.450,0.448,0.00,0,EXT,DH_DE_Muenchen,0.36,0.17,184
+BNA0684a,Süd GT 61,308,48.14,11.58,Combined cycle,Natural gas,2004,124.9,0.558,0.362,0.00,0,EXT,DH_DE_Muenchen,0.51,0.17,184
+BNA0684b,Süd GT 62,308,48.14,11.58,Combined cycle,Natural gas,2004,123.9,0.558,0.362,0.00,0,EXT,DH_DE_Muenchen,0.95,0.17,110
+BNA0684c,Süd DT60,308,48.14,11.58,Combined cycle,Natural gas,2004,127.6,0.558,0.362,0.00,0,EXT,DH_DE_Muenchen,0.53,0.17,181
+BNA0685,Heizkraftwerk Hafen,35,51.95,7.64,Combined cycle,Natural gas,2005,100.2,0.563,0.359,0.00,0,EXT,DH_DE_Rem,0.67,0.17,120
+BNA0686,Gemeinschaftskernkraftwerk Neckarwestheim II,257,49.04,9.18,Steam turbine,Nuclear,1989,1310,0.330,0.000,0.00,0,,,,,
+BNA0688,GuD-HKW Neubrandenburg,137,53.57,13.30,Combined cycle,Natural gas,1997,75,0.527,0.383,0.00,0,BKP,DH_DE_Rem,1.25,,60
+BNA0693,Heizkraftwerk NMS,434,54.08,10.15,Steam turbine,Other fuels,2014,53.6,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.34,0.15,109
+BNA0696,Neurath,164,51.04,6.62,Steam turbine,Lignite,1972,277,0.333,1.092,0.00,0,,,,,
+BNA0697,Neurath,164,51.04,6.62,Steam turbine,Lignite,1972,288,0.333,1.092,0.00,0,,,,,
+BNA0698,Neurath,164,51.04,6.62,Steam turbine,Lignite,1973,292,0.335,1.084,0.00,0,,,,,
+BNA0699,Neurath,164,51.04,6.62,Steam turbine,Lignite,1975,607,0.340,1.069,0.00,0,,0,,,
+BNA0700,Neurath,164,51.04,6.62,Steam turbine,Lignite,1976,604,0.342,1.061,0.00,0,,0,,,
+BNA0702,Cogeneration,314,48.79,11.76,Steam turbine,Natural gas,1996,25.4,0.381,0.530,0.00,0,EXT,DH_DE_Ind,0.65,0.00,39
+BNA0705,Niederaußem,165,51.00,6.67,Steam turbine,Lignite,1968,297,0.323,1.124,0.00,0,,,,,
+BNA0706,Niederaußem,165,51.00,6.67,Steam turbine,Lignite,1971,299,0.330,1.100,0.00,0,,,,,
+BNA0707,Niederaußem,165,51.00,6.67,Steam turbine,Lignite,1974,648,0.422,0.862,0.00,0,,,,,
+BNA0708,Niederaußem,165,51.00,6.67,Steam turbine,Lignite,1974,653,0.419,0.867,0.00,0,EXT,DH_DE_Rem,0.35,0.15,335
+BNA0709,Niederaußem,165,51.00,6.67,Steam turbine,Lignite,2002,944,0.405,0.897,0.00,0,,,,,
+BNA0712,Niederaußem,165,51.00,6.67,Steam turbine,Lignite,1965,294,0.316,1.150,0.00,0,,,,,
+BNA0713,Niederaußem,165,51.00,6.67,Steam turbine,Lignite,1970,295,0.328,1.108,0.00,0,,,,,
+BNA0714,Fortuna Nord,165,50.95,6.66,Steam turbine,Lignite,1984,15,0.362,1.005,0.00,0,BKP,DH_DE_Ind,0.38,,39
+BNA0734,Thyrow,365,52.23,13.30,Gas turbine,Natural gas,1989,37.5,0.351,0.574,0.00,0,,,,,
+BNA0735,Thyrow,365,52.23,13.30,Gas turbine,Natural gas,1989,37.5,0.351,0.574,0.00,0,,,,,
+BNA0736,Thyrow,365,52.23,13.30,Gas turbine,Natural gas,1989,37.5,0.351,0.574,0.00,0,,,,,
+BNA0737,Thyrow,365,52.23,13.30,Gas turbine,Natural gas,1989,37.5,0.351,0.574,0.00,0,,,,,
+BNA0738,Thyrow,365,52.23,13.30,Gas turbine,Natural gas,1987,36.5,0.346,0.583,0.00,0,,,,,
+BNA0739,Thyrow,365,52.23,13.30,Gas turbine,Natural gas,1987,36.5,0.346,0.583,0.00,0,,,,,
+BNA0740,Thyrow,365,52.23,13.30,Gas turbine,Natural gas,1987,36.5,0.346,0.583,0.00,0,,,,,
+BNA0741,Thyrow,365,52.23,13.30,Gas turbine,Natural gas,1987,36.5,0.346,0.583,0.00,0,,,,,
+BNA0742,HKW Sandreuth,324,49.44,11.06,Combined cycle,Natural gas,2005,75,0.563,0.359,0.00,0,EXT,DH_DE_Nuernberg,0.30,0.17,160
+BNA0743,HKW Sandreuth,324,49.44,11.06,Combined cycle,Natural gas,2005,75,0.563,0.359,0.00,0,EXT,DH_DE_Nuernberg,0.30,0.17,160
+BNA0744,Franken 1,324,49.42,11.01,Combined cycle,Natural gas,1973,383,0.419,0.482,0.00,0,,,,,
+BNA0745,Franken 1,324,49.42,11.01,Combined cycle,Natural gas,1976,440,0.432,0.467,0.00,0,,,,,
+BNA0746,HKW Sandreuth,324,49.44,11.06,Combined cycle,Waste,1996,18,0.330,0.000,0.00,0,EXT,DH_DE_Nuernberg,0.20,0.15,51
+BNA0750,GMVA Niederrhein,96,51.49,6.83,Steam turbine,Waste,1990,40.4,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.34,,119
+BNA0751,GMVA Niederrhein,96,51.49,6.83,Steam turbine,Waste,2006,21.1,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.45,,47
+BNA0752,HKW 1,84,51.47,6.86,Steam turbine,Natural gas,1972,23.1,0.354,0.570,0.00,0,EXT,DH_DE_Rem,0.39,0.15,43
+BNA0753,HKW 2,84,51.47,6.86,Steam turbine,Natural gas,1995,24.5,0.380,0.532,0.00,0,BKP,DH_DE_Rem,0.65,,38
+BNA0755a,Obernburg,128,49.83,9.15,Combined cycle,Natural gas,1920,36,0.180,1.121,0.00,0,EXT,DH_DE_Ind,0.39,0.15,67
+BNA0755b,Obernburg,128,49.83,9.15,Combined cycle,Natural gas,1995,64,0.518,0.390,0.00,0,BKP,DH_DE_Ind,0.65,,98
+BNA0758,Heizkraftwerk Offenbach,72,50.07,8.77,Steam turbine,Hard coal,1990,54,0.400,0.850,3.07,0,EXT,DH_DE_Rem,0.48,0.15,36
+BNA0759,Itzehoe,431,53.97,9.45,Steam turbine,Oil(light),1972,88,0.354,0.751,0.00,0,,,,,
+BNA0766,Audorf,436,54.29,9.72,Steam turbine,Oil(light),1973,87,0.355,0.749,0.00,0,,,,,
+BNA0785,KW Jänschwalde,357,51.83,14.46,Steam turbine,Lignite,1981,465,0.390,0.931,0.00,0,EXT,DH_DE_Rem,0.45,0.15,388
+BNA0786,KW Jänschwalde,357,51.83,14.46,Steam turbine,Lignite,1982,465,0.390,0.931,0.00,0,,0,,,
+BNA0787,KW Jänschwalde,357,51.83,14.46,Steam turbine,Lignite,1984,465,0.390,0.931,0.00,0,,0,,,
+BNA0788,KW Jänschwalde,357,51.83,14.46,Steam turbine,Lignite,1985,465,0.390,0.931,0.00,0,,,,,
+BNA0789,KW Jänschwalde,357,51.83,14.46,Steam turbine,Lignite,1987,465,0.390,0.931,0.00,0,,0,,,
+BNA0790,KW Jänschwalde,357,51.83,14.46,Steam turbine,Lignite,1989,465,0.390,0.931,0.00,0,,0,,,
+BNA0793,Heyden,60,52.38,9.00,Steam turbine,Hard coal,1987,875,0.393,0.866,1.25,0,,,,,
+BNA0799,Heizkraftwerk Pforzheim GmbH,265,48.88,8.67,Steam turbine,Natural gas,1969,11.3,0.351,0.575,0.00,0,BKP,DH_DE_Rem,0.39,,29
+BNA0800,Heizkraftwerk Pforzheim GmbH,265,48.88,8.67,Combined cycle,Natural gas,1980,41.2,0.450,0.448,0.00,0,EXT,DH_DE_Rem,0.50,0.00,82
+BNA0801,Heizkraftwerk Pforzheim GmbH,265,48.88,8.67,Steam turbine,Hard coal,1990,26.9,0.400,0.850,3.69,0,EXT,DH_DE_Rem,0.52,0.15,40
+BNA0802,Kernkraftwerk Philippsburg 2,261,49.25,8.44,Steam turbine,Nuclear,1985,1402,0.330,0.000,0.00,0,,,,,
+BNA0804a,Hattorf,180,50.81,9.98,Steam turbine,Natural gas,1962,35,0.343,0.588,0.00,0,,,,,
+BNA0804b,Hattorf,180,50.84,9.98,Steam turbine,Natural gas,2013,17.3,0.399,0.505,0.00,0,EXT,DH_DE_Ind,0.55,0.15,25
+BNA0805,Kraftwerk Plattling,129,48.79,12.88,Combined cycle,Natural gas,2010,97.9,0.585,0.345,0.00,0,BKP,DH_DE_Ind,0.65,,150
+BNA0810,Kraftwerk Veltheim,203,52.19,8.93,Gas turbine,Natural gas,1974,65,0.312,0.646,0.00,0,,,,,
+BNA0813,Kraftwerk Veltheim,203,52.19,8.93,Steam turbine,Hard coal,1970,303,0.350,0.972,1.40,0,,,,,
+BNA0814,HKW Potsdam-Süd,371,52.37,13.11,Steam turbine,Natural gas,1996,81.8,0.381,0.530,0.00,0,BKP,DH_DE_Rem,1.25,,65
+BNA0820,Weiher,238,49.33,7.03,Steam turbine,Hard coal,1976,655.6,0.365,0.932,4.04,0,,0,,,
+BNA0832,BHKW-Hauffstraße,277,48.49,9.19,Combustion Engine,Natural gas,2011,9.8,0.457,0.441,0.00,0,BKP,DH_DE_Ind,0.70,,14
+BNA0834,Solvay Kraftwerk Rheinberg,95,51.56,6.58,Gas turbine,Natural gas,1975,79,0.315,0.641,0.00,0,EXT,DH_DE_Ind,0.60,0.15,105
+BNA0842a,Gasmotore,305,47.86,12.13,Combustion Engine,Natural gas,2011,9.8,0.457,0.441,0.00,0,EXT,DH_DE_Rem,0.70,0.00,14
+BNA0842b,Gasmotor 4,305,47.86,12.13,Combustion Engine,Natural gas,2013,9.2,0.460,0.439,0.00,0,EXT,DH_DE_Rem,0.70,0.00,13
+BNA0843,Gasmotor 5,305,47.86,12.13,Combustion Engine,Natural gas,2012,4.3,0.459,0.440,0.00,0,EXT,DH_DE_Rem,0.70,0.00,6
+BNA0845,"MHKW, WKW",305,47.86,12.13,Steam turbine,Waste,1988,9,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.34,0.15,18
+BNA0848,GuD Marienehe,422,54.13,12.08,Combined cycle,Natural gas,1996,108,0.522,0.387,0.00,0,BKP,DH_DE_Rem,0.90,,120
+BNA0849,KNG Kraftwerk Rostock,422,54.14,12.13,Steam turbine,Hard coal,1994,514,0.410,0.830,1.20,0,,,,,
+BNA0855,IKW Rüdersdorf,362,52.49,13.83,Steam turbine,Waste,2009,30,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.45,,67
+BNA0856,HKW Schwarza,331,50.69,11.33,Steam turbine,Natural gas,1936,26.5,0.394,0.512,0.00,0,,,,,
+BNA0857,GuD-Anlage Rüsselsheim,200,49.99,8.41,Combined cycle,Natural gas,1999,112.1,0.536,0.377,0.00,0,EXT,DH_DE_Ind,1.10,0.17,88
+BNA0861a,HKW Römerbrücke,238,49.22,7.01,Combined cycle,Natural gas,2012,75,0.594,0.340,0.00,0,EXT,DH_DE_Rem,0.47,0.17,117
+BNA0861b,HKW Römerbrücke,238,49.22,7.01,Steam turbine,Hard coal,1988,50,0.438,0.777,3.37,0,EXT,DH_DE_Rem,0.28,0.15,117
+BNA0863,Kraftwerk Salzgitter,377,52.16,10.40,Steam turbine,Other fuels,1939,94.5,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.28,0.15,220
+BNA0864,Kraftwerk Salzgitter,377,52.16,10.40,Steam turbine,Other fuels,2010,97,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.45,0.15,162
+BNA0865b,Kraftwerk Salzgitter,377,52.16,10.40,Steam turbine,Other fuels,2010,97,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.45,0.15,162
+BNA0878,Schkopau,143,51.40,11.95,Steam turbine,Lignite,1996,450,0.390,0.931,0.00,0,,0,,,
+BNA0879,Schkopau,143,51.40,11.95,Steam turbine,Lignite,1996,450,0.390,0.931,0.00,0,EXT,DH_DE_Rem,0.38,0.15,231
+BNA0893,GuD Schwarzheide,358,51.48,13.89,Combined cycle,Natural gas,1994,122,0.513,0.393,0.00,0,EXT,DH_DE_Ind,0.41,0.17,209
+BNA0894a,IKS PCK Schwedt,360,53.10,14.23,Steam turbine,Oil(heavy),1972,28,0.354,0.827,0.00,0,BKP,DH_DE_Ind,0.39,,72
+BNA0894b,IKS PCK Schwedt,360,53.10,14.23,Steam turbine,Oil(heavy),1994,34.5,0.378,0.774,0.00,0,,,,,
+BNA0894c,IKS PCK Schwedt,360,53.10,14.23,Steam turbine,Oil(heavy),1997,106,0.383,0.765,0.00,0,BKP,DH_DE_Ind,1.00,,106
+BNA0894d,IKS PCK Schwedt,360,53.10,14.23,Steam turbine,Oil(heavy),1998,106,0.383,0.765,0.00,0,BKP,DH_DE_Ind,1.00,,106
+BNA0894e,IKS PCK Schwedt,360,53.10,14.23,Steam turbine,Oil(heavy),2011,59,0.397,0.738,0.00,0,,,,,
+BNA0895,GKS,230,50.03,10.22,Steam turbine,Waste,1994,24.4,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.34,0.15,50
+BNA0896,HKW Schwerin Süd,416,53.58,11.40,Steam turbine,Natural gas,1994,44.9,0.378,0.533,0.00,0,BKP,DH_DE_Rem,1.25,,36
+BNA0897,HKW Schwerin Lankow,416,53.65,11.37,Steam turbine,Natural gas,1994,23,0.378,0.533,0.00,0,,,,,
+BNA0914,Schwarze Pumpe,355,51.53,14.35,Steam turbine,Lignite,1997,750,0.393,0.925,0.00,0,EXT,DH_DE_Rem,0.48,0.15,385
+BNA0915,Schwarze Pumpe,355,51.53,14.35,Steam turbine,Lignite,1998,750,0.395,0.919,0.00,0,,0,,,
+BNA0918a,Dow Stade,64,53.65,9.51,Steam turbine,Natural gas,1972,190,0.354,0.570,0.00,0,,,,,
+BNA0918b,Dow Stade,64,53.65,9.51,Combined cycle,Natural gas,2014,173,0.603,0.335,0.00,0,BKP,DH_DE_Ind,0.52,,333
+BNA0922,GuD-Ikw Staßfurt,373,51.87,11.57,Combined cycle,Natural gas,1996,132,0.522,0.387,0.00,0,BKP,DH_DE_Ind,0.83,,160
+BNA0926b,Heizkraftwerk der Sappi Stockstadt GmbH,128,49.98,9.07,Steam turbine,Hard coal,1969,24.8,0.348,0.979,6.36,0,EXT,DH_DE_Ind,0.40,0.15,45
+BNA0934,Heizkraftwerk Stuttgart-Gaisburg,273,48.78,9.23,Steam turbine,Hard coal,2009,22.6,0.448,0.760,3.29,0,BKP,DH_DE_Neckar,0.52,,43
+BNA0935,Restmüll-Heizkraftwerk Stuttgart-Münster,273,48.82,9.22,Steam turbine,Hard coal,1982,45,0.380,0.895,3.88,0,EXT,DH_DE_Neckar,0.20,0.15,129
+BNA0936,Restmüll-Heizkraftwerk Stuttgart-Münster,273,48.82,9.22,Steam turbine,Hard coal,1984,45,0.385,0.883,3.83,0,EXT,DH_DE_Neckar,0.20,0.15,129
+BNA0937,Restmüll-Heizkraftwerk Stuttgart-Münster,273,48.82,9.22,Gas turbine,Oil(light),1974,23.3,0.312,0.851,0.00,0,,,,,
+BNA0938,Restmüll-Heizkraftwerk Stuttgart-Münster,273,48.82,9.22,Gas turbine,Oil(light),1974,23.3,0.312,0.851,0.00,0,,,,,
+BNA0939a,Restmüll-Heizkraftwerk Stuttgart-Münster,273,48.81,9.22,Steam turbine,Waste,2009,19.5,0.330,0.000,0.00,0,EXT,DH_DE_Neckar,0.20,0.15,56
+BNA0939b,Restmüll-Heizkraftwerk Stuttgart-Münster,273,48.82,9.22,Gas turbine,Oil(light),1974,23.3,0.312,0.851,0.00,0,,,,,
+BNA0957,BHKW Obere Viehweide,276,48.51,9.07,Steam turbine,Natural gas,2000,13.4,0.385,0.524,0.00,0,BKP,DH_DE_Rem,0.74,,18
+BNA0969a,Nord 1,308,48.18,11.64,Steam turbine,Waste,1992,18,0.330,0.000,0.00,0,BKP,DH_DE_Muenchen,0.32,,56
+BNA0969b,Nord 2,308,48.18,11.64,Steam turbine,Hard coal,1991,332.7,0.403,0.845,6.10,0,EXT,DH_DE_Muenchen,0.52,0.15,300
+BNA0969c,Nord 3,308,48.18,11.64,Steam turbine,Waste,1984,22,0.330,0.000,0.00,0,BKP,DH_DE_Muenchen,0.32,,69
+BNA0989,KW West,86,51.58,6.68,Steam turbine,Hard coal,1971,318,0.353,0.965,2.79,0,,,,,
+BNA0990,KW West,86,51.58,6.68,Steam turbine,Hard coal,1971,322,0.353,0.965,2.79,0,,,,,
+BNA0991,KW Voerde,86,51.58,6.69,Steam turbine,Hard coal,1982,695,0.438,0.777,2.25,0,,,,,
+BNA0992,KW Voerde,86,51.58,6.69,Steam turbine,Hard coal,1985,695,0.438,0.777,2.25,0,,,,,
+BNA0993,Irsching,312,48.77,11.58,Steam turbine,Natural gas,1974,415,0.356,0.566,0.00,0,,,,,
+BNA0994,Gemeinschaftskraftwerk Irsching ,312,48.77,11.58,Combined cycle,Natural gas,2010,846,0.585,0.345,0.00,0,,,,,
+BNA0995,Ulrich Hartmann (Irsching),312,48.77,11.58,Combined cycle,Natural gas,2011,545,0.590,0.342,0.00,0,,,,,
+BNA0997,"HKW Fenne, Grubengaskraftwerk",26,49.25,6.88,Combustion Engine,Other fuels,2003,42,0.446,0.000,0.00,0,EXT,DH_DE_Saar,0.45,0.15,43
+BNA0998,Modellkraftwerk,26,49.25,6.88,Steam turbine,Hard coal,1982,179,0.380,0.895,3.88,0,EXT,DH_DE_Saar,0.48,0.15,210
+BNA0999,Heizkraftwerk,26,49.25,6.88,Steam turbine,Hard coal,1989,211,0.398,0.856,3.71,0,EXT,DH_DE_Saar,0.43,0.15,185
+BNA1002,Wählitz,341,51.17,12.08,Steam turbine,Lignite,1994,31,0.386,0.942,0.00,0,EXT,DH_DE_Rem,0.45,0.15,52
+BNA1004,Kraftwerk Walheim,270,49.02,9.16,Gas turbine,Oil(light),1981,136,0.331,0.805,0.00,0,,,,,
+BNA1005,Kraftwerk Walheim,270,49.02,9.16,Steam turbine,Hard coal,1964,96,0.453,0.752,3.26,0,,,,,
+BNA1006,Kraftwerk Walheim,270,49.02,9.16,Steam turbine,Hard coal,1967,148,0.453,0.752,3.26,0,,,,,
+BNA1007a,SKW Gasturbine,302,47.68,10.32,Gas turbine,Oil(light),1988,24,0.349,0.763,0.00,0,,,,,
+BNA1007b,SKW Diesel,302,47.68,10.32,Steam turbine,Oil(light),1978,10.5,0.361,0.737,0.00,0,,,,,
+BNA1015,Wedel,410,53.57,9.73,Gas turbine,Oil(light),1972,50.5,0.307,0.866,0.00,0,,,,,
+BNA1016,Wedel,410,53.57,9.73,Gas turbine,Oil(light),1972,50.5,0.307,0.866,0.00,0,,,,,
+BNA1020,MVA Weisweiler,169,50.84,6.32,Steam turbine,Waste,1996,24,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.36,,67
+BNA1025,Weisweiler,169,50.84,6.32,Steam turbine,Lignite,1965,312,0.316,1.150,0.00,0,,,,,
+BNA1026,Weisweiler,169,50.84,6.32,Steam turbine,Lignite,1967,304,0.321,1.132,0.00,0,,,,,
+BNA1027,Weisweiler,169,50.84,6.32,Steam turbine,Lignite,1974,592,0.338,1.076,0.00,0,EXT,DH_DE_Rem,0.35,0.15,304
+BNA1028,Weisweiler,169,50.84,6.32,Steam turbine,Lignite,1975,592,0.340,1.069,0.00,0,,0,,,
+BNA1037,Kraftwerk Werdohl-Elverlingsen,3676,51.28,7.71,Steam turbine,Hard coal,1982,310,0.380,0.895,2.59,0,,,,,
+BNA1039,Gersteinwerk,145,51.67,7.71,Combined cycle,Natural gas,1973,55,0.419,0.482,0.00,0,,,,,
+BNA1040,Gersteinwerk,145,51.67,7.71,Combined cycle,Natural gas,1973,55,0.419,0.482,0.00,0,,,,,
+BNA1041,Gersteinwerk,145,51.67,7.71,Gas turbine,Natural gas,1973,55,0.310,0.651,0.00,0,,,,,
+BNA1042,Gersteinwerk,145,51.67,7.71,Gas turbine,Natural gas,1973,55,0.310,0.651,0.00,0,,,,,
+BNA1046a,Gersteinwerk,145,51.67,7.71,Steam turbine,Hard coal,1984,607.5,0.385,0.883,2.55,0,,,,,
+BNA1046b,Gersteinwerk,145,51.67,7.71,Gas turbine,Natural gas,1984,112,0.338,0.596,0.00,0,,,,,
+BNA1056,Wi-Biebrich,200,50.04,8.25,Steam turbine,Natural gas,2006,25,0.392,0.515,0.00,0,EXT,DH_DE_Ind,0.55,0.15,36
+BNA1060,Wilhelmshaven,407,53.57,8.15,Gas turbine,Oil(light),1973,56,0.310,0.859,0.00,0,,,,,
+BNA1061,Wilhelmshaven,407,53.57,8.15,Steam turbine,Hard coal,1976,757,0.365,0.932,0.67,0,,,,,
+BNA1074,Spitzenlastkraftwerk Wolfen,337,51.64,12.23,Steam turbine,Natural gas,1997,40,0.382,0.529,0.00,0,,,,,
+BNA1075a,HKW Nord,226,51.25,9.44,Steam turbine,Hard coal,2000,61.5,0.425,0.800,2.89,0,EXT,DH_DE_Ind,0.20,0.15,176
+BNA1075b,HKW Nord,56,52.43,10.79,Steam turbine,Hard coal,2000,61.5,0.425,0.800,1.16,0,EXT,DH_DE_Ind,0.20,0.15,176
+BNA1076a,HKW West,226,51.25,9.44,Steam turbine,Hard coal,1985,138.5,0.388,0.878,3.17,0,EXT,DH_DE_Rem,0.48,0.15,140
+BNA1076b,HKW West,226,52.44,10.76,Steam turbine,Hard coal,1985,138.5,0.388,0.878,3.17,0,EXT,DH_DE_Rem,0.48,0.15,140
+BNA1078,HKW Wörth,32,49.07,8.31,Steam turbine,Natural gas,2008,59,0.394,0.512,0.00,0,BKP,DH_DE_Ind,0.65,,91
+BNA1082,HKW Barmen,174,51.27,7.20,Combined cycle,Natural gas,2005,82,0.563,0.359,0.00,0,EXT,DH_DE_Rem,0.55,0.15,117
+BNA1083,Spitzenlastanlage Barmen,174,51.27,7.20,Combined cycle,Oil(light),2008,60,0.380,0.700,0.00,0,,,,,
+BNA1084,HKW Elberfeld ,119,51.25,7.12,Steam turbine,Hard coal,1989,85,0.398,0.856,2.47,0,EXT,DH_DE_Rem,0.27,0.15,201
+BNA1085,Heizkraftwerke an der Friedensbrücke,232,49.80,9.92,Combined cycle,Natural gas,1971,23,0.410,0.493,0.00,0,EXT,DH_DE_Rem,0.39,0.15,43
+BNA1086,Heizkraftwerke an der Friedensbrücke,232,49.80,9.92,Combined cycle,Natural gas,1993,25,0.509,0.397,0.00,0,EXT,DH_DE_Rem,0.65,0.00,38
+BNA1087,Heizkraftwerke an der Friedensbrücke,232,49.80,9.92,Combined cycle,Natural gas,2009,29.5,0.581,0.348,0.00,0,EXT,DH_DE_Rem,1.50,0.17,18
+BNA1088,Heizkraftwerke an der Friedensbrücke,232,49.80,9.92,Combined cycle,Natural gas,2005,44.5,0.563,0.359,0.00,0,BKP,DH_DE_Ind,0.36,,125
+BNA1089,Zielitz,375,52.30,11.68,Steam turbine,Natural gas,1996,52,0.381,0.530,0.00,0,BKP,DH_DE_Ind,0.67,,78
+BNA1092,Zolling,311,48.46,11.80,Gas turbine,Oil(light),1976,46,0.318,0.838,0.00,0,,,,,
+BNA1093,Zolling,311,48.46,11.80,Steam turbine,Hard coal,1986,472,0.453,0.752,5.43,0,EXT,DH_DE_Rem,0.48,0.15,242
+BNA1094,Gaskraftwerk,69,50.71,6.65,Steam turbine,Natural gas,1966,15.1,0.348,0.581,0.00,0,EXT,DH_DE_Ind,0.75,0.17,16
+BNA1097,Kohlekraftwerk,69,50.71,6.65,Steam turbine,Lignite,1978,14.4,0.424,0.857,0.00,0,BKP,DH_DE_Ind,0.38,,38
+BNA1103,UPM Augsburg,296,48.38,10.90,Steam turbine,Natural gas,1966,29,0.348,0.581,0.00,0,EXT,DH_DE_Ind,0.39,0.15,54
+BNA1104,Heizkraftwerk,296,48.38,10.90,Steam turbine,Natural gas,1976,18,0.359,0.563,0.00,0,BKP,DH_DE_Rem,0.42,,43
+BNA1105,HKW Bad Salzungen,228,50.80,10.22,Steam turbine,Natural gas,1994,9.7,0.378,0.533,0.00,0,BKP,DH_DE_Rem,0.65,,15
+BNA1108,PD energy GmbH,337,51.63,12.29,Steam turbine,Waste,2010,9.9,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.45,,22
+BNA1110,Restmüllheizkraftwerk Böblingen,272,48.69,9.05,Steam turbine,Waste,1999,9.5,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.36,,26
+BNA1114,MHKW,401,53.11,8.82,Steam turbine,Waste,2012,44,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.45,,98
+BNA1115,Gichtgaskraftwerk Dillingen,67,49.35,6.73,Steam turbine,Other fuels,2010,85,0.330,0.000,0.00,0,BKP,DH_DE_Saar,0.37,,230
+BNA1116,BEG,404,53.55,8.62,Steam turbine,Waste,1977,14,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.32,,44
+BNA1117,Industriekraftwerk Breuberg,128,49.81,9.01,Steam turbine,Natural gas,1999,11.4,0.384,0.526,0.00,0,EXT,DH_DE_Ind,1.25,0.17,8
+BNA1119,MHKW Burgkirchen,315,48.19,12.74,Steam turbine,Waste,1994,12.5,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.34,0.15,26
+BNA1120,Energiezentrale,154,51.57,7.30,Gas turbine,Natural gas,1991,10.2,0.357,0.566,0.00,0,BKP,DH_DE_Ind,0.65,,16
+BNA1121,Energiezentrale,154,51.57,7.30,Steam turbine,Natural gas,2005,0.9,0.391,0.517,0.00,0,BKP,DH_DE_Rem,1.50,,1
+BNA1125,Heizkraftwerk,199,49.88,8.63,Gas turbine,Natural gas,1999,10,0.377,0.535,0.00,0,BKP,DH_DE_Ind,0.65,,15
+BNA1127,GHD,317,48.64,12.46,Gas turbine,Natural gas,1998,6.7,0.375,0.538,0.00,0,EXT,DH_DE_Rem,0.65,0.00,10
+BNA1128,GHD,317,48.64,12.46,Gas turbine,Natural gas,1998,6.7,0.375,0.538,0.00,0,EXT,DH_DE_Rem,0.65,0.00,10
+BNA1131,"MT, Düren",170,50.77,6.49,Steam turbine,Natural gas,2011,14,0.397,0.508,0.00,0,,,,,
+BNA1138,BHKW an Klinkerweg,118,51.22,6.95,Steam turbine,Natural gas,2000,10.2,0.385,0.524,0.00,0,BKP,DH_DE_Rem,0.70,,15
+BNA1139,TREA Breisgau,268,47.89,7.62,Steam turbine,Waste,2005,13.6,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.45,0.15,23
+BNA1141,P&L Werk Euskirchen,71,50.66,6.81,Steam turbine,Lignite,2013,14.5,0.431,0.843,0.00,0,BKP,DH_DE_Ind,0.38,,38
+BNA1144,EEW Göppingen,274,48.68,9.67,Steam turbine,Waste,2009,11,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.45,0.15,18
+BNA1148,MVA Hamm,145,51.68,7.74,Steam turbine,Waste,1985,14.6,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.34,,43
+BNA1151,KWKK Heidelberg,58,49.42,8.67,Steam turbine,Natural gas,2002,13.5,0.387,0.521,0.00,0,EXT,DH_DE_Ind,1.50,0.17,8
+BNA1154,RZR Herten I,92,51.56,7.16,Steam turbine,Waste,1982,12.5,0.330,0.000,0.00,0,BKP,DH_DE_Ruhr,0.32,,39
+BNA1155,RZR Herten II,92,51.56,7.16,Steam turbine,Waste,2009,17.1,0.330,0.000,0.00,0,,,,,
+BNA1161,MVA Ingolstadt,313,48.76,11.49,Steam turbine,Waste,1984,25.5,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.34,,75
+BNA1164,P&L Werk Jülich,170,50.92,6.37,Steam turbine,Lignite,2004,24.6,0.410,0.887,0.00,0,BKP,DH_DE_Ind,0.38,,65
+BNA1165,P&L Werk Appeldorn,147,51.73,6.36,Steam turbine,Natural gas,2004,11.4,0.389,0.518,0.00,0,EXT,DH_DE_Ind,0.55,0.15,16
+BNA1166,Abfallentsorgungszentrum Asdonkshof,95,51.52,6.57,Steam turbine,Oil(light),1997,4.8,0.382,0.697,0.00,0,,,,,
+BNA1167,Abfallentsorgungszentrum Asdonkshof,95,51.52,6.57,Steam turbine,Waste,1997,16,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.36,,44
+BNA1168,Müllheizkraftwerk,226,51.30,9.52,Steam turbine,Waste,1985,14.7,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.34,0.15,30
+BNA1182,HKW Merkenich,104,51.02,6.96,Steam turbine,Natural gas,1965,15.5,0.347,0.582,0.00,0,EXT,DH_DE_Rem,0.39,0.15,29
+BNA1183,HKW Merheim,108,50.94,7.09,Combined cycle,Natural gas,2001,15.8,0.545,0.371,0.00,0,EXT,DH_DE_Rem,1.50,0.17,9
+BNA1184,RMVA Köln,104,51.00,6.94,Steam turbine,Waste,1997,45.1,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.36,,125
+BNA1185,P&L Werk Könnern,373,51.70,11.76,Steam turbine,Lignite,1993,20.3,0.383,0.948,0.00,0,BKP,DH_DE_Rem,0.38,,53
+BNA1186a,MKVA Krefeld,83,51.38,6.64,Steam turbine,Waste,1982,13.5,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.34,,40
+BNA1186b,MKVA Krefeld,83,51.38,6.64,Steam turbine,Waste,2001,13.8,0.330,0.000,0.00,0,,,,,
+BNA1186c,MKVA Krefeld,83,51.38,6.64,Steam turbine,Waste,1976,1.5,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.32,,5
+BNA1186d,MKVA Krefeld,83,51.38,6.64,Steam turbine,Waste,1997,2.8,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.36,,8
+BNA1186e,MKVA Krefeld,83,51.38,6.64,Steam turbine,Waste,1976,1.5,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.32,0.15,3
+BNA1187,P&L Werk Lage,216,51.99,8.81,Steam turbine,Natural gas,1980,10.2,0.363,0.556,0.00,0,EXT,DH_DE_Ind,0.47,0.15,16
+BNA1190,Thermische Abfallbehandlung Lauta GmbH & Co. oHG,352,51.45,14.11,Steam turbine,Waste,2004,15.7,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.45,,35
+BNA1193,HKW-West,216,52.03,8.87,Steam turbine,Natural gas,2001,12.8,0.387,0.521,0.00,0,EXT,DH_DE_Rem,0.55,0.15,18
+BNA1196a,BHKW Ludwigshafen,252,49.45,8.43,Steam turbine,Natural gas,2008,12.5,0.394,0.512,0.00,0,EXT,DH_DE_Rem,0.55,0.15,18
+BNA1196b,Industriekraftwerk Ludwigshafen,252,49.45,8.43,Combined cycle,Natural gas,2003,12,0.554,0.365,0.00,0,EXT,DH_DE_Ind,0.55,0.15,17
+BNA1197,FHKW Ludwigshafen,250,49.49,8.43,Steam turbine,Waste,1967,28,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.32,,88
+BNA1198,SITA Abfallverwertung GmbH ,341,51.18,12.02,Steam turbine,Waste,2005,25.4,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.45,,56
+BNA1199,MHKW Mainz,200,50.03,8.24,Steam turbine,Waste,2009,15.6,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.45,,35
+BNA1200,GuD-Kraftwerk,250,49.53,8.47,Combined cycle,Natural gas,2005,17.2,0.563,0.359,0.00,0,EXT,DH_DE_Ind,1.50,0.17,10
+BNA1212,DKW Nord,49,48.06,10.49,Steam turbine,Oil(light),1988,11.4,0.372,0.715,0.00,0,,,,,
+BNA1222,Müllheizkraftwerk Offenbach,196,50.07,8.77,Steam turbine,Waste,1972,10.4,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.28,0.15,24
+BNA1225,PWG,303,47.79,11.06,Steam turbine,Natural gas,1989,5.3,0.373,0.541,0.00,0,EXT,DH_DE_Rem,0.58,0.00,9
+BNA1226,PWG,303,47.79,11.06,Steam turbine,Natural gas,1987,5.3,0.371,0.544,0.00,0,EXT,DH_DE_Rem,0.58,0.00,9
+BNA1227,DKW Leinau,49,47.91,10.61,Steam turbine,Oil(light),1983,11.4,0.366,0.726,0.00,0,,,,,
+BNA1229,MHKW Pirmasens,245,49.23,7.60,Steam turbine,Waste,1999,15,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.36,,42
+BNA1232,ZWSF,372,52.54,12.36,Steam turbine,Waste,2002,2.5,0.330,0.000,0.00,0,,,,,
+BNA1233,EVE,372,52.54,12.36,Steam turbine,Waste,2009,14.5,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.45,,32
+BNA1238,Kraftwerk Meggle,305,48.06,12.19,Steam turbine,Natural gas,2000,12.6,0.385,0.524,0.00,0,EXT,DH_DE_Ind,1.50,0.17,8
+BNA1243,EBS-HKW Rostock,422,54.14,12.14,Steam turbine,Waste,2009,17,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.45,,38
+BNA1244,AVA Velsen,26,49.21,6.83,Steam turbine,Waste,1997,15.8,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.36,0.15,31
+BNA1248a,UPM Schongau,49,47.81,10.90,Steam turbine,Natural gas,1969,82,0.351,0.575,0.00,0,EXT,DH_DE_Rem,0.39,0.15,83
+BNA1248b,HKW3 UPM Schongau,49,47.81,10.90,Steam turbine,Natural gas,2015,65,0.402,0.503,0.00,0,,,,,
+BNA1249,UPM Schongau,49,47.81,10.90,Steam turbine,Other fuels,1989,6,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.36,,17
+BNA1254,Müllkraftwerk Schwandorf,321,49.31,12.09,Steam turbine,Waste,1982,54,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.34,0.15,110
+BNA1255,Kraftwerk Schwedt GmbH & Co.KG,360,53.08,14.32,Steam turbine,Waste,2011,28.9,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.45,,64
+BNA1260,Heizkraftwerk Sindelfingen,272,48.70,9.00,Steam turbine,Natural gas,2013,95,0.399,0.505,0.00,0,EXT,DH_DE_Ind,0.76,0.17,102
+BNA1261,Stapelfeld,415,53.62,10.22,Steam turbine,Waste,1978,16.4,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.32,,51
+BNA1262,REMONDIS Thermische Abfallverwertung GmbH,373,51.87,11.58,Steam turbine,Waste,2008,24,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.45,,53
+BNA1264,HKW Bohrhügel,330,50.63,10.70,Steam turbine,Natural gas,1995,13.5,0.380,0.532,0.00,0,,,,,
+BNA1271,Unterbreizbach,180,50.81,9.98,Steam turbine,Natural gas,1965,33.6,0.347,0.582,0.00,0,EXT,DH_DE_Ind,0.39,0.15,62
+BNA1279,Gasturbine,106,50.83,6.96,Combined cycle,Natural gas,1996,51.9,0.428,0.472,0.00,0,BKP,DH_DE_Ind,0.65,,80
+BNA1280,Kraftwerk,106,50.83,6.96,Combined cycle,Oil(light),1962,66.3,0.380,0.700,0.00,0,EXT,DH_DE_Ind,0.43,0.17,111
+BNA1284,Co-Generation,249,49.66,8.36,Steam turbine,Natural gas,1991,11.5,0.375,0.538,0.00,0,BKP,DH_DE_Ind,0.65,,18
+BNA1285,Sigmundshall,385,52.42,9.37,Steam turbine,Natural gas,1974,19,0.356,0.566,0.00,0,BKP,DH_DE_Ind,0.65,,29
+BNA1286,Restabfallbehandlungsanlage,330,50.64,10.69,Steam turbine,Waste,2007,11.2,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.45,,25
+BNA1289,AMK - Abfallentsorgungsgesellschaft des Märkischen Kreises mbH,62,51.40,7.70,Steam turbine,Waste,1981,12.6,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.34,,37
+BNA1291,IHKW Andernach,68,50.43,7.43,Steam turbine,Waste,2009,12.5,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.45,,28
+BNA1292a,IHKW Heidenheim,292,48.67,10.15,Steam turbine,Natural gas,1983,11.1,0.366,0.551,0.00,0,BKP,DH_DE_Ind,0.60,,19
+BNA1292b,IHKW Heidenheim,292,48.67,10.15,Steam turbine,Natural gas,2014,15.4,0.385,0.524,0.00,0,EXT,DH_DE_Ind,1.50,0.17,9
+BNA1293b,Kraftwerk,165,50.95,6.67,Steam turbine,Lignite,1995,10,0.388,0.936,0.00,0,BKP,DH_DE_Ind,0.38,,26
+BNA1294,EEV,414,53.49,9.97,Steam turbine,Oil(light),1993,38,0.377,0.705,0.00,0,EXT,DH_DE_Ind,0.47,0.15,61
+BNA1295,AVA GmbH,296,48.40,10.94,Steam turbine,Waste,1993,10,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.34,,29
+BNA1315,HKW,268,48.01,7.84,Steam turbine,Natural gas,2001,27,0.386,0.523,0.00,0,BKP,DH_DE_Ind,0.65,,42
+BNA1316,Müllheizkraftwerk,119,51.23,7.14,Steam turbine,Waste,1976,30,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.32,,94
+BNA1327a,Energiezentrale 1992,311,48.36,11.79,Steam turbine,Natural gas,1992,11.1,0.376,0.536,0.00,0,EXT,DH_DE_Ind,0.58,0.00,19
+BNA1327b,Erweiterung Energiezentrale 2003,311,48.36,11.79,Steam turbine,Natural gas,2003,7.4,0.388,0.520,0.00,0,EXT,DH_DE_Rem,0.70,0.00,11
+BNA1328,HBB,305,47.80,12.12,Steam turbine,Natural gas,2001,24,0.386,0.523,0.00,0,BKP,DH_DE_Ind,1.50,,16
+BNA1329,K&N PFK AG EV,349,51.05,13.02,Combined cycle,Natural gas,1993,12.8,0.509,0.397,0.00,0,BKP,DH_DE_Ind,0.65,,20
+BNA1330,Steinbeis Energie,429,53.78,9.43,Steam turbine,Waste,2010,17,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.45,0.15,28
+BNA1331,Reno De Medici,210,51.39,8.07,Steam turbine,Hard coal,1923,19,0.315,1.080,3.12,0,EXT,DH_DE_Rem,0.40,0.15,35
+BNA1332,INEOS Kraftwerk,159,51.47,6.64,Steam turbine,Natural gas,1995,24,0.380,0.532,0.00,0,BKP,DH_DE_Ind,0.48,,50
+BNA1333a,HKW Pfaffenwald,272,48.75,9.11,Steam turbine,Natural gas,1988,12.2,0.372,0.543,0.00,0,BKP,DH_DE_Rem,0.65,,19
+BNA1333b,HKW Pfaffenwald,272,48.75,9.11,Steam turbine,Natural gas,1969,11.3,0.351,0.575,0.00,0,BKP,DH_DE_Rem,0.42,,27
+BNA1333c,HKW Pfaffenwald,272,48.75,9.11,Steam turbine,Natural gas,1968,11.6,0.350,0.577,0.00,0,BKP,DH_DE_Rem,0.42,,28
+BNA1334,KWK-Anlage,399,53.12,8.73,Combined cycle,Natural gas,2002,14.8,0.549,0.368,0.00,0,EXT,DH_DE_Rem,0.48,0.15,23
+BNA1335a,PKV Kraftwerk,405,53.40,8.13,Steam turbine,Natural gas,1989,58.1,0.373,0.541,0.00,0,EXT,DH_DE_Ind,0.47,0.15,94
+BNA1335b,PKV Kraftwerk,405,53.40,8.13,Steam turbine,Natural gas,1968,0.5,0.350,0.577,0.00,0,EXT,DH_DE_Rem,0.39,0.15,1
+BNA1336,Holthausen,116,51.18,6.84,Steam turbine,Natural gas,1948,84,0.328,0.616,0.00,0,EXT,DH_DE_Ind,0.39,0.15,156
+BNA1337d,Notstromdiesel,128,49.99,9.16,Steam turbine,Oil(light),1991,0.5,0.375,0.709,0.00,0,,,,,
+BNA1337e,GuD-Anlage,128,49.99,9.16,Combined cycle,Natural gas,2013,47,0.599,0.337,0.00,0,EXT,DH_DE_Ind,1.50,0.17,28
+BNA1338,Spitzenkraftwerk,129,48.86,13.01,Steam turbine,Oil(light),1978,19,0.361,0.737,0.00,0,,,,,
+BNA1396,EVC / GLOBALFOUNDRIES,351,51.13,13.72,Steam turbine,Natural gas,1998,34.3,0.383,0.527,0.00,0,EXT,DH_DE_Ind,0.48,0.15,54
+BNA1397a,O10,171,51.07,6.85,Gas turbine,Other fuels,1963,15.5,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.28,0.15,36
+BNA1397b,O10,171,51.07,6.85,Gas turbine,Other fuels,1963,19.2,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.28,0.15,45
+BNA1397c,O10,171,51.07,6.85,Gas turbine,Other fuels,1963,15.5,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.28,0.15,36
+BNA1397d,O10,171,51.07,6.85,Gas turbine,Other fuels,1966,10.4,0.330,0.000,0.00,0,,,,,
+BNA1397e,O10,171,51.07,6.85,Gas turbine,Other fuels,1967,33.6,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.28,0.15,78
+BNA1399,Oxea GmbH,96,51.52,6.80,Steam turbine,Other fuels,1929,38,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.28,0.15,88
+BNA1400a,EZ1,341,51.05,12.11,Steam turbine,Lignite,1993,18.5,0.383,0.948,0.00,0,BKP,DH_DE_Ind,0.38,,49
+BNA1400b,EZ1,341,51.05,12.11,Steam turbine,Oil(light),1993,18.5,0.377,0.705,0.00,0,BKP,DH_DE_Ind,0.68,,27
+BNA1401a,BoA 2,164,51.04,6.61,Steam turbine,Lignite,2012,1050,0.429,0.847,0.00,0,,,,,
+BNA1401b,BoA 3,164,51.04,6.61,Steam turbine,Lignite,2012,1050,0.429,0.847,0.00,0,,,,,
+BNA1402,Heizkraftwerk zur Papierfabrik,57,52.62,7.86,Steam turbine,Natural gas,1995,18.1,0.380,0.532,0.00,0,BKP,DH_DE_Ind,0.65,,28
+BNA1403,Steinitz,56,52.83,11.10,Steam turbine,Natural gas,1995,11.4,0.380,0.532,0.00,0,BKP,DH_DE_Ind,0.65,,18
+BNA1404,Boxberg,354,51.42,14.57,Steam turbine,Lignite,2012,640,0.429,0.847,0.00,0,,,,,
+BNA1405a,Heizkraftwerk Magirusstraße,297,48.40,9.96,Steam turbine,Hard coal,1978,20.7,0.370,0.919,3.98,0,BKP,DH_DE_Rem,0.43,,48
+BNA1406,FS-Karton,161,51.22,6.70,Steam turbine,Natural gas,1992,18.9,0.376,0.536,0.00,0,EXT,DH_DE_Ind,0.47,0.15,30
+BNA1407,STW,349,50.87,13.39,Steam turbine,Natural gas,2007,13.5,0.393,0.514,0.00,0,EXT,DH_DE_Ind,0.55,0.15,19
+BNA1408,Heizkraftwerk Evonik Rheinfelden,80,47.57,7.81,Steam turbine,Natural gas,1980,16,0.363,0.556,0.00,0,EXT,DH_DE_Ind,0.58,0.00,28
+BNA1409,DK Kraftwerk,99,51.42,6.74,Steam turbine,Other fuels,2010,21,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.45,,47
+BNA1437,KWK AOS GmbH,64,53.66,9.50,Gas turbine,Natural gas,2012,30.7,0.411,0.491,0.00,0,EXT,DH_DE_Ind,0.70,0.00,44
+BNA1444a,GT1 ,323,49.41,11.13,Gas turbine,Natural gas,1993,4.2,0.362,0.558,0.00,0,BKP,DH_DE_Ind,0.65,,6
+BNA1444b,GT2 ,323,49.41,11.13,Gas turbine,Natural gas,1993,4.2,0.362,0.558,0.00,0,BKP,DH_DE_Ind,0.65,,6
+BNA1444c,GT3 ,323,49.41,11.13,Gas turbine,Natural gas,1994,5.1,0.364,0.554,0.00,0,BKP,DH_DE_Ind,0.65,,8
+BNA1444d,GT4 ,323,49.41,11.13,Gas turbine,Natural gas,1995,5.1,0.367,0.550,0.00,0,BKP,DH_DE_Ind,0.65,,8
+BNA1447a,Worms,249,49.65,8.36,Steam turbine,Waste,1990,11.9,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.34,,35
+BNA1447b,Worms,249,49.65,8.36,Steam turbine,Waste,2011,6.9,0.330,0.000,0.00,0,,,,,
+BNA1448,AHKW Neunkirchen,244,49.34,7.17,Steam turbine,Waste,1999,11.6,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.36,,32
+BNA1449a,Turbosatz 1,232,49.79,9.99,Steam turbine,Waste,1984,8.7,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.34,0.15,18
+BNA1449b,Turbosatz 2,232,49.79,9.99,Steam turbine,Waste,1998,12,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.36,0.15,24
+BNA1450,GUD-Anlage DREWSEN,380,52.62,10.25,Combined cycle,Natural gas,2000,13,0.540,0.374,0.00,0,EXT,DH_DE_Ind,1.50,0.17,8
+BNA1451,HKW Sachtleben,14,51.44,6.71,Steam turbine,Lignite,1962,27.5,0.309,1.176,0.00,0,EXT,DH_DE_Rem,0.35,0.15,55
+BNA1458,Annweiler,243,49.21,7.94,Combustion Engine,Other fuels,1975,28,0.358,0.000,0.00,0,EXT,DH_DE_Ind,0.70,0.00,40
+BNA1461,Zeitz,341,51.05,12.11,Steam turbine,Lignite,2005,17.5,0.412,0.882,0.00,0,BKP,DH_DE_Ind,0.38,,46
+BNA1463,Herzberg,335,51.66,10.35,Steam turbine,Natural gas,1978,19.5,0.361,0.559,0.00,0,EXT,DH_DE_Ind,0.42,0.15,34
+BNA1464,Gas- u. Dampfturbinenanlage Südraum,238,49.21,6.98,Steam turbine,Natural gas,2012,38.6,0.398,0.507,0.00,0,BKP,DH_DE_Saar,0.50,,77
+BNA1465a,EBS-Kraftwerk Witzenhausen,222,51.32,9.85,Steam turbine,Other fuels,2009,28,0.330,0.000,0.00,0,BKP,DH_DE_Ind,0.45,,62
+BNA1465b,Gaskraftwerk,222,51.32,9.85,Steam turbine,Natural gas,1975,13.2,0.358,0.564,0.00,0,EXT,DH_DE_Rem,0.70,0.00,19
+BNA1467,Oberkirch,267,48.53,8.09,Steam turbine,Hard coal,1986,18.5,0.390,0.872,3.78,0,BKP,DH_DE_Ind,0.52,,36
+BNA1486,Grubenheizkraftwerk,338,51.46,11.71,Steam turbine,Lignite,1979,49,0.350,1.039,0.00,0,EXT,DH_DE_Ind,0.20,0.15,140
+BNA1487,GTKW Darmstadt,199,49.88,8.65,Combined cycle,Natural gas,2013,94.6,0.599,0.337,0.00,0,,,,,
+BNA1488,Dortmund,121,51.51,7.47,Steam turbine,Other fuels,1986,16,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.34,0.15,33
+BNA1489,Heizkraftwerk Stendal,130,52.61,11.83,Steam turbine,Natural gas,1994,22,0.378,0.533,0.00,0,,,,,
+BNA1490,EBKW Knapsack,168,50.86,6.85,Steam turbine,Waste,2008,33.4,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.45,,74
+BNA1492a,Kraftwerk 3,227,50.57,9.68,Steam turbine,Natural gas,1990,26.2,0.374,0.540,0.00,0,EXT,DH_DE_Ind,0.47,0.15,42
+BNA1492b,Kraftwerk 2,227,50.57,9.68,Steam turbine,Natural gas,2012,8,0.398,0.507,0.00,0,EXT,DH_DE_Rem,0.55,0.15,11
+BNA1498,Werk Nordstemmen,384,52.17,9.79,Steam turbine,Natural gas,1953,30.6,0.333,0.605,0.00,0,EXT,DH_DE_Ind,0.39,0.15,57
+BNA1499,Werk Clauen,381,52.23,10.03,Steam turbine,Natural gas,2000,15.8,0.385,0.524,0.00,0,BKP,DH_DE_Ind,0.42,,38
+BNA1500,Werk Uelzen,389,52.98,10.56,Steam turbine,Hard coal,1990,40,0.400,0.850,1.23,0,EXT,DH_DE_Ind,0.48,0.15,63
+BNA1502,Heizkraftwerk Krefeld,444,51.34,6.59,Steam turbine,Natural gas,2013,12.6,0.399,0.505,0.00,0,EXT,DH_DE_Rem,0.65,0.00,19
+BNA1503,BHKW H.120,114,51.25,6.79,Steam turbine,Natural gas,2012,16.9,0.398,0.507,0.00,0,EXT,DH_DE_Ind,0.70,0.00,24
+BNA1504,BHKW,32,49.05,8.28,Steam turbine,Natural gas,2013,13,0.399,0.505,0.00,0,EXT,DH_DE_Ind,0.70,0.00,19
+BNA1505,HKW Wiesengrund,228,50.98,10.29,Steam turbine,Natural gas,1993,22.1,0.377,0.535,0.00,0,EXT,DH_DE_Rem,0.48,0.15,35
+BNA1506,Werk Klein Wanzleben,374,52.07,11.39,Steam turbine,Natural gas,1994,23.4,0.378,0.533,0.00,0,EXT,DH_DE_Ind,0.47,0.15,38
+BNA1507,Bad Kreuznach,201,49.86,7.89,Steam turbine,Natural gas,2006,10.7,0.392,0.515,0.00,0,EXT,DH_DE_Ind,0.70,0.00,15
+BNA1508,Trianel Kohlekraftwerk Lünen,16,51.61,7.47,Steam turbine,Hard coal,2013,746,0.458,0.743,2.15,0,,0,,,
+BNA1509,BP Werk Lingen,392,52.56,7.30,Steam turbine,Natural gas,1996,66,0.381,0.530,0.00,0,EXT,DH_DE_Ind,0.65,0.00,102
+BNA1510,Hamburger Rieger,355,51.52,14.34,Steam turbine,Waste,2013,18.7,0.330,0.000,0.00,0,BKP,DH_DE_Rem,0.45,,42
+BNA1511a,Kessel 4,170,50.78,6.49,Steam turbine,Lignite,1983,9.3,0.359,1.011,0.00,0,EXT,DH_DE_Rem,0.45,0.15,16
+BNA1511b,Kessel 2,170,50.78,6.49,Steam turbine,Natural gas,1967,2.9,0.349,0.579,0.00,0,EXT,DH_DE_Rem,0.39,0.15,5
+BNA1516,HKW 1 Werk Offstein,76,49.60,8.22,Steam turbine,Natural gas,1992,30,0.376,0.536,0.00,0,EXT,DH_DE_Ind,0.65,0.00,46
+BNA1520,Biomasseheizkraftwerk Wiesbaden,200,50.04,8.26,Steam turbine,Waste,2014,10.5,0.330,0.000,0.00,0,EXT,DH_DE_Rem,0.42,0.15,18
+BNA1523a,Gemeinschaftskraftwerk Weig,68,50.32,7.23,Combined cycle,Natural gas,1992,42,0.504,0.400,0.00,0,EXT,DH_DE_Rem,1.25,0.17,30
+BNA1523b,Gemeinschaftskraftwerk Weig,68,50.32,7.23,Combined cycle,Natural gas,2013,0,0.599,0.337,0.00,0,,,,,
+BNA1523c,Gemeinschaftskraftwerk Weig,68,50.32,7.23,Steam turbine,Other fuels,1992,0,0.330,0.000,0.00,0,,DH_DE_Rem,,,
+BNA1524,Heizkraftwerk Bomlitz,400,52.90,9.66,Steam turbine,Natural gas,1912,22.1,0.288,0.700,0.00,0,EXT,DH_DE_Ind,0.48,0.00,46
+BNA1526,Kraftwerk Raffinerie Heide,430,54.15,9.08,Steam turbine,Oil(heavy),1962,44.5,0.343,0.854,0.00,0,EXT,DH_DE_Ind,0.43,0.17,74
+BNA1528,Stadtwerk Kempen,7,47.73,10.32,Steam turbine,Natural gas,1990,13.2,0.374,0.540,0.00,0,EXT,DH_DE_Rem,0.65,0.00,20
+BNA1531,Industriekraftwerk Greifswald,417,54.14,13.67,Steam turbine,Natural gas,2014,37.7,0.400,0.504,0.00,0,EXT,DH_DE_Ind,0.70,0.00,54
+BNA1541,HKW Freiberg,349,50.91,13.32,Steam turbine,Natural gas,2013,13.4,0.399,0.505,0.00,0,BKP,DH_DE_Rem,0.74,,18
+BNA1553,Kösching,313,48.81,11.48,Steam turbine,Other fuels,1964,23.3,0.330,0.000,0.00,0,EXT,DH_DE_Ind,0.28,0.15,54
+BNA1556,Leppersdorf,351,51.15,13.98,Steam turbine,Natural gas,2014,36,0.400,0.504,0.00,0,BKP,DH_DE_Rem,1.25,,29
+BNA1557,Zwickau,347,50.79,12.49,Steam turbine,Natural gas,2014,12.9,0.400,0.504,0.00,0,BKP,DH_DE_Ind,0.23,,56
+BNA1558,Moorburg B,414,53.49,9.95,Steam turbine,Hard coal,2015,766,0.463,0.735,0.53,0,,,,,
+BNA1658,HKW-Mitte,216,52.03,8.91,Steam turbine,Natural gas,1980,11.3,0.363,0.556,0.00,0,EXT,DH_DE_Rem,0.48,0.00,17
+BNA1671,Bremerhaven,404,53.59,8.53,Steam turbine,Natural gas,2014,17.1,0.400,0.504,0.00,0,EXT,DH_DE_Ind,1.50,0.17,10
+BNA1673,Moorburg A,414,53.49,9.95,Steam turbine,Hard coal,2015,774,0.463,0.735,0.53,0,,,,,
+BNA1674,Kraftwerk Wilhelmshaven,407,53.58,8.13,Steam turbine,Hard coal,2015,731,0.463,0.735,0.53,0,,,,,
+BNA1677,BHKW Braunschweig,56,52.30,10.52,Steam turbine,Natural gas,2015,10.4,0.402,0.503,0.00,0,,,,,
+BNA1678,Energiezentrale 2016,311,48.35,11.77,Steam turbine,Natural gas,2015,17.2,0.402,0.503,0.00,0,,,,,
+BNA0046,Säckingen,79,47.57,7.95,Pumped storage,Hydro,1966,360,0.750,0.000,,2520,,,,,
+BNA0228,Waldeck1/Bringhausen,224,51.17,9.05,Pumped storage,Hydro,1931,143,0.750,0.000,,1001,,,,,
+BNA0229,Waldeck 2,224,51.17,9.05,Pumped storage,Hydro,1974,480,0.750,0.000,,3360,,,,,
+BNA0268,Pumpspeicherwerk Rönkhausen,179,51.22,7.99,Pumped storage,Hydro,1969,138,0.749,0.000,,690,,,,,
+BNA0279,Rudolf-Fettweis-Werk     ,266,48.67,8.35,Pumped storage,Hydro,1926,43,0.749,0.000,,301,,,,,
+BNA0327,Geesthacht,412,53.43,10.34,Pumped storage,Hydro,1958,119.1,0.750,0.000,,534,,,,,
+BNA0337,PSW Langenprozelten,233,50.05,9.58,Pumped storage,Hydro,1974,164,0.750,0.000,,1148,,,,,
+BNA0350,Goldisthal,330,50.51,11.02,Pumped storage,Hydro,2004,1052,0.750,0.000,,8500,,,,,
+BNA0426,Häusern,285,47.75,8.19,Pumped storage,Hydro,1931,100,0.750,0.000,,463,,,,,
+BNA0443,Koepchenwerk,177,51.41,7.45,Pumped storage,Hydro,1989,153,0.751,0.000,,590,,,,,
+BNA0465,Hohenwarte 1,332,50.61,11.49,Pumped storage,Hydro,1959,59.8,0.749,0.000,,600,,,,,
+BNA0467,Hohenwarte 2,331,50.60,11.48,Pumped storage,Hydro,1966,317.8,0.751,0.000,,2088,,,,,
+BNA0558,Erzhausen,218,51.90,9.92,Pumped storage,Hydro,1964,220,0.750,0.000,,940,,,,,
+BNA0652,Markersbach,342,50.52,12.88,Pumped storage,Hydro,1980,1045.2,0.751,0.000,,4020,,,,,
+BNA0669,Pumpspeicherkraftwerk Glems,277,48.50,9.29,Pumped storage,Hydro,1964,90,0.749,0.000,,560,,,,,
+BNA0721,Niederwartha,351,51.09,13.61,Pumped storage,Hydro,1957,39.8,0.749,0.000,,790,,,,,
+BNA0882,Bleiloch,332,50.52,11.71,Pumped storage,Hydro,1932,79.8,0.750,0.000,,800,,,,,
+BNA0946a,Kraftwerksgruppe Pfreimd,325,49.55,12.28,Pumped storage,Hydro,1959,28,0.750,0.000,,88,,,,,
+BNA0953,Kraftwerksgruppe Pfreimd,325,49.53,12.28,Pumped storage,Hydro,1955,99,0.750,0.000,,312,,,,,
+BNA0972,Leitzach 1,305,47.87,11.87,Pumped storage,Hydro,1983,49,0.750,0.000,,250,,,,,
+BNA0973,Leitzach 2,305,47.87,11.87,Pumped storage,Hydro,1960,49.8,0.751,0.000,,300,,,,,
+BNA0987,PSW Vianden,235,49.95,6.18,Pumped storage,Hydro,1975,596,0.750,0.000,,2218,,,,,
+BNA1675,PSW Vianden,234,49.95,6.19,Pumped storage,Hydro,2015,500,0.750,0.000,,2407,,,,,
+BNA1003,Kraftwerk Waldshut,285,47.62,8.19,Pumped storage,Hydro,1951,150,0.751,0.000,,402,,,,,
+BNA1019,Wehr,282,47.65,7.92,Pumped storage,Hydro,1975,910,0.750,0.000,,6370,,,,,
+BNA1031,Wendefurth,335,51.74,10.92,Pumped storage,Hydro,1967,79.7,0.750,0.000,,522,,,,,
+BNA1071,Witznau,284,47.69,8.25,Pumped storage,Hydro,1943,220,0.751,0.000,,636,,,,,
+BNA0777,Kopswerk I ,50,46.97,10.06,Pumped storage,Hydro,1968,247,0.750,0.000,,1729,,,,,
+BNA0778,Kopswerk II ,50,46.97,10.06,Pumped storage,Hydro,2008,525,0.750,0.000,,3675,,,,,
+BNA0954,Lünerseewerk,50,47.07,9.87,Pumped storage,Hydro,1957,238,0.751,0.000,,1666,,,,,
+BNA0974,Rodundwerk I,50,47.08,9.88,Pumped storage,Hydro,1943,198,0.751,0.000,,1386,,,,,
+BNA0975,Rodundwerk II,50,47.08,9.87,Pumped storage,Hydro,2012,295,0.749,0.000,,2065,,,,,
+BNA0012a,Werkskraftwerk Sappi Alfeld,223,51.98,9.82,Steam turbine,Biomass,1988,16.8,0.380,0.000,,0,EXT,DH_DE_Ind,0.35,0.15,34
+BNA0021,HKW Altenstadt,301,47.80,10.86,Steam turbine,Biomass,1999,9.8,0.380,0.000,,0,,,,0.00,
+BNA0027,Zellstoff Stendal GmbH,130,52.73,12.01,Steam turbine,Biomass,2013,138.9,0.380,0.000,,0,EXT,DH_DE_Ind,0.20,0.15,397
+BNA0055,UTB,365,52.08,13.52,Steam turbine,Biomass,2002,16,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,28
+BNA0062,,356,52.18,14.26,Steam turbine,Biomass,2001,18.3,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,32
+BNA0066,BMKW Bergkamen,145,51.64,7.62,Steam turbine,Biomass,2005,17.7,0.380,0.000,,0,,,,,
+BNA0068,HHKW Berlin-Neukölln,364,52.43,13.52,Steam turbine,Biomass,2005,16.5,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,29
+BNA0090,"ENERTRAG Netz GmbH 
+(UW Bertikow)",136,53.25,13.96,Steam turbine,Biomass,2003,20,0.380,0.000,,0,,,,,
+BNA0103,Biomassekraftwerk Bischofferode,335,51.49,10.41,Steam turbine,Biomass,2006,18.1,0.380,0.000,,0,,,,,
+BNA0106,,335,51.49,10.41,Steam turbine,Biomass,1999,53.5,0.380,0.000,,0,EXT,DH_DE_Ind,0.35,0.15,107
+BNA0121,,148,51.86,6.89,Steam turbine,Biomass,2006,11.4,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,20
+BNA0156a,Egger Kraftwerk Briilon,209,51.41,8.60,Steam turbine,Biomass,1990,18,0.380,0.000,,0,EXT,DH_DE_Ind,0.35,0.15,36
+BNA0169,,246,49.52,9.33,Steam turbine,Biomass,2003,28.4,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,50
+BNA0172,Dampfkraftwerk BGH - O1,315,48.18,12.85,Combined cycle,Natural gas,2001,178,0.544,0.371,,0,BKP,DH_DE_Ind,0.47,,380
+BNA0176,,373,51.92,11.80,Steam turbine,Biomass,1996,10.2,0.380,0.000,,0,EXT,DH_DE_Ind,0.35,0.15,20
+BNA0191,,345,51.51,12.30,Steam turbine,Biomass,2004,20,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,35
+BNA0192,,345,51.52,12.32,Steam turbine,Biomass,2003,20,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,35
+BNA0224,,360,52.85,13.78,Steam turbine,Biomass,2006,20,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,35
+BNA0232a,Werkskraftwerk Sappi Ehingen,297,48.27,9.73,Steam turbine,Biomass,1990,13.2,0.380,0.000,,0,BKP,DH_DE_Ind,0.35,,38
+BNA0232b,Werkskraftwerk Sappi Ehingen,297,48.27,9.73,Steam turbine,Biomass,1961,8,0.380,0.000,,0,,,,,
+BNA0242,,350,51.47,13.50,Steam turbine,Biomass,2004,12.6,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,22
+BNA0244,Emden Biomasse,409,53.34,7.21,Steam turbine,Biomass,2005,20,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,35
+BNA0250a,Biomasse-HKW,392,52.62,6.87,Steam turbine,Biomass,2006,20,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,35
+BNA0250b,,392,52.62,6.87,Steam turbine,Biomass,2014,10.6,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,19
+BNA0277,BMKW Flörsheim Wicker,200,50.02,8.38,Steam turbine,Biomass,2003,12.6,0.380,0.000,,0,,,,,
+BNA0283,BKF,72,50.13,8.77,Steam turbine,Biomass,2004,12.4,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,22
+BNA0347,,293,48.63,10.20,Steam turbine,Biomass,2004,15.7,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,28
+BNA0385,KWK Gütersloh,211,51.92,8.40,Steam turbine,Biomass,2001,12.1,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,21
+BNA0388,Biomasse-Verstromungs-Anlage,178,51.41,7.49,Steam turbine,Biomass,2004,20,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,35
+BNA0399,Müllverwertung Borsigstraße MVB,415,53.53,10.07,Steam turbine,Biomass,2005,20,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,35
+BNA0408,Enertec Hameln,217,52.10,9.39,Steam turbine,Biomass,2002,16.8,0.380,0.000,,0,,,,,
+BNA0435,,138,53.15,12.38,Steam turbine,Biomass,2002,19.7,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,35
+BNA0483,,216,51.88,8.96,Steam turbine,Biomass,2000,19.9,0.380,0.000,,0,EXT,DH_DE_Ind,0.42,0.15,35
+BNA0500,,201,49.97,8.04,Steam turbine,Biomass,2004,12.4,0.380,0.000,,0,EXT,DH_DE_Ind,0.42,0.15,22
+BNA0520,Stora Enso Maxau,32,49.04,8.31,Steam turbine,Biomass,2010,78,0.380,0.000,,0,EXT,DH_DE_Ind,0.42,0.15,137
+BNA0549,BMKW Königs Wusterhausen,365,52.30,13.64,Steam turbine,Biomass,2003,17.1,0.380,0.000,,0,,,,,
+BNA0553,BMHKW-BinderHolz,313,48.79,11.51,Steam turbine,Biomass,2007,15.1,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,26
+BNA0566,,295,48.49,11.18,Steam turbine,Biomass,2007,9.6,0.380,0.000,,0,,,,,
+BNA0573,Landesbergen Biomasse,386,52.58,9.11,Steam turbine,Biomass,2005,20,0.380,0.000,,0,,,,,
+BNA0601,,182,50.70,8.07,Steam turbine,Biomass,2006,14,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,25
+BNA0617,BMK Lünen ,91,51.61,7.48,Steam turbine,Biomass,2006,20,0.380,0.000,,0,,,,,
+BNA0621,Biomasseheizkraftwerk Piesteritz,337,51.87,12.57,Steam turbine,Biomass,2009,18.1,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,32
+BNA0628,Biomasse-Heizkraftwerk Malchin,419,53.74,12.78,Steam turbine,Biomass,2003,9.8,0.380,0.000,,0,,,,,
+BNA0636,BMKW Mannheim,250,49.52,8.46,Steam turbine,Biomass,2003,17.9,0.380,0.000,,0,,,,,
+BNA0637,SCA Mannheim,250,49.53,8.46,Steam turbine,Biomass,2000,59.2,0.380,0.000,,0,BKP,DH_DE_Ind,0.42,,141
+BNA0692,KWK Neumarkt,323,49.26,11.45,Steam turbine,Biomass,1997,15.6,0.380,0.000,,0,EXT,DH_DE_Rem,0.35,0.15,31
+BNA0701,,115,51.20,6.71,Steam turbine,Biomass,2008,12.1,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,21
+BNA0756,,254,49.01,9.67,Steam turbine,Biomass,2000,18.8,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,33
+BNA0775,Biomasse-HKW,395,53.10,7.40,Steam turbine,Biomass,2003,20,0.380,0.000,,0,,,,,
+BNA0797,Heizkraftwerk Pforzheim GmbH,265,48.90,8.73,Steam turbine,Biomass,2004,12.3,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,22
+BNA0826,BMHKW-RE Recklinghausen,154,51.60,7.25,Steam turbine,Biomass,2004,14,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,25
+BNA0860,,332,50.50,11.66,Steam turbine,Biomass,2008,12.9,0.380,0.000,,0,EXT,DH_DE_Ind,0.42,0.15,23
+BNA0926a,Heizkraftwerk der Sappi Stockstadt GmbH,128,49.98,9.07,Steam turbine,Biomass,2003,14,0.380,0.000,,0,EXT,DH_DE_Ind,0.42,0.15,25
+BNA1055,Wi-Biebrich,200,50.04,8.25,Steam turbine,Biomass,2006,6.7,0.380,0.000,,0,,,,,
+BNA1091,Zolling,311,48.46,11.80,Steam turbine,Biomass,2003,10,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,18
+BNA1256,UPM Schwedt,360,53.09,14.32,Steam turbine,Biomass,2009,13.3,0.380,0.000,,0,BKP,DH_DE_Ind,0.42,,32
+BNA1335c,PKV Kraftwerk,405,53.40,8.13,Combustion Engine,Biomass,2006,1.92,0.380,0.000,,0,,,,,
+BNA1337b,Blockheizkraftwerk 1,128,49.99,9.16,Steam turbine,Biomass,2005,1.1,0.380,0.000,,0,,,,,
+BNA1337c,Blockheizkraftwerk 2,128,49.99,9.16,Steam turbine,Biomass,2010,0.8,0.380,0.000,,0,,,,,
+BNA1398,Energieanlage 3,138,53.15,12.38,Steam turbine,Biomass,2002,18.6,0.380,0.000,,0,,,,,
+BNA1405b,BioHKW I,297,48.40,9.96,Steam turbine,Biomass,2003,8.7,0.380,0.000,,0,,,,,
+BNA1405c,BioHKW II,297,48.40,9.96,Steam turbine,Biomass,2012,4.5,0.380,0.000,,0,,,,,
+BNA1501,Bio HKW Herbrechtingen,293,48.63,10.20,Steam turbine,Biomass,2004,14,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,25
+BNA1522,BioEnergie Park Klarsee,360,53.32,14.27,Steam turbine,Biomass,2006,17.8,0.380,0.000,,0,EXT,DH_DE_Rem,0.42,0.15,31

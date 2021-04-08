@@ -39,6 +39,8 @@ class VREPowerplant():
         # bids status parameters
         self.dictFeedIn = {n:m for n,m in zip(self.world.snapshots,FeedInTimeseries)}
         self.dictCapacity = {n:None for n in self.world.snapshots}
+        self.dictCapacityMR = {n:(0,0) for n in self.world.snapshots}
+        self.dictCapacityFlex = {n:(0,0) for n in self.world.snapshots}
         self.dictCapacity[self.world.snapshots[0]] = self.maxPower
         self.dictCapacity[-1] = self.maxPower
         self.confQtyCRM_neg = {n:0 for n in self.world.snapshots}
@@ -60,6 +62,10 @@ class VREPowerplant():
         self.dictCapacity[self.world.currstep] = 0
         for bid in self.sentBids:
             self.dictCapacity[self.world.currstep] += bid.confirmedAmount
+            if 'mrEOM' in bid.ID:
+                self.dictCapacityMR[self.world.currstep] = (bid.confirmedAmount, bid.price)
+            else:
+                self.dictCapacityFlex[self.world.currstep] = (bid.confirmedAmount, bid.price)
         self.sentBids=[]
     def checkAvailability(self, t):
         pass

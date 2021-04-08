@@ -62,11 +62,9 @@ class MeritOrder():
         return mcp
     
     def PFC(self):
-        progressBar = tqdm(total=len(self.snapshots), position=0, leave=True)
         pfc = []
         for t in range(len(self.snapshots)):
             pfc.append(self.meritOrder(self.demand[t], sum(self.renewableSupply.iloc[t]), t))
-            progressBar.update(1)
             
         return pfc
 

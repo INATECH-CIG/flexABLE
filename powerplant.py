@@ -35,12 +35,17 @@ class Powerplant():
                 node='Bus_DE',
                 world=None,
                 Redispatch=False,
-                maxAvailability=None):
+                maxAvailability=None,
+                emission=None):
+        
 
         self.minDowntime /= self.world.dt          # This was added to consider dt 15 mins
         self.minOperatingTime /= self.world.dt     # This was added to consider dt 15 mins
+        self.foresight = int(self.minDowntime)
         # bids status parameters
         self.dictCapacity = {n:0 for n in self.world.snapshots}
+        self.dictCapacityMR = {n:(0,0) for n in self.world.snapshots}
+        self.dictCapacityFlex = {n:(0,0) for n in self.world.snapshots}
         self.dictCapacity[-1] = self.maxPower/2
         self.confQtyCRM_neg = {n:0 for n in self.world.snapshots}
         self.confQtyCRM_pos = {n:0 for n in self.world.snapshots}
@@ -49,6 +54,7 @@ class Powerplant():
         self.maxExtraction /= self.world.dt
         # performance parameter for ML
         self.performance = 0
+        self.emission = self.world.emissionFactors[self.fuel] if self.emission is None else self.emission
         
         self.hotStartCosts*=self.maxPower
         self.warmStartCosts*=self.maxPower
@@ -71,7 +77,10 @@ class Powerplant():
         for bid in self.sentBids:
             if 'mrEOM' in bid.ID or 'flexEOM' in bid.ID:
                 self.dictCapacity[self.world.currstep] += bid.confirmedAmount
-                
+                if 'mrEOM' in bid.ID:
+                    self.dictCapacityMR[self.world.currstep] = (bid.confirmedAmount, bid.price)
+                else:
+                    self.dictCapacityFlex[self.world.currstep] = (bid.confirmedAmount, bid.price)
         
         if self.world.currstep % 16:
             self.confQtyCRM_pos[self.world.currstep] = self.confQtyCRM_pos[self.world.currstep-1]
@@ -216,7 +225,7 @@ class Powerplant():
             currentCapacity = self.maxPower
     
         # Wirkungsgradunabhängige Grenzkosten
-        marginalCosts = round((fuelPrice / self.efficiency) + (co2price * (emissionFactor / self.efficiency)) + self.variableCosts, 2)
+        marginalCosts = (fuelPrice / self.efficiency) + (co2price * (self.emission / self.efficiency)) + self.variableCosts
     
         # Partial load efficiency dependent marginal costs
         # The values has to be rechecked -> RQ 14.04.2020
@@ -237,7 +246,7 @@ class Powerplant():
                 etaLoss = 0
 
             marginalCosts = round(
-                (fuelPrice / (self.efficiency - etaLoss)) + (co2price * (emissionFactor / (self.efficiency - etaLoss))) + self.variableCosts, 2)
+                (fuelPrice / (self.efficiency - etaLoss)) + (co2price * (self.emission / (self.efficiency - etaLoss))) + self.variableCosts, 2)
     
         return marginalCosts
     
@@ -264,6 +273,8 @@ class Powerplant():
                 bidQuantity_flex = flexPowerFPP if flexPowerFPP > 0 else 0
                 
                 totalOutputCapacity = mustRunPowerFPP + flexPowerFPP
+            else:
+                print(self.name)
             # =============================================================================
             # Calculating possible price       
             # =============================================================================
@@ -309,7 +320,11 @@ class Powerplant():
                     eqHeatGenCosts = 0.00
 
                 marginalCosts_eta = self.marginalCostsFPP(t, 1, totalOutputCapacity)
-                    
+                
+                if self.specificRevenueEOM(t, self.foresight, marginalCosts_eta, 'all') >=0:
+                    if self.world.dictPFC[t] < marginalCosts_eta:
+                        marginalCosts_eta=0
+
                 bidPrice_mr = max(-priceReduction_restart - eqHeatGenCosts + marginalCosts_eta, -2999.00)
 
             

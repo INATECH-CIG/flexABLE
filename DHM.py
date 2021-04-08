@@ -39,13 +39,16 @@ class DHM():
         # the whole powerplant list)
         if t == self.world.snapshots[0]:
             self.heatingDistricts = {region:[] for region in set([i.heatingDistrict for i in self.world.powerplants])}
+            
             # self.marketResults= {region:{} for region in set([i.heatingDistrict for i in self.world.powerplants])}
             self.bids = {region:[] for region in set([i.heatingDistrict for i in self.world.powerplants])}
             for powerplant in self.world.powerplants:
                 if powerplant.heatExtraction:
                     if powerplant.maxExtraction > 0:
                         self.heatingDistricts[powerplant.heatingDistrict].append(powerplant)
-
+            for key,value in list(self.heatingDistricts.items()):
+                if value == []:
+                    del self.heatingDistricts[key]
         self.bids = {region:[] for region in self.bids.keys()}
         
         for region in self.heatingDistricts.keys():

@@ -87,7 +87,26 @@ class ResultsWriter():
             }
         }]
             self.client.write_points(json_body)
-    
+
+    def writeBid(self, powerplant,t,bid):
+        json_body = [
+    {
+        "measurement": "Bid",
+        "tags": {
+            "user": "{}".format(powerplant.name),
+            "Technology":"{}".format(powerplant.technology),
+            "simulationID":"{}".format(self.world.simulationID),
+            "bidID":"{}".format(bid.ID.split('_')[1])
+        },
+        "time": "{}".format(self.timeStamps[t]),
+        "fields": {
+            "Amount": float(bid.amount),
+            "Confirmed Amount": float(bid.confirmedAmount),
+            "Price": float(bid.price)
+        }
+    }]
+        self.client.write_points(json_body)
+            
     def writeDataFrame(self,df, measurementName, tags={'simulationID':'Historic_Data'}):
         self.dfClient.write_points(df,
                                    measurementName,

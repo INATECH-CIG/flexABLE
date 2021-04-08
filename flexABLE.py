@@ -94,7 +94,9 @@ class World():
         self.minBidReDIS =1
         self.dt = 0.25 # Although we are always dealing with power, dt is needed to calculate the revenue and for the energy market
         self.dtu = 16 # The frequency of reserve market
-        self.dictPFC = [0]*snapshots
+        self.dictPFC = [0]*snapshots # This is an artifact and should be removed
+        self.PFC = [0]*snapshots
+        self.EOMResult = [0]*snapshots
         self.IEDPrice = [2999.9]*snapshots
         self.networkEnabled = networkEnabled
         self.network = pypsa.Network()
@@ -134,15 +136,17 @@ class World():
             logger.info("Reached simulation end")
     def runSimulation(self):
         start = datetime.now()
+        tempDF = pd.DataFrame(self.dictPFC,index=pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T') ,columns=['Merit Order Price'])
+        tempDF['Merit Order Price']= tempDF['Merit Order Price'].astype('float64')
+        self.ResultsWriter.writeDataFrame(tempDF,'PFC',
+                                     tags={'simulationID':self.simulationID,
+                                           "user": "EOM"})
         logger.info("######## Simulation Started ########")
         logger.info('Started at: {}'.format(start))
-        progressBar = tqdm(total=len(self.snapshots), position=1, leave=True)
-        while True:
-            if self.currstep < len(self.snapshots):
-                self.step()
-                progressBar.update(1)
-            else:
-                break
+        #progressBar = tqdm(total=len(self.snapshots), position=1, leave=True)
+        for _ in self.snapshots:
+            self.step()
+            
         finished = datetime.now()
         logger.info('Simulation finished at: {}'.format(finished))
         logger.info('Simulation time: {}'.format(finished - start))
@@ -168,6 +172,24 @@ class World():
                                                'UnitName':powerplant.name,
                                                'Technology':powerplant.technology})
         
+        for powerplant in self.powerplants:
+            tempDF = pd.DataFrame(powerplant.dictCapacityMR, index=['Power_MR','MR_Price']).T.set_index(pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T'))
+            tempDF['Power_MR']= tempDF['Power_MR'].astype('float64')
+            tempDF['MR_Price']= tempDF['MR_Price'].astype('float64')
+            
+            self.ResultsWriter.writeDataFrame(tempDF,'Capacities',
+                                         tags={'simulationID':self.simulationID,
+                                               'UnitName':powerplant.name,
+                                               'Technology':powerplant.technology})
+            tempDF = pd.DataFrame(powerplant.dictCapacityFlex, index=['Power_Flex','Flex_Price']).T.set_index(pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T'))
+            tempDF['Power_Flex']= tempDF['Power_Flex'].astype('float64')
+            tempDF['Flex_Price']= tempDF['Flex_Price'].astype('float64')
+            
+            self.ResultsWriter.writeDataFrame(tempDF,'Capacities',
+                                         tags={'simulationID':self.simulationID,
+                                               'UnitName':powerplant.name,
+                                               'Technology':powerplant.technology})
+            
         for powerplant in self.storages:
             tempDF = pd.DataFrame(powerplant.dictCapacity, index=['Power']).T.set_index(pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T'))
             tempDF['Power']= tempDF['Power'].astype('float64')
@@ -259,6 +281,7 @@ class World():
                                              index_col=0,
                                              nrows=len(self.snapshots)+startingPoint,
                                              encoding="Latin-1")
+            vrepowerplantFeedIn['Solar [MW]'] = vrepowerplantFeedIn['Solar [MW]']*1.25
             vrepowerplantFeedIn.drop(vrepowerplantFeedIn.index[0:startingPoint],inplace=True)
             vrepowerplantFeedIn.reset_index(drop=True,inplace=True)
             self.addAgent('Renewables')
@@ -323,6 +346,7 @@ class World():
             logger.info("Calculating PFC....")
             meritOrder = MeritOrder.MeritOrder(demand, powerplantsList, vrepowerplantFeedIn, self.fuelPrices, self.emissionFactors, self.snapshots)
             self.dictPFC = meritOrder.PFC()
+            self.PFC = self.dictPFC.copy()
             logger.info("Merit Order calculated.")
         if self.networkEnabled:
             # Loading Network data
@@ -539,7 +563,7 @@ class World():
             logger.info("Network Loaded.")
         
 if __name__=="__main__":
-    scenarios = [(2016,366),(2017,365),(2018,365),(2019,365)]
+    scenarios = [(2016,366)]#,(2017,365),(2018,365),(2019,365)]
     for year, days in scenarios:
         startingPoint = 0
         snapLength = 96*days
@@ -552,7 +576,7 @@ if __name__=="__main__":
         CBTMainland='DE'
         timeStamps = pd.date_range('{}-01-01T00:00:00'.format(year), '{}-01-01T00:00:00'.format(year+1), freq='15T')
         example = World(snapLength, networkEnabled=networkEnabled,
-                        simulationID='debugging_v1', startingDate=timeStamps[startingPoint])
+                        simulationID='debugging_energyCharts', startingDate=timeStamps[startingPoint])
     
         
         example.loadScenario(scenario='{}'.format(year),

@@ -567,7 +567,7 @@ class World():
             logger.info("Network Loaded.")
         
 if __name__=="__main__":
-    scenarios = [(2016,366)]#,(2017,365),(2018,365),(2019,365)]
+    scenarios = [(2016,1)]#,(2017,365),(2018,365),(2019,365)]
     for year, days in scenarios:
         startingPoint = 0
         snapLength = 96*days

@@ -1,3 +1,0 @@
-name,technology,fuel,maxPower,minPower,efficiency,rampUp,rampDown,variableCosts,hotStartCosts,warmStartCosts,coldStartCosts,minOperatingTime,minDowntime,heatExtraction,maxExtraction,company,heatingDistrict,year,node,Redispatch
-KKW ISAR 2,nuclear,uranium,1500,400,0.33,890,890,10.3,140,140,140,72,10,no,0,UNIPER,BY,1988,1,0
-KKW BROKDORF,hard coal,hard coal,1500,400,0.33,890,890,30.3,140,140,140,72,10,no,0,UNIPER,SH,1986,2,0

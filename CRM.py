@@ -5,11 +5,9 @@ Created on Mon Apr  20 19:24:32 2020
 @author: intgridnb-02
 """
 import operator
-from bid import Bid
+from .bid import Bid
 import logging
-from MarketResults import MarketResults
-import shelve
-import matplotlib.pyplot as plt
+from .MarketResults import MarketResults
 
 class CRM():
     def __init__(self, name, demand=None, world=None):

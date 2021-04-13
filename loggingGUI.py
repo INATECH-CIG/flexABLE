@@ -18,7 +18,7 @@ import io
 
 
 logger = logging.getLogger("flexABLE")
-logging.basicConfig(level=logger.INFO)
+logging.basicConfig(level=logger.info)
 
 
 class Clock(threading.Thread):

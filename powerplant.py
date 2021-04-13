@@ -4,9 +4,8 @@ Created on Sun Apr  19 16:06:57 2020
 
 @author: intgridnb-02
 """
-from auxFunc import initializer
-from bid import Bid
-import matplotlib.pyplot as plt
+from .auxFunc import initializer
+from .bid import Bid
 import random
 
 class Powerplant():

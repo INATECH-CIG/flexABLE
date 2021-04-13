@@ -5,16 +5,15 @@ Created on Sun Apr  19 16:08:03 2020
 @author: intgridnb-02
 """
 import operator
-from bid import Bid
+from .bid import Bid
 import logging
-from MarketResults import MarketResults
+from .MarketResults import MarketResults
 import shelve
-import matplotlib.pyplot as plt
 import pandas as pd
 from itertools import groupby
 from operator import itemgetter
 
-from MarketClearing import MarketClearing
+from .MarketClearing import MarketClearing
 
 class EOM():
     def __init__(self, name, demand=None, CBtrades=None, networkEnabled=False,  world=None, solver_name='gurobi_direct'):

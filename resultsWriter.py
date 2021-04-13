@@ -11,9 +11,9 @@ from influxdb import DataFrameClient
 
 class ResultsWriter():
     
-    def __init__(self, databaseName, simulationID, startingDate='2018-01-01T00:00:00', world=None):
-        self.user = 'root'
-        self.password = 'root'
+    def __init__(self, databaseName, simulationID, startingDate='2018-01-01T00:00:00', host='localhost', port=8086, user='root', password='root', world=None):
+        self.user = user
+        self.password = password
         self.databaseName = databaseName
         self.simulationID = simulationID
         self.startingDate = startingDate
@@ -21,13 +21,12 @@ class ResultsWriter():
         if not(world is None):
             self.timeStamps = pd.date_range(self.startingDate, periods=len(self.world.snapshots), freq='15T')
 
-        # self.MarketResults = []
         # Creating connection and Database to save results
-        self.client = InfluxDBClient(host='localhost', port=8086)
+        self.client = InfluxDBClient(host=host, port=port)
         self.client.create_database(databaseName)
         self.client.switch_database(databaseName)
         
-        self.dfClient = DataFrameClient(host='localhost', port=8086, username=self.user, password=self.password, database=self.databaseName)
+        self.dfClient = DataFrameClient(host=host, port=port, username=self.user, password=self.password, database=self.databaseName)
         self.dfClient.switch_database(self.databaseName)
         
     def writeMarketResult(self,MarketResult):

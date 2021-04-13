@@ -4,10 +4,10 @@ Created on Sun Apr  19 15:58:21 2020
 
 @author: intgridnb-02
 """
-import powerplant
-import vrepowerplants
-import storage
-from bid import Bid
+from . import powerplant
+from . import vrepowerplants
+from . import storage
+from .bid import Bid
 
 class Agent():
     

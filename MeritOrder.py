@@ -5,7 +5,6 @@ Created on Tue Jun  2 09:09:16 2020
 
 @author: intgridnb-02
 """
-from tqdm import tqdm
 
 class MeritOrder():
     def __init__(self, demand, powerplantsList, vrepowerplantFeedIn, fuelPrices, emissionFactors, snapshots):

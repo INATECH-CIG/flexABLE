@@ -20,16 +20,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Importing classes
-import agent
+from . import agent
 # import EOM_v2 as EOM
-import EOM
-import DHM
-import CRM
-import MeritOrder
-import resultsWriter
+from .import EOM
+from .import DHM
+from .import CRM
+from .import MeritOrder
+from .import resultsWriter
 
 import pandas as pd
-from tqdm import tqdm
+#from tqdm import tqdm
 
 #from NetworkOperator import NetworkOperator
 # Managing the logger and TQDM, PyPSA had to be imported after logging to set
@@ -63,9 +63,7 @@ log.addHandler (TqdmLoggingHandler ())
 
 from datetime import datetime
 # Plotting packages
-import seaborn as sns
-import matplotlib.pyplot as plt
-sns.set_style('ticks')
+
 
 
 
@@ -73,7 +71,7 @@ class World():
     """
     This is the main container
     """
-    def __init__(self, snapshots, fuelPrices={}, simulationID=None, networkEnabled=False, databaseName='flexABLE',startingDate='2018-01-01T00:00:00'):
+    def __init__(self, snapshots, simulationID=None, networkEnabled=False, databaseName='flexABLE',startingDate='2018-01-01T00:00:00', writeResultsToDB=True):
         self.simulationID = simulationID
         self.powerplants=[]
         self.storages = []
@@ -98,14 +96,16 @@ class World():
         self.PFC = [0]*snapshots
         self.EOMResult = [0]*snapshots
         self.IEDPrice = [2999.9]*snapshots
-        self.networkEnabled = networkEnabled
-        self.network = pypsa.Network()
+        self.networkEnabled = None
+        self.network = None
         self.demandDistrib = None
         self.startingDate=startingDate
-        self.ResultsWriter = resultsWriter.ResultsWriter(databaseName=databaseName,
-                                                         simulationID=simulationID,
-                                                         startingDate=startingDate,
-                                                         world=self)
+        self.writeResultsToDB = writeResultsToDB
+        if writeResultsToDB:
+            self.ResultsWriter = resultsWriter.ResultsWriter(databaseName=databaseName,
+                                                            simulationID=simulationID,
+                                                            startingDate=startingDate,
+                                                            world=self)
     def addAgent(self, name):
         self.agents[name] = agent.Agent(name, snapshots=self.snapshots , world=self)
         
@@ -136,11 +136,12 @@ class World():
             logger.info("Reached simulation end")
     def runSimulation(self):
         start = datetime.now()
-        tempDF = pd.DataFrame(self.dictPFC,index=pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T') ,columns=['Merit Order Price'])
-        tempDF['Merit Order Price']= tempDF['Merit Order Price'].astype('float64')
-        self.ResultsWriter.writeDataFrame(tempDF,'PFC',
-                                     tags={'simulationID':self.simulationID,
-                                           "user": "EOM"})
+        if self.writeResultsToDB:
+            tempDF = pd.DataFrame(self.dictPFC,index=pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T') ,columns=['Merit Order Price'])
+            tempDF['Merit Order Price']= tempDF['Merit Order Price'].astype('float64')
+            self.ResultsWriter.writeDataFrame(tempDF,'PFC',
+                                        tags={'simulationID':self.simulationID,
+                                            "user": "EOM"})
         logger.info("######## Simulation Started ########")
         logger.info('Started at: {}'.format(start))
         #progressBar = tqdm(total=len(self.snapshots), position=1, leave=True)
@@ -150,62 +151,64 @@ class World():
         finished = datetime.now()
         logger.info('Simulation finished at: {}'.format(finished))
         logger.info('Simulation time: {}'.format(finished - start))
-        start = datetime.now()
-        logger.info('Writing Capacities in Server - This may take couple of minutes.')
         
-        tempDF = pd.DataFrame(self.dictPFC,index=pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T') ,columns=['Price'])
-        tempDF['Price']= tempDF['Price'].astype('float64')
-        self.ResultsWriter.writeDataFrame(tempDF,'PFC',
-                                     tags={'simulationID':self.simulationID,
-                                           "user": "EOM"})
-        tempDF = pd.DataFrame(self.IEDPrice,index=pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T') ,columns=['IED_Price'])
-        tempDF['IED_Price']= tempDF['IED_Price'].astype('float64')
-        self.ResultsWriter.writeDataFrame(tempDF,'PFC',
-                                     tags={'simulationID':self.simulationID,
-                                           "user": "EOM"})
-        for powerplant in self.powerplants:
-            tempDF = pd.DataFrame(powerplant.dictCapacity, index=['Power']).drop([-1],axis=1).T.set_index(pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T'))
-            tempDF['Power']= tempDF['Power'].astype('float64')
+        if self.writeResultsToDB:
+            start = datetime.now()
+            logger.info('Writing Capacities in Server - This may take couple of minutes.')
             
-            self.ResultsWriter.writeDataFrame(tempDF,'Power',
-                                         tags={'simulationID':self.simulationID,
-                                               'UnitName':powerplant.name,
-                                               'Technology':powerplant.technology})
-        
-        for powerplant in self.powerplants:
-            tempDF = pd.DataFrame(powerplant.dictCapacityMR, index=['Power_MR','MR_Price']).T.set_index(pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T'))
-            tempDF['Power_MR']= tempDF['Power_MR'].astype('float64')
-            tempDF['MR_Price']= tempDF['MR_Price'].astype('float64')
+            tempDF = pd.DataFrame(self.dictPFC,index=pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T') ,columns=['Price'])
+            tempDF['Price']= tempDF['Price'].astype('float64')
+            self.ResultsWriter.writeDataFrame(tempDF,'PFC',
+                                        tags={'simulationID':self.simulationID,
+                                            "user": "EOM"})
+            tempDF = pd.DataFrame(self.IEDPrice,index=pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T') ,columns=['IED_Price'])
+            tempDF['IED_Price']= tempDF['IED_Price'].astype('float64')
+            self.ResultsWriter.writeDataFrame(tempDF,'PFC',
+                                        tags={'simulationID':self.simulationID,
+                                            "user": "EOM"})
+            for powerplant in self.powerplants:
+                tempDF = pd.DataFrame(powerplant.dictCapacity, index=['Power']).drop([-1],axis=1).T.set_index(pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T'))
+                tempDF['Power']= tempDF['Power'].astype('float64')
+                
+                self.ResultsWriter.writeDataFrame(tempDF,'Power',
+                                            tags={'simulationID':self.simulationID,
+                                                'UnitName':powerplant.name,
+                                                'Technology':powerplant.technology})
             
-            self.ResultsWriter.writeDataFrame(tempDF,'Capacities',
-                                         tags={'simulationID':self.simulationID,
-                                               'UnitName':powerplant.name,
-                                               'Technology':powerplant.technology})
-            tempDF = pd.DataFrame(powerplant.dictCapacityFlex, index=['Power_Flex','Flex_Price']).T.set_index(pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T'))
-            tempDF['Power_Flex']= tempDF['Power_Flex'].astype('float64')
-            tempDF['Flex_Price']= tempDF['Flex_Price'].astype('float64')
-            
-            self.ResultsWriter.writeDataFrame(tempDF,'Capacities',
-                                         tags={'simulationID':self.simulationID,
-                                               'UnitName':powerplant.name,
-                                               'Technology':powerplant.technology})
-            
-        for powerplant in self.storages:
-            tempDF = pd.DataFrame(powerplant.dictCapacity, index=['Power']).T.set_index(pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T'))
-            tempDF['Power']= tempDF['Power'].astype('float64')
-            self.ResultsWriter.writeDataFrame(tempDF.clip(upper=0),'Power',
-                                         tags={'simulationID':self.simulationID,
-                                               'UnitName':powerplant.name+'_charge',
-                                               'direction':'charge',
-                                               'Technology':powerplant.technology})
-            self.ResultsWriter.writeDataFrame(tempDF.clip(lower=0),'Power',
-                                         tags={'simulationID':self.simulationID,
-                                               'UnitName':powerplant.name+'_discharge',
-                                               'direction':'discharge',
-                                               'Technology':powerplant.technology})
-        finished = datetime.now()
-        logger.info('Writing results into database finished at: {}'.format(finished))
-        logger.info('Saving into database time: {}'.format(finished - start))
+            for powerplant in self.powerplants:
+                tempDF = pd.DataFrame(powerplant.dictCapacityMR, index=['Power_MR','MR_Price']).T.set_index(pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T'))
+                tempDF['Power_MR']= tempDF['Power_MR'].astype('float64')
+                tempDF['MR_Price']= tempDF['MR_Price'].astype('float64')
+                
+                self.ResultsWriter.writeDataFrame(tempDF,'Capacities',
+                                            tags={'simulationID':self.simulationID,
+                                                'UnitName':powerplant.name,
+                                                'Technology':powerplant.technology})
+                tempDF = pd.DataFrame(powerplant.dictCapacityFlex, index=['Power_Flex','Flex_Price']).T.set_index(pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T'))
+                tempDF['Power_Flex']= tempDF['Power_Flex'].astype('float64')
+                tempDF['Flex_Price']= tempDF['Flex_Price'].astype('float64')
+                
+                self.ResultsWriter.writeDataFrame(tempDF,'Capacities',
+                                            tags={'simulationID':self.simulationID,
+                                                'UnitName':powerplant.name,
+                                                'Technology':powerplant.technology})
+                
+            for powerplant in self.storages:
+                tempDF = pd.DataFrame(powerplant.dictCapacity, index=['Power']).T.set_index(pd.date_range(self.startingDate, periods=len(self.snapshots), freq='15T'))
+                tempDF['Power']= tempDF['Power'].astype('float64')
+                self.ResultsWriter.writeDataFrame(tempDF.clip(upper=0),'Power',
+                                            tags={'simulationID':self.simulationID,
+                                                'UnitName':powerplant.name+'_charge',
+                                                'direction':'charge',
+                                                'Technology':powerplant.technology})
+                self.ResultsWriter.writeDataFrame(tempDF.clip(lower=0),'Power',
+                                            tags={'simulationID':self.simulationID,
+                                                'UnitName':powerplant.name+'_discharge',
+                                                'direction':'discharge',
+                                                'Technology':powerplant.technology})
+            finished = datetime.now()
+            logger.info('Writing results into database finished at: {}'.format(finished))
+            logger.info('Saving into database time: {}'.format(finished - start))
         logger.info("#########################")
     def loadScenario(self, scenario="Default",
                      importStorages=False,
@@ -351,6 +354,7 @@ class World():
         if self.networkEnabled:
             # Loading Network data
             logger.info("Setting up Network.")
+            self.network = pypsa.Network()
             nodes = pd.read_csv('input/{}/nodes.csv'.format(scenario),
                                 index_col=0,
                                 encoding="Latin-1")

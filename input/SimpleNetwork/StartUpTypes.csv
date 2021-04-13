@@ -1,4 +1,0 @@
-type,min [h],max [h]
-hot start,0,8
-warm start,8,48
-cold start,48,8760

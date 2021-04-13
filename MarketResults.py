@@ -4,7 +4,7 @@ Created on Sun Apr  19 16:31:19 2020
 
 @author: intgridnb-02
 """
-from auxFunc import initializer
+from .auxFunc import initializer
 import pickle
 
 

@@ -9,7 +9,7 @@ Created on Tue Apr 13 13:12:21 2021
 from flexABLE.flexABLE import World
 import pandas as pd
 
-scenarios = [(2016,1)]#,(2017,365),(2018,365),(2019,365)]
+scenarios = [(2016,366),(2017,365),(2018,365),(2019,365)]
 for year, days in scenarios:
     startingPoint = 0
     snapLength = 96*days
@@ -22,7 +22,7 @@ for year, days in scenarios:
     CBTMainland='DE'
     timeStamps = pd.date_range('{}-01-01T00:00:00'.format(year), '{}-01-01T00:00:00'.format(year+1), freq='15T')
     example = World(snapLength, networkEnabled=networkEnabled,
-                    simulationID='debugging_energyCharts', startingDate=timeStamps[startingPoint])
+                    simulationID='paper_v6', startingDate=timeStamps[startingPoint])
 
     
     example.loadScenario(scenario='{}'.format(year),

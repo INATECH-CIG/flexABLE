@@ -284,7 +284,7 @@ class World():
                                              index_col=0,
                                              nrows=len(self.snapshots)+startingPoint,
                                              encoding="Latin-1")
-            vrepowerplantFeedIn['Solar [MW]'] = vrepowerplantFeedIn['Solar [MW]']*1.25
+            vrepowerplantFeedIn['Solar [MW]'] = vrepowerplantFeedIn['Solar [MW]']
             vrepowerplantFeedIn.drop(vrepowerplantFeedIn.index[0:startingPoint],inplace=True)
             vrepowerplantFeedIn.reset_index(drop=True,inplace=True)
             self.addAgent('Renewables')

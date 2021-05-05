@@ -343,7 +343,6 @@ class Powerplant():
         #     -> This filter can be applied to the list before it is sent to loop
         #     if cogeneration == "yes" and maxExtraction > 0:
         # =========================================================================
-        
         if ((self.currentStatus) or (not(self.currentStatus) and (self.currentDowntime >= self.minDowntime))):
             elCapacity = max(self.dictCapacity[t-1], self.minPower)
             # Steam power plants

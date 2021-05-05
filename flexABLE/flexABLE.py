@@ -236,26 +236,26 @@ class World():
                                                         startingPoint)
         logger.info("Loading Scenario: {}, SimulationID:{}".format(scenario,self.simulationID))
         logger.info("Loading fuel data....")
-        fuelData = pd.read_csv('input/{}/Fuel.csv'.format(scenario),
+        fuelData = pd.read_csv('{}/Fuel.csv'.format(scenario),
                                nrows=len(self.snapshots)+startingPoint,
                                index_col=0)
         fuelData.drop(fuelData.index[0:startingPoint],inplace=True)
         fuelData.reset_index(drop=True,inplace=True)
         self.fuelPrices=dict(fuelData)
-        emissionData = pd.read_csv('input/{}/EmissionFactors.csv'.format(scenario),
+        emissionData = pd.read_csv('{}/EmissionFactors.csv'.format(scenario),
                                    index_col=0)
         self.emissionFactors = dict(emissionData['emissions'])
         logger.info("Fuel data loaded.")
         # Loads powerplant related data from the required Scenario and creates the agents and powerplants
         logger.info("Loading Agents and assets....")
-        powerplantsList = pd.read_csv('input/{}/FPP_DE.csv'.format(scenario),
+        powerplantsList = pd.read_csv('{}/FPP_DE.csv'.format(scenario),
                               index_col=0,
                               encoding="Latin-1")
         for _ in powerplantsList.company.unique():
             self.addAgent(_)
         for powerplant, data in powerplantsList.iterrows():
             try:
-                availability= pd.read_csv('input/{}/Availability/{}.csv'.format(scenario,powerplant),
+                availability= pd.read_csv('{}/Availability/{}.csv'.format(scenario,powerplant),
                                           nrows=len(self.snapshots)+startingPoint,
                                           index_col=0)
                 availability.drop(availability.index[0:startingPoint],inplace=True)
@@ -268,7 +268,7 @@ class World():
         # Adding Storages     
         # =====================================================================
         if importStorages: 
-            storageList = pd.read_csv('input/{}/STO_DE.csv'.format(scenario),
+            storageList = pd.read_csv('{}/STO_DE.csv'.format(scenario),
                                   index_col=0,
                                   encoding="Latin-1")
     
@@ -280,7 +280,7 @@ class World():
                 self.agents[data['company']].addStorage(storage,**dict(data))
     
         if not(self.networkEnabled):           
-            vrepowerplantFeedIn =pd.read_csv('input/{}/FES_DE.csv'.format(scenario),
+            vrepowerplantFeedIn =pd.read_csv('{}/FES_DE.csv'.format(scenario),
                                              index_col=0,
                                              nrows=len(self.snapshots)+startingPoint,
                                              encoding="Latin-1")
@@ -296,12 +296,12 @@ class World():
         # or market does the demand belong to and automatically loads all required
         # information
         logger.info("Loading demand....")
-        demand = pd.read_csv('input/{}/IED_DE.csv'.format(scenario),
+        demand = pd.read_csv('{}/IED_DE.csv'.format(scenario),
                                nrows=len(self.snapshots)+startingPoint,
                                index_col=0)
         demand.drop(demand.index[0:startingPoint],inplace=True)
         demand.reset_index(drop=True,inplace=True)
-        CBT = pd.read_csv('input/{}/CBT_DE.csv'.format(scenario),
+        CBT = pd.read_csv('{}/CBT_DE.csv'.format(scenario),
                           nrows=len(self.snapshots)+startingPoint,
                           index_col=0)
         CBT.drop(CBT.index[0:startingPoint],inplace=True)
@@ -314,23 +314,23 @@ class World():
 
         
         logger.info("Loading District heating demand....")
-        HLP_DH= pd.read_csv('input/{}/HLP_DH_DE.csv'.format(scenario),
+        HLP_DH= pd.read_csv('{}/HLP_DH_DE.csv'.format(scenario),
                             nrows=len(self.snapshots)+startingPoint,
                                index_col=0)
         HLP_DH.drop(HLP_DH.index[0:startingPoint],inplace=True)
         HLP_DH.reset_index(drop=True,inplace=True)
-        HLP_HH= pd.read_csv('input/{}/HLP_HH_DE.csv'.format(scenario),
+        HLP_HH= pd.read_csv('{}/HLP_HH_DE.csv'.format(scenario),
                             nrows=len(self.snapshots)+startingPoint,
                             index_col=0)
         HLP_HH.drop(HLP_HH.index[0:startingPoint],inplace=True)
         HLP_HH.reset_index(drop=True,inplace=True)
-        annualDemand= pd.read_csv('input/{}/DH_DE.csv'.format(scenario),
+        annualDemand= pd.read_csv('{}/DH_DE.csv'.format(scenario),
                                   index_col=0)
         annualDemand *=4
         self.addMarket('DHM_DE','DHM', HLP_DH=HLP_DH, HLP_HH=HLP_HH, annualDemand=annualDemand)
         
         logger.info("Loading control reserve demand....")
-        CRM= pd.read_csv('input/{}/CRM_DE.csv'.format(scenario),
+        CRM= pd.read_csv('{}/CRM_DE.csv'.format(scenario),
                             nrows=len(self.snapshots)+startingPoint,
                                index_col=0)
         CRM.drop(CRM.index[0:startingPoint],inplace=True)
@@ -355,25 +355,25 @@ class World():
             # Loading Network data
             logger.info("Setting up Network.")
             self.network = pypsa.Network()
-            nodes = pd.read_csv('input/{}/nodes.csv'.format(scenario),
+            nodes = pd.read_csv('{}/nodes.csv'.format(scenario),
                                 index_col=0,
                                 encoding="Latin-1")
             nodes.region = nodes.region.astype(int).astype(str)
-            lines = pd.read_csv('input/{}/lines.csv'.format(scenario),
+            lines = pd.read_csv('{}/lines.csv'.format(scenario),
                                 index_col=0,
                                 encoding="Latin-1")
-            load_distribution = pd.read_csv('input/{}/IED_DE_Distrib.csv'.format(scenario),
+            load_distribution = pd.read_csv('{}/IED_DE_Distrib.csv'.format(scenario),
                                             nrows=len(self.snapshots)+startingPoint,
                                             index_col=0,
                                             encoding="Latin-1")
             self.demandDistrib =load_distribution.mul(demand.demand,axis=0)
-            PV_CF = pd.read_csv('input/{}/PV_CF.csv'.format(scenario),
+            PV_CF = pd.read_csv('{}/PV_CF.csv'.format(scenario),
                                             nrows=len(self.snapshots)+startingPoint,
                                             index_col=0,
                                             encoding="Latin-1")
             PV_CF.drop(PV_CF.index[0:startingPoint],inplace=True)
             PV_CF.reset_index(drop=True,inplace=True)
-            wind_CF = pd.read_csv('input/{}/wind_CF.csv'.format(scenario),
+            wind_CF = pd.read_csv('{}/wind_CF.csv'.format(scenario),
                                             nrows=len(self.snapshots)+startingPoint,
                                             index_col=0,
                                             encoding="Latin-1")

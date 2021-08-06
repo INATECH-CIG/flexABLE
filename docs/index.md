@@ -1,8 +1,6 @@
 ## flexABLE
 
-You can use the [editor on GitHub](https://github.com/INATECH-CIG/flexABLE/edit/master/docs/index.md) to maintain and preview the content for your website in Markdown files.
-
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+flexABLE stands for “Flexibility-oriented Agent-Based Laboratory for Electricity system analysis”. flexABLE is an open-source Python-based toolbox to simulate European electricity markets focusing on the German bidding zone. The toolbox could be used to backcast electricity prices of previous years and the unit-wise power generations.
 
 ### Markdown
 

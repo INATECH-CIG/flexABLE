@@ -6,7 +6,6 @@ Created on Thu Sep 10 17:48:29 2020
 """
 from influxdb import InfluxDBClient
 import pandas as pd
-import json
 from influxdb import DataFrameClient
 
 class ResultsWriter():
@@ -52,21 +51,7 @@ class ResultsWriter():
         self.dfClient.write_points(df, 'reDispatch', protocol='line', tags= {"simulationID":"{}".format(self.world.simulationID)})
         
 
-    def writeCapacity(self,powerplant,t, writeBidsInDB=False):
-        json_body = [
-    {
-        "measurement": "Power",
-        "tags": {
-            "user": "{}".format(powerplant.name),
-            "Technology":"{}".format(powerplant.technology),
-            "simulationID":"{}".format(self.world.simulationID),
-        },
-        "time": "{}".format(self.timeStamps[t]),
-        "fields": {
-            "Power": float(powerplant.dictCapacity[t])
-        }
-    }]
-        # self.client.write_points(json_body)
+        
     def writeBids(self, powerplant,t):
         for bid in powerplant.sentBids:
             json_body = [
@@ -87,6 +72,7 @@ class ResultsWriter():
         }]
             self.client.write_points(json_body)
 
+
     def writeBid(self, powerplant,t,bid):
         json_body = [
     {
@@ -106,31 +92,11 @@ class ResultsWriter():
     }]
         self.client.write_points(json_body)
             
+        
     def writeDataFrame(self,df, measurementName, tags={'simulationID':'Historic_Data'}):
         self.dfClient.write_points(df,
                                    measurementName,
                                    tags=tags,
                                    protocol='line')
 
-if __name__=='__main__':
-    with open('year_2017.json', 'r') as myfile:
-        data=myfile.read()
-
-    # parse file
-    obj = json.loads(data)
-    
-    data = pd.DataFrame()
-    required=['Day Ahead Auction', 'Intraday Continuous Index Price',
-            'Intraday Continuous Average Price', 'Intraday Continuous Low Price',
-            'Intraday Continuous High Price', 'Intraday Continuous ID3-Price', 'CO2 Emission Allowances, DE']
-    for _ in obj:
-        if _['key'][0]['en'] in required:
-            tempData = pd.DataFrame(_['values'])
-            tempData[0] = tempData[0].astype('datetime64[ms]')
-            tempData.set_index(0, inplace=True, drop=True)
-            data[_['key'][0]['en']]=tempData[1]
-    
-    data.resample('15T').interpolate()['CO2 Emission Allowances, DE'].to_csv('CO2_prices_2017.csv')
-    resultsWriter = ResultsWriter(databaseName='flexABLE', simulationID='Historic_Data')
-    resultsWriter.writeDataFrame(data, 'PFC', )
     

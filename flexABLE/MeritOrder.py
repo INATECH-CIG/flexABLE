@@ -56,46 +56,17 @@ class MeritOrder():
                 if contractedSupply >= demand:
                     mcp = powerplants['marginalCost'].iat[i]
                     break
+                
                 if contractedSupply < demand:
                     contractedSupply += power 
+                    
         return mcp
+    
     
     def PFC(self):
         pfc = []
+        
         for t in range(len(self.snapshots)):
             pfc.append(self.meritOrder(self.demand[t], sum(self.renewableSupply.iloc[t]), t))
             
         return pfc
-
-
-if __name__ == "__main__":
-    import pandas as pd
-    scenario = 2019
-    startingPoint=0
-    length=35040
-    
-    snapshots = list(range(startingPoint,length))
-    demand = pd.read_csv('input/{}/IED_DE.csv'.format(scenario),
-                         index_col=0,
-                         nrows=len(snapshots)+startingPoint,
-                         encoding="Latin-1")
-    powerplantsList = pd.read_csv('input/{}/FPP_DE.csv'.format(scenario),
-                          index_col=0,
-                          encoding="Latin-1")
-    vrepowerplantFeedIn =pd.read_csv('input/{}/FES_DE.csv'.format(scenario),
-                                     index_col=0,
-                                     nrows=len(snapshots)+startingPoint,
-                                     encoding="Latin-1")
-    fuelData = pd.read_csv('input/{}/Fuel.csv'.format(scenario),
-                           nrows=len(snapshots)+startingPoint,
-                           index_col=0)
-    fuelData['co2'] = 20
-    fuelData.drop(fuelData.index[0:startingPoint],inplace=True)
-    fuelData.reset_index(drop=True,inplace=True)
-    fuelPrices=dict(fuelData)
-    emissionData = pd.read_csv('input/{}/EmissionFactors.csv'.format(scenario),
-                               index_col=0)
-    emissionFactors = dict(emissionData['emissions'])
-    example = MeritOrder(demand, powerplantsList, vrepowerplantFeedIn, fuelPrices,emissionFactors,snapshots)
-    result = example.PFC()
-    pd.DataFrame(result).to_csv('MeritOrder2019_20.csv')

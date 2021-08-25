@@ -6,35 +6,11 @@ Created on Fri Mar  1 5:15:07 2019
 """
 
 # =============================================================================
-# Importing Libraries
-# =============================================================================
-import os
-# =============================================================================
-# String Formatting Functions 
-# =============================================================================
-def prRed(skk): return("\u001b[1m\u001b[4m\u001b[31m{}\033[00m" .format(skk)) 
-    #def prGreen(skk): return("\033[32m {}\033[00m" .format(skk)) 
-    #def prYellow(skk): return("\033[33m {}\033[00m" .format(skk)) 
-    #def prLightPurple(skk): return("\033[94m {}\033[00m" .format(skk)) 
-    #def prPurple(skk): return("\033[95m {}\033[00m" .format(skk)) 
-    #def prCyan(skk): return("\033[96m {}\033[00m" .format(skk)) 
-    #def prLightGray(skk): return("\033[97m {}\033[00m" .format(skk)) 
-    #def prBlack(skk): return("\033[98m {}\033[00m" .format(skk)) 
-# =============================================================================
-# Path checking function
-# =============================================================================
-def path_check(path):
-        # Create target directory & all intermediate directories if they don't exists
-    if not os.path.exists(path+'/'):
-        os.makedirs(path+'/')
-    else:    
-        pass
-
-# =============================================================================
 # The following function will define an initializer decorator    
 #
 # https://stackoverflow.com/questions/1389180/automatically-initialize-instance-variables
 # =============================================================================
+
 from functools import wraps
 import inspect
 
@@ -65,15 +41,3 @@ def initializer(func):
 
     return wrapper
 
-rprintShow_parameter =None
-def rprint(*args):
-    global rprintShow_parameter
-    if rprintShow_parameter == None:
-        rprintShow_parameter = input('Should detailed simulation info be printed?(Y/N): ')
-        rprintShow_parameter = True if rprintShow_parameter == 'Y' else False
-    if rprintShow_parameter:
-        for i in args:
-            print(i, end=' ', flush=True)
-        print('\n',end='')        
-    else:
-        pass

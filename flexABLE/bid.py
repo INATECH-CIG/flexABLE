@@ -14,7 +14,8 @@ class Bid(object):
     This does not represent a bid block. Multiple objects of the class bid could be used to define
     a block bid, but 
     """
-    def __init__(self,issuer="Not-Issued", ID="Generic", price=0, amount=0, energyPrice=0, redispatch_price=None, status=None, bidType=None, node='DefaultNode'):
+    
+    def __init__(self,issuer="Not-Issued", ID="Generic", price=0, amount=0, energyPrice=0, status=None, bidType=None, node='DefaultNode'):
         self.ID = ID
         self.issuer = issuer
         self.price = price
@@ -22,21 +23,21 @@ class Bid(object):
         self.confirmedAmount = 0
         self.energyPrice=energyPrice
         self.node = node
+        
         if status == None:
             self.status = "Created"
         else:
             self.status = status
+            
         if bidType == None:
             self.bidType = "Supply" if amount > 0 else "Demand"
         else:
             self.bidType = bidType
-        if redispatch_price == None:
-            self.redispatch_price = price
-        else:
-            self.redispatch_price = redispatch_price
+
 
     def __repr__(self):
         return self.ID
+
 
     def __add__(self, other):
         try:
@@ -45,9 +46,11 @@ class Bid(object):
             return Bid(amount=(self.amount + other)).amount  # but also things without
     __radd__ = __add__
     
+    
     def confirm(self):
         self.status = "Confirmed"
         self.confirmedAmount = self.amount
+        
         
     def partialConfirm(self, confirmedAmount=0):
         """
@@ -79,13 +82,11 @@ class Bid(object):
             self.confirmedAmount = self.amount
 
 
-            
     def reject(self):
         if 'IED' in self.ID:
             pass
         else:
             self.status = "Rejected"
             self.confirmedAmount = 0
-    
-    def redispatch(self, amount=0):
-        self.confirmedAmount += amount
+            
+        

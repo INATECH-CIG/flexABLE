@@ -20,42 +20,40 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Importing classes
-import agent
-import EOM
-import DHM
-import CRM
-import MeritOrder
-import resultsWriter
+from . import agent
+from . import EOM
+from . import DHM
+from . import CRM
+from . import MeritOrder
+from . import resultsWriter
 
 import pandas as pd
 from datetime import datetime
-from tqdm import tqdm
 
 import os
 
-# Managing the logger and TQDM
 # logging level correctly
 import logging
 
 logger = logging.getLogger("flexABLE")
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('numexpr.utils').setLevel(logging.ERROR)
-class TqdmLoggingHandler(logging.Handler):
-    def __init__(self, level=logging.NOTSET):
-        super().__init__(level)
+# class TqdmLoggingHandler(logging.Handler):
+#     def __init__(self, level=logging.NOTSET):
+#         super().__init__(level)
 
-    def emit(self, record):
-        try:
-            msg = self.format(record)
-            tqdm.tqdm.write(msg)
-            self.flush()
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except:
-            self.handleError(record) 
+#     def emit(self, record):
+#         try:
+#             msg = self.format(record)
+#             tqdm.tqdm.write(msg)
+#             self.flush()
+#         except (KeyboardInterrupt, SystemExit):
+#             raise
+#         except:
+#             self.handleError(record) 
 log = logging.getLogger (__name__)
 log.setLevel (logging.INFO)
-log.addHandler (TqdmLoggingHandler ())
+#log.addHandler (TqdmLoggingHandler ())
 
 
 

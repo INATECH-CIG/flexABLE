@@ -20,12 +20,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Importing classes
-from . import agent
-from .import EOM
-from .import DHM
-from .import CRM
-from .import MeritOrder
-from .import resultsWriter
+import agent
+import EOM
+import DHM
+import CRM
+import MeritOrder
+import resultsWriter
 
 import pandas as pd
 from datetime import datetime

@@ -38,22 +38,10 @@ import logging
 logger = logging.getLogger("flexABLE")
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('numexpr.utils').setLevel(logging.ERROR)
-# class TqdmLoggingHandler(logging.Handler):
-#     def __init__(self, level=logging.NOTSET):
-#         super().__init__(level)
 
-#     def emit(self, record):
-#         try:
-#             msg = self.format(record)
-#             tqdm.tqdm.write(msg)
-#             self.flush()
-#         except (KeyboardInterrupt, SystemExit):
-#             raise
-#         except:
-#             self.handleError(record) 
 log = logging.getLogger (__name__)
 log.setLevel (logging.INFO)
-#log.addHandler (TqdmLoggingHandler ())
+
 
 
 
@@ -140,6 +128,9 @@ class World():
             
             
     def runSimulation(self):
+        if self.currstep >= len(self.snapshots):
+            logger.warning("Simulation already finished, create World container again to run simulation again!")
+            return 0
         start = datetime.now()
         
         if self.writeResultsToDB:

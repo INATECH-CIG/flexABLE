@@ -5,3 +5,5 @@ output/MarketResults/EOM_DE.db.dir
 __pycache__/
 .pylint.d/
 input/reference_data_set-v1.0.0.xlsx
+input/plot_Fuel.py
+input/2021/~$FPP_DE_phase_out.xlsb.xlsx

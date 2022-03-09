@@ -10,7 +10,7 @@ from influxdb import DataFrameClient
 
 class ResultsWriter():
     
-    def __init__(self, databaseName, simulationID, startingDate='2018-01-01T00:00:00', host='localhost', port=8086, user='root', password='root', world=None):
+    def __init__(self, databaseName, simulationID, startingDate='2018-01-01T00:00:00', host='10.5.139.84', port=8086, user='root', password='root', world=None):
         self.user = user
         self.password = password
         self.databaseName = databaseName

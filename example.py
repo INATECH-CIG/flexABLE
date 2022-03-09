@@ -9,7 +9,7 @@ Created on Tue Apr 13 13:12:21 2021
 from flexABLE.flexABLE import World
 import pandas as pd
 
-scenarios = [(2016,120)]#,(2017,365),(2018,365),(2019,365)]
+scenarios = [(2016,1)]#,(2017,365),(2018,365),(2019,365)]
 
 importStorages = True
 importCRM = True
@@ -18,9 +18,9 @@ importCBT = True
 checkAvailability = True
 meritOrder = True
 
-writeResultsToDB = False
+writeResultsToDB = True
 
-
+print(f)
 for year, days in scenarios:
     startingPoint = 0
     snapLength = 96*days    

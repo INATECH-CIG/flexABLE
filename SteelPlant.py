@@ -75,35 +75,36 @@ class SteelPlant():
         
     def requestBid(self, t, market):
         bids=[]
-        bid1, bid2, bid3 = self.calculateBidEOM(t)
         
         #create three bids
         if market=="EOM":
-            bids.append(Bid(issuer = self,
-                            ID = "{}_norm_op_mrEOM".format(self.name),
-                            price = norm_op_bid_Quantity,
-                            amount = norm_op_bid_Price,
-                            status = "Sent",
-                            bidType = "Demand",
-                            node = self.node))
-            
-            #assuming bid2 is pos flexibility bid
-            bids.append(Bid(issuer = self,
-                            ID = "{}_pos_flex_mrEOM".format(self.name),
-                            price = pos_flex_bid_Quantity,
-                            amount = pos_flex_bid_Price,
-                            status = "Sent",
-                            bidType = "Supply",
-                            node = self.node))
+            bids.extend(self.calculateBidEOM(t))
 
-            #assuming bid3 is neg flexibility bid
-            bids.append(Bid(issuer = self,
-                            ID = "{}_neg_flex_mrEOM".format(self.name),
-                            price = neg_flex_bid_Quantity,
-                            amount = neg_flex_bid_Price,
-                            status = "Sent",
-                            bidType = "Demand",
-                            node = self.node))
+            # bids.append(Bid(issuer = self,
+            #                 ID = "{}_norm_op_mrEOM".format(self.name),
+            #                 price = norm_op_bid_Quantity,
+            #                 amount = norm_op_bid_Price,
+            #                 status = "Sent",
+            #                 bidType = "Demand",
+            #                 node = self.node))
+            
+            # #assuming bid2 is pos flexibility bid
+            # bids.append(Bid(issuer = self,
+            #                 ID = "{}_pos_flex_mrEOM".format(self.name),
+            #                 price = pos_flex_bid_Quantity,
+            #                 amount = pos_flex_bid_Price,
+            #                 status = "Sent",
+            #                 bidType = "Supply",
+            #                 node = self.node))
+
+            # #assuming bid3 is neg flexibility bid
+            # bids.append(Bid(issuer = self,
+            #                 ID = "{}_neg_flex_mrEOM".format(self.name),
+            #                 price = neg_flex_bid_Quantity,
+            #                 amount = neg_flex_bid_Price,
+            #                 status = "Sent",
+            #                 bidType = "Demand",
+            #                 node = self.node))
 
         return bids
     
@@ -252,7 +253,6 @@ class SteelPlant():
                 
                 
         return  (norm_op_bid_Quantity, norm_op_bid_Price,pos_flex_bid_Quantity, pos_flex_bid_Price ,neg_flex_bid_Quantity, neg_flex_bid_Price)
-
 
 
 

@@ -4,9 +4,10 @@ Created on Sun Apr  19 15:58:21 2020
 
 @author: intgridnb-02
 """
-from . import powerplant
-from . import vrepowerplants
-from . import storage
+from powerplant import Powerplant
+import vrepowerplants
+import storage
+from SteelPlant import SteelPlant
 
 class Agent():
     """
@@ -19,11 +20,12 @@ class Agent():
         self.name = name
         self.powerplants = {}
         self.storages = {}
+        self.demand_units = {}
         self.world = world
         
         
     def addPowerplant(self, name, availability = None, **kwargs):
-        self.powerplants[name] = powerplant.Powerplant(name = name, 
+        self.powerplants[name] = Powerplant(name = name, 
                                                        world = self.world,
                                                        maxAvailability = availability, 
                                                        **kwargs)
@@ -45,6 +47,14 @@ class Agent():
                                               **kwargs)
         
         self.world.storages.append(self.storages[name])
+
+    def addDemand(self, name, **kwargs):
+        self.demand_units[name] = SteelPlant(name = name, 
+                                              world=self.world, 
+                                              **kwargs)
+        
+        self.world.demand_units.append(self.demand_units[name])
+
         
         
     def calculateBid(self, t, market = "EOM"):

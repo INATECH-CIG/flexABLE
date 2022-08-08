@@ -19,13 +19,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+# %%
 # Importing classes
-from . import agent
-from . import EOM
-from . import DHM
-from . import CRM
-from . import MeritOrder
-from . import resultsWriter
+import agent
+import EOM
+import DHM
+import CRM
+import MeritOrder
+import resultsWriter
 
 import pandas as pd
 from datetime import datetime
@@ -55,8 +56,7 @@ log = logging.getLogger (__name__)
 log.setLevel (logging.INFO)
 #log.addHandler (TqdmLoggingHandler ())
 
-
-
+# %%
 class World():
     """
     This is the main container
@@ -65,6 +65,7 @@ class World():
         self.simulationID = simulationID
         self.powerplants = []
         self.storages = []
+        self.demand_units = []
         self.agents = {}
         self.markets = {"EOM":{},
                         "CRM":{}}
@@ -471,40 +472,40 @@ class World():
             logger.info("Merit Order calculated.")
             
             
-        
-if __name__ == "__main__":
-    scenarios = [(2016,366)]#,(2017,365),(2018,365),(2019,365)]
-    
-    
-    importStorages = True
-    importCRM = True
-    importDHM = True
-    importCBT = True
-    checkAvailability = True
-    meritOrder = True
-    
-    writeResultsToDB = False
-    
-    
-    for year, days in scenarios:
-        startingPoint = 0
-        snapLength = 96*days    
-        timeStamps = pd.date_range('{}-01-01T00:00:00'.format(year), '{}-01-01T00:00:00'.format(year+1), freq = '15T')
-        
-        example = World(snapLength,
-                        simulationID = 'example',
-                        startingDate = timeStamps[startingPoint],
-                        writeResultsToDB = writeResultsToDB)
-    
-        
-        example.loadScenario(scenario = '{}'.format(year),
-                             checkAvailability = checkAvailability,
-                             importStorages = importStorages,
-                             importCRM = importCRM,
-                             importCBT = importCBT,
-                             meritOrder = meritOrder)
-        
-        
-        example.runSimulation()
+# %%
+scenario = 'dsm_test'
+year = 2019
+days = 10
+
+importStorages = False
+importCRM = False
+importDHM = False
+importCBT = False
+checkAvailability = False
+meritOrder = True
+
+writeResultsToDB = False
+
+
+startingPoint = 0
+snapLength = 96*days    
+timeStamps = pd.date_range('{}-01-01T00:00:00'.format(year), '{}-01-01T00:00:00'.format(year+1), freq = '15T')
+
+env = World(snapLength,
+                simulationID = 'example',
+                startingDate = timeStamps[startingPoint],
+                writeResultsToDB = writeResultsToDB)
+
+
+env.loadScenario(scenario = scenario,
+                        checkAvailability=checkAvailability,
+                        importStorages=importStorages,
+                        importCRM=importCRM,
+                        importCBT=importCBT,
+                        importDHM=importDHM,
+                        meritOrder=meritOrder)
+
+# %%
+env.runSimulation()
         
         

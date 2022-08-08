@@ -4,8 +4,8 @@ Created on Sun Apr  19 17:04:23 2020
 
 @author: intgridnb-02
 """
-from .auxFunc import initializer
-from .bid import Bid
+from auxFunc import initializer
+from bid import Bid
 
 class VREPowerplant():
     

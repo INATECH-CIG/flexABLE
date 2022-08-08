@@ -1,84 +1,68 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Apr  20 19:24:32 2020
+Created on Sun Apr  19 16:38:21 2020
 
 @author: intgridnb-02
 """
+
+from auxFunc import initializer
+from bid import Bid
 import operator
-from .bid import Bid
 import logging
-from .MarketResults import MarketResults
+from MarketResults import MarketResults
 
-class CRM():
+
+class DHM():
     """
-    This class represents the control reserve market (aFFR and mFFR).
-    This class collects the bids from eligible market participants and performs market clearing.
-    The market clearing for the CAPACITY is performed on the basis of submitted capacity price.
-    The market clearing for the ENERGY is performd on the basis of submitted energy price.
-    The used mechaism for the market clearing is "pay as bid".
-    
+    This class represents the district heating market DHM.
+    This class collects the bids from eligible market participants and performs market clearing for each region separately.
+    The demand is formulated per region in Germany (Bundesland) and only power plants positioned
+    in that region can provide DH. No physical connection of power plants to the points of demand are considered.
+    The demand does not have to be fulfilled at each given time point.   
     """
     
-    def __init__(self, name, demand = None, world = None):
+    @initializer
+    def __init__(self, name, HLP_DH = None, annualDemand = None,  world = None):
         self.name = name
-        self.world = world
-        self.snapshots = self.world.snapshots
         
-        if demand == None:
-            self.demand = {"posCRMDemand":{t:0 for t in self.snapshots},
-                           "negCRMDemand":{t:0 for t in self.snapshots},
-                           "posCRMCall":{t:0 for t in self.snapshots},
-                           "negCRMCall":{t:0 for t in self.snapshots}}
+        if self.world.enable_DHM:
+            for region, demand in self.annualDemand.iterrows():
+                self.HLP_DH[region] = self.HLP_DH[region] * demand['Demand']
             
-        elif len(demand["posCRMDemand"]) == len(demand["negCRMDemand"]) == len(demand["posCRMCall"]) == len(demand["negCRMCall"]) == len(self.snapshots):
-            self.demand = demand
+            # Initiates a dictionary to sort out which powerplants are allowed to participate in which region
+            self.heatingDistricts = {region:[] for region in set([i.heatingDistrict for i in self.world.powerplants])}
             
-        else:
-            print("Length of given demand does not match snapshots length!")
-
-        self.bids = {"posCRMDemand":{t:[] for t in range(96)},
-                     "negCRMDemand":{t:[] for t in range(96)},
-                     "posCRMCall":{t:[] for t in range(96)},
-                     "negCRMCall":{t:[] for t in range(96)}}
-        
-        self.marketResults = {"posCRMDemand":{t:0 for t in range(96)},
-                              "negCRMDemand":{t:0 for t in range(96)},
-                              "posCRMCall":{t:0 for t in range(96)},
-                              "negCRMCall":{t:0 for t in range(96)}}
-        
-        
-    def step(self, t, agents):
-        for product in ["posCRMDemand","negCRMDemand"]:
+            self.bids = {region:[] for region in set([i.heatingDistrict for i in self.world.powerplants])}
             
-            if t % self.world.dtu and product in ["posCRMDemand","negCRMDemand"]:
-                self.marketResults[product][t % 96]  = self.marketResults[product][(t % 96) - 1]
-                self.bids[product][t % 96] = self.bids[product][(t % 96) - 1]
-                
-            else:
-                self.collectBids(agents, t, product)
-                self.marketClearing(t, product)
-                
+            for powerplant in self.world.powerplants:
+                if powerplant.heatExtraction:
+                    if powerplant.maxExtraction > 0:
+                        self.heatingDistricts[powerplant.heatingDistrict].append(powerplant)
+                        
+            for key,value in list(self.heatingDistricts.items()):
+                if value == []:
+                    del self.heatingDistricts[key]
+                    
         
-    def collectBids(self, agents, t, product):
-        self.bids[product][(t % 96)] = []
-        
-        if product == 'posCRMCall':
-            self.bids[product][(t % 96)].extend(self.marketResults['posCRMDemand'][((t % 96) // 16) * 16].confirmedBids)
-            
-        if product == 'negCRMCall':
-            self.bids[product][(t % 96)].extend(self.marketResults['negCRMDemand'][((t % 96) // 16) * 16].confirmedBids)
-            
+    def collectBids(self, agents, t):
         for agent in agents.values():
-            self.bids[product][(t % 96)].extend(agent.requestBid(t, product))
+            self.bids.extend(agent.request_bids(t))
+            
+            
+    def step(self, t):
+        '''
+        This function both requests bids from agents, and clears the market
+        '''
+        self.bids = {region:[] for region in self.bids.keys()}
+        
+        for region in self.heatingDistricts.keys():
+            for powerplant in self.heatingDistricts[region]:
+                self.bids[region].extend(powerplant.formulate_bids(t, market = 'DHM'))
+                
+            self.marketClearing(t, region)
             
 
-    def marketClearing(self, t, product):
-        
-        if product in ["posCRMDemand", "negCRMDemand"]:
-            sortingAttribute = 'price'
-        else:
-            sortingAttribute = 'energyPrice'
-         
+    def marketClearing(self, t, region):
         bidsReceived = {"Supply":[],
                         "Demand":[]}
         
@@ -86,23 +70,20 @@ class CRM():
         rejectedBids = []
         partiallyConfirmedBids = []
         
-        for b in self.bids[product][(t % 96)]:
-            if b.bidType =='InelasticDemand':
-                continue
-            
+        for b in self.bids[region]:
             bidsReceived[b.bidType].append(b)
-            
-        bidsReceived["Supply"].sort(key = operator.attrgetter(sortingAttribute),
+
+        bidsReceived["Supply"].sort(key = operator.attrgetter('price'),
                                     reverse = True)
         
-        bidsReceived["Demand"].append(Bid(issuer = self,
+        bidsReceived["Demand"].append(Bid(issuer = self, 
                                           ID = "IEDt{}".format(t),
                                           price = -3000,
-                                          amount = -self.demand[product][t],
+                                          amount = self.HLP_DH[region].at[t],
                                           status = "Sent",
                                           bidType = "InelasticDemand"))
         
-        bidsReceived["Demand"].sort(key = operator.attrgetter(sortingAttribute),
+        bidsReceived["Demand"].sort(key = operator.attrgetter('price'),
                                     reverse = True)
         
         sum_totalSupply = sum(bidsReceived["Supply"])
@@ -124,13 +105,13 @@ class CRM():
                                    issuer = self.name,
                                    confirmedBids = [],
                                    rejectedBids = bidsReceived["Demand"] + bidsReceived["Supply"],
-                                   marketClearingPrice = 0,
+                                   marketClearingPrice = 3000.2,
                                    marginalUnit = "None",
                                    status = "Case1",
                                    timestamp = t)
-            
+        
         #Case 2
-        elif self.demand[product][t] > sum_totalSupply:
+        elif self.HLP_DH[region].at[t] > sum_totalSupply:
             """
             Since the Inelastic demand is higher than the sum of all supply offers
             all the supply offers are confirmed
@@ -143,9 +124,10 @@ class CRM():
                 b.confirm()
                 
             bidsReceived["Demand"][-1].partialConfirm(sum_totalSupply)
+            
             partiallyConfirmedBids.append(bidsReceived["Demand"].pop())
             rejectedBids = list(set(bidsReceived["Supply"] + bidsReceived["Demand"]) - set(confirmedBids))
-            marketClearingPrice = getattr(sorted(confirmedBids, key = operator.attrgetter(sortingAttribute))[-1], sortingAttribute)
+            marketClearingPrice=sorted(confirmedBids, key = operator.attrgetter('price'))[-1].price
             
             result = MarketResults("{}".format(self.name),
                                    issuer = self.name,
@@ -155,17 +137,19 @@ class CRM():
                                    marketClearingPrice = marketClearingPrice,
                                    marginalUnit = "None",
                                    status = "Case2",
-                                   energyDeficit = self.demand[product][t] - sum_totalSupply,
+                                   energyDeficit = self.HLP_DH[region].at[t] - sum_totalSupply,
                                    energySurplus = 0,
                                    timestamp = t)
-
+            
         #Case 3
         else:
             confirmedBidsDemand = [bidsReceived["Demand"][-1]]
             # The inelastic demand is directly confirmed since the sum of supply energy it is enough to supply it
             bidsReceived["Demand"][-1].confirm()
+            
             confirmedBidsSupply = []
             confQty_demand = bidsReceived["Demand"][-1].amount
+            
             confQty_supply = 0
             currBidPrice_demand = 3000.00
             currBidPrice_supply = -3000.00
@@ -176,12 +160,12 @@ class CRM():
                 # Case 3.1: Demand is larger than confirmed supply, and the current demand price is
                 #         higher than the current supply price, which signals willingness to buy
                 # Case 3.2: Confirmed demand is less or equal to confirmed supply but the current 
-                #         demand price is higher than current supply price, which means there is still 
+                #         demand price is higher than current supply price, which means there is till 
                 #         willingness to buy and energy supply is still available, so an extra demand
                 #         offer is accepted
                 # Case 3.3: The intersection of the demand-supply curve has been exceeded (Confirmed Supply 
                 #         price is higher than demand)
-                # Case 3.4: The intersection of the demand-supply curve found, and the price of both offers
+                # Case 3.4: The intersection of the demand-supply curve found, and the price of bother offers
                 #         is equal
                 
                 
@@ -229,9 +213,9 @@ class CRM():
                 # Case 3.3    
                 # =============================================================================
                 elif currBidPrice_demand < currBidPrice_supply:
-                    
                     # Checks whether the confirmed demand is greater than confirmed supply
                     if (confQty_supply - confirmedBidsSupply[-1].amount) < (confQty_demand - confirmedBidsDemand[-1].amount):
+    
                         confQty_demand -= confirmedBidsDemand[-1].amount
                         confirmedBidsSupply[-1].partialConfirm(confirmedBidsSupply[-1].amount - (confQty_supply - confQty_demand))
                         bidsReceived["Demand"].append(confirmedBidsDemand.pop())
@@ -254,7 +238,7 @@ class CRM():
                 # Case 3.4
                 # =============================================================================
                 elif currBidPrice_demand == currBidPrice_supply:
-    
+                    
                     # Confirmed supply is greater than confirmed demand
                     if confQty_supply > confQty_demand:
                         confirmedBidsSupply[-1].partialConfirm(confirmedBidsSupply[-1].amount - (confQty_supply - confQty_demand))
@@ -270,19 +254,19 @@ class CRM():
                     else:
                         break
     
-                # Both price and amount for supply and demand are equal, market is cleared
+                # Confirmed supply and confirmed demand are equal
                 else:
                     break
             
             
             confirmedBids = confirmedBidsDemand + confirmedBidsSupply
             rejectedBids = list(set(bidsReceived["Supply"] + bidsReceived["Demand"]) - set(confirmedBids))
-            marketClearingPrice = getattr(sorted(confirmedBids,key=operator.attrgetter(sortingAttribute))[-1],sortingAttribute)
-            marginalUnit = sorted(confirmedBids,key=operator.attrgetter(sortingAttribute))[-1].ID
-
+            marketClearingPrice = sorted(confirmedBids, key = operator.attrgetter('price'))[-1].price
+            marginalUnit = sorted(confirmedBids, key = operator.attrgetter('price'))[-1].ID
+    
             result = MarketResults("{}".format(self.name),
                                    issuer = self.name,
-                                   confirmedBids = confirmedBids,
+                                   confirmedBids  = confirmedBids,
                                    rejectedBids = rejectedBids,
                                    partiallyConfirmedBids = partiallyConfirmedBids,
                                    marketClearingPrice = marketClearingPrice,
@@ -291,9 +275,8 @@ class CRM():
                                    energyDeficit = 0,
                                    energySurplus = 0,
                                    timestamp = t)
-
-
-        self.marketResults[product][(t % 96)] = result
-        
+            
+    
     def feedback(self,award):
         pass
+

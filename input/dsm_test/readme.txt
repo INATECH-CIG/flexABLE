@@ -1,0 +1,11 @@
+-scale 11
+-no renewables
+-no CBT
+-forecast = true values
+-min power = 1
+-restart cost = 0
+-min times = 0
+-this scenario mimics merit order setup
+-4 hard coal and 4 gas pp with same cost, 1 gas pp limiting at 80 eur
+-regret scale = 0.0
+-single learning pp

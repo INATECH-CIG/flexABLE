@@ -5,9 +5,9 @@ Created on Sun Apr  19 16:08:03 2020
 @author: intgridnb-02
 """
 import operator
-from .bid import Bid
+from bid import Bid
 import logging
-from .MarketResults import MarketResults
+from MarketResults import MarketResults
 
 
 class EOM():

@@ -1,0 +1,6 @@
+name,technology,maxCapacity,minProduction,optimization_horizon,HBI_StorageCapacity,profit_margin
+KKW_ISAR_2,Steel_Plant,1500,375,24,200,0
+Steel_plant2,Steel_Plant,5000,1250,72,500,0
+Steel_plant3,Steel_Plant,1000,250,24,0,0
+Steel_plant4,Steel_Plant,2000,500,48,100,0
+Steel_plant5,Steel_Plant,3000,750,72,300,0

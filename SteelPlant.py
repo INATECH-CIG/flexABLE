@@ -53,7 +53,7 @@ class SteelPlant():
         #eventually replace with something similar to average price in storage agents
         self.elec_price = np.array(input_data['electricity_price']) 
         
-    def step(self):
+    def step(self,t):
         
         self.dictCapacity[self.world.currstep] = 0
         
@@ -81,7 +81,7 @@ class SteelPlant():
             #Assumed base_model_params are avaialbe for base scenario...normal time horizon, no flexibility           
             
             #Bid_1 - Normal Operation
-            norm_op_bid_Quantity = self.base_model_params['elec_cons'][self.optimization_horizon]
+            norm_op_bid_Quantity = self.base_model_params['elec_cons'][t]
             norm_op_bid_Price = norm_op_bid_Quantity * self.elec_price[t]
             
             #Bid 2 - Pos Flex

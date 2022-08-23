@@ -37,33 +37,39 @@ class SteelPlant():
         # bids status parameters
         self.snapshots = range(100)
         self.optimization_horizon = 24
-        
-        self.dictCapacity = {n:None for n in snapshots}
-
-
+    
         # Unit status parameters
         self.sentBids=[]          
            
         self.limits = self.calc_power_limits()
         self.solver = pyo.SolverFactory('glpk') 
         
+        self.dict_capacity_opt = {n:0 for n in self.world.snapshots}
+        self.dict_capacity_neg_flex = {n:0 for n in self.world.snapshots}
+        self.dict_capacity_pos_flex = {n:0 for n in self.world.snapshots}
+        
         #eventually replace with something similar to average price in storage agents
-        self.elec_price = np.array(input_data['electricity_price']) 
+        #self.elec_price = np.array(input_data['electricity_price']) 
 
     def reset(self):
         """
         Resets the status of the simulation
         """
         self.sentBids = []
-        self.limits = self.calc_power_limits()
+        self.limits = self.calc_power_limits(time_horizon =self.world.snapshots)
         self.solver = pyo.SolverFactory
 
-        #1) run optimization for the whole simulation horizon and extract values
-        # 2) save the optimization values in following dicts
-        self.dict_capacity_opt = {n:0 for n in self.world.snapshots}
-        self.dict_capacity_neg_flex = {n:0 for n in self.world.snapshots}
-        self.dict_capacity_pos_flex = {n:0 for n in self.world.snapshots}
 
+        #run optimization for the whole simulation horizon         
+        self.model = self.process_opt(time_horizon = self.world.snapshots,flexibility_params=None)
+        self.model_params = self.get_values(self.model, time_horizon = self.world.snapshots)
+        
+        #and extract values
+        self.dict_capacity_opt = self.model_params.elec_cons
+        self.dict_capacity_pos_flex, self.dict_capacity_neg_flex = self.flexibility_available(time_horizon = self.world.snapshots, 
+                                                                                               model = self.model)
+
+        #create dictionaries for the confirmed capacities
         self.conf_opt = {n:0 for n in self.world.snapshots}
         self.conf_neg_flex = {n:0 for n in self.world.snapshots}
         self.conf_pos_flex = {n:0 for n in self.world.snapshots}
@@ -189,10 +195,10 @@ class SteelPlant():
             neg_flex_bid_Quantity, neg_flex_bid_Price
 
 
-    def calc_power_limits(self):
+    def calc_power_limits(self, time_horizon):
 
 
-        liquid_steel_max = self.max_capacity/self.optimization_horizon
+        liquid_steel_max = self.max_capacity/time_horizon
         liquid_steel_min = .25*liquid_steel_max
         
         dri_max = liquid_steel_max*self.mass_ratio_DRI
@@ -228,11 +234,11 @@ class SteelPlant():
         return limits
 
 
-    def process_opt(self, flexibility_params=None):
+    def process_opt(self,time_horizon, flexibility_params=None):
 
         model = pyo.ConcreteModel()    
         
-        model.t = pyo.RangeSet(1, self.optimization_horizon)
+        model.t = pyo.RangeSet(1, time_horizon)
 
                 
         model.iron_ore = pyo.Var(model.t, domain = pyo.NonNegativeReals) 
@@ -354,12 +360,12 @@ class SteelPlant():
 
         return model
     
-    def flexibility_available(self, model) :
+    def flexibility_available(self, time_horizon, model) :
         
         self.pos_flex_total = []
         self.neg_flex_total = []
             
-        for i in range(1, self.optimization_horizon+1):
+        for i in range(1, time_horizon+1):
                      
         # potential to increase elec consumption from grid
           self.neg_flex_total.append(self.limits['Total_max'] - self.elec_cons[i-1])
@@ -369,6 +375,75 @@ class SteelPlant():
                        
                           
         return self.pos_flex_total, self.neg_flex_total
+    
+        
+    def get_values(self,model,time_horizon):
+        
+        model_params = dict()
+        
+        time = []
+        iron_ore = []
+        storage_status = []
+        dri_direct = []
+        dri_to_storage = []
+        dri_from_storage = []
+        liquid_steel = []
+        elec_cons = []
+        elec_cost = []
+        ng_cons = []
+        ng_cost = []
+        coal_cons = []
+        coal_cost = []
+        
+    
+    # list to check flexibility calc in model 
+        elec_cons_EH = []
+        elec_cons_DRP = []
+        elec_cons_AF = []
+        storage = []
+    
+        
+        for i in range(1,time_horizon+1):
+            time.append(i)
+            
+            iron_ore.append(model.iron_ore[i].value)
+            dri_direct.append(model.dri_direct[i].value)
+            dri_to_storage.append(model.dri_to_storage[i].value)
+            dri_from_storage.append( model.dri_from_storage[i].value)
+            liquid_steel.append(model.liquid_steel[i].value)
+            elec_cons.append(model.elec_cons[i].value)
+            elec_cost.append(model.elec_cost[i].value)
+            ng_cons.append(model.ng_cons[i].value)
+            ng_cost.append(model.ng_cost[i].value)
+            coal_cons.append(model.coal_cons[i].value)
+            coal_cost.append(model.coal_cost[i].value)
+            
+            elec_cons_EH.append(self.spec_elec_cons_EH*model.iron_ore[i].value)
+            elec_cons_DRP.append(self.spec_elec_cons_DRP*(model.dri_direct[i].value + model.dri_to_storage[i].value))
+            elec_cons_AF.append( self.spec_elec_cons_AF*model.liquid_steel[i].value)
+            storage_status.append(model.storage_status[i].value)
+            storage.append(model.storage[i].value)
+    
+        
+            
+            model_params['time_step'] = time
+            model_params['iron_ore'] = iron_ore
+            model_params['dri_direct'] = dri_direct
+            model_params['dri_to_storage'] = dri_to_storage
+            model_params['dri_from_storage'] = dri_from_storage
+            model_params['liquid_steel'] =liquid_steel
+            model_params['elec_cons'] =elec_cons
+            model_params['ng_cons'] = ng_cons
+            model_params['coal_cons'] =coal_cons
+            model_params['coal_cost'] = coal_cost
+            model_params['EH_elec_cons'] = elec_cons_EH
+            model_params['DRP_elec_cons'] = elec_cons_DRP
+            model_params['AF_elec_cons'] = elec_cons_AF
+            model_params['storage_status'] = storage_status
+            model_params['storage'] = storage
+                       
+        return model_params
+            
     
     
     

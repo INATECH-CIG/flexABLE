@@ -4,7 +4,7 @@ Created on Sun Apr  19 17:04:23 2020
 
 @author: intgridnb-02
 """
-from auxFunc import initializer
+from misc import initializer
 from bid import Bid
 
 class VREPowerplant():
@@ -29,27 +29,30 @@ class VREPowerplant():
         # bids status parameters
         self.dictFeedIn = {n:m for n,m in zip(self.world.snapshots,FeedInTimeseries)}
         
-        self.dictCapacity = {n:None for n in self.world.snapshots}
-        self.dictCapacity[self.world.snapshots[0]] = self.maxPower
-        self.dictCapacity[-1] = self.maxPower
+        self.total_capacity = [0. for _ in self.world.snapshots]
+        self.total_capacity[self.world.snapshots[0]] = self.maxPower
+        self.total_capacity[-1] = self.maxPower
 
-        self.dictCapacityMR = {n:(0,0) for n in self.world.snapshots}
-        self.dictCapacityFlex = {n:(0,0) for n in self.world.snapshots}
-        
+        self.bids_mr = {n:(0,0) for n in self.world.snapshots}
+        self.bids_flex = {n:(0,0) for n in self.world.snapshots}
+
+        self.rewards = [0. for _ in self.world.snapshots]
+        self.regrets = [0. for _ in self.world.snapshots]
+        self.profits = [0. for _ in self.world.snapshots]
+
         # Unit status parameters
         self.sentBids=[]
         
         
     def step(self):
-        self.dictCapacity[self.world.currstep] = 0
+        self.total_capacity[self.world.currstep] = 0
         
         for bid in self.sentBids:
-            self.dictCapacity[self.world.currstep] += bid.confirmedAmount
+            self.total_capacity[self.world.currstep] += bid.confirmedAmount
             if 'mrEOM' in bid.ID:
-                self.dictCapacityMR[self.world.currstep] = (bid.confirmedAmount, bid.price)
-                
+                self.bids_mr[self.world.currstep] = (bid.confirmedAmount, bid.price) 
             else:
-                self.dictCapacityFlex[self.world.currstep] = (bid.confirmedAmount, bid.price)
+                self.bids_flex[self.world.currstep] = (bid.confirmedAmount, bid.price)
                 
         self.sentBids=[]
         
@@ -58,9 +61,9 @@ class VREPowerplant():
         self.sentBids.append(bid)
         
         
-    def requestBid(self, t, market):
+    def formulate_bids(self, t, market):
         bids=[]
-        bidQuantity_mr, bidPrice_mr = self.calculateBidEOM(t)
+        bidQuantity_mr, bidPrice_mr = self.calculate_bids_EOM(t)
         
         if market=="EOM":
             if bidQuantity_mr != 0:
@@ -75,12 +78,12 @@ class VREPowerplant():
         return bids
     
     
-    def calculateBidEOM(self, t):
-        marginalCost = -500 if 'Biomass' in self.name else -500
+    def calculate_bids_EOM(self, t):
+        marginalCost = -90 if 'Biomass' in self.name else 0
         
         return self.dictFeedIn[t], marginalCost
     
     
-    def checkAvailability(self, t):
+    def check_availability(self, t):
         pass
 

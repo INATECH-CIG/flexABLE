@@ -1,0 +1,2 @@
+name,technology,max_power_ch,max_power_dis,efficiency_ch,efficiency_dis,min_soc,max_soc,variable_cost_ch,variable_cost_dis,natural_inflow,company,node,learning
+st_01,PSPP,500.0,500.0,0.87,0.92,1.0,5000.0,0.28,0.28,0,operator_1,0,1

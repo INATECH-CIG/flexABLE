@@ -5,7 +5,7 @@ Created on Sun Apr  19 16:38:21 2020
 @author: intgridnb-02
 """
 
-from auxFunc import initializer
+from misc import initializer
 from bid import Bid
 import operator
 import logging

@@ -22,7 +22,7 @@ class EOM():
             print("Length of given demand does not match snapshots length!")
         else:
             self.demand = demand
-
+            
         if CBtrades is None:
             self.CBtrades = {"Import":{t:0 for t in self.snapshots},
                              "Export":{t:0 for t in self.snapshots}}
@@ -34,7 +34,7 @@ class EOM():
         self.bids = []
         
         
-    def step(self,t,agents):
+    def step(self, t, agents):
         self.collectBids(agents, t)
         self.marketClearing(t)
     
@@ -42,7 +42,7 @@ class EOM():
     def collectBids(self, agents, t):
         self.bids = []
         for agent in agents.values():
-            self.bids.extend(agent.requestBid(t))
+            self.bids.extend(agent.request_bids(t))
 
 
     def marketClearing(self,t):
@@ -278,9 +278,11 @@ class EOM():
                        energyDeficit = 0,
                        energySurplus = 0,
                        timestamp = t)
+            
+        self.world.mcp[t] = result.marketClearingPrice
 
-        self.world.dictPFC[t] = result.marketClearingPrice
-
+        if self.world.rl_mode:
+            self.world.scaled_mcp[self.world.currstep] = result.marketClearingPrice/100
 
     def feedback(self,award):
         pass

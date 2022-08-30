@@ -50,7 +50,7 @@ class CRM():
     def step(self, t, agents):
         for product in ["posCRMDemand","negCRMDemand"]:
             
-            if t % self.world.dtu and product in ["posCRMDemand","negCRMDemand"]:
+            if t % self.world.crm_timestep and product in ["posCRMDemand","negCRMDemand"]:
                 self.marketResults[product][t % 96]  = self.marketResults[product][(t % 96) - 1]
                 self.bids[product][t % 96] = self.bids[product][(t % 96) - 1]
                 
@@ -69,7 +69,7 @@ class CRM():
             self.bids[product][(t % 96)].extend(self.marketResults['negCRMDemand'][((t % 96) // 16) * 16].confirmedBids)
             
         for agent in agents.values():
-            self.bids[product][(t % 96)].extend(agent.requestBid(t, product))
+            self.bids[product][(t % 96)].extend(agent.request_bids(t, product))
             
 
     def marketClearing(self, t, product):

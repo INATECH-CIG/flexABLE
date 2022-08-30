@@ -6,7 +6,7 @@ Created on 18 July 2022
 
 """
 from tracemalloc import Snapshot
-from auxFunc import initializer
+from misc import initializer
 from bid import Bid
 import pyomo.environ as pyo
 from pyomo.opt import SolverFactory
@@ -68,6 +68,8 @@ class SteelPlant():
         """
         Resets the status of the simulation
         """
+        self.total_capacity = [0. for n in self.world.snapshots]
+        
         self.sentBids = []
         self.limits = self.calc_power_limits(time_horizon =len(self.world.snapshots))     
         self.solver = pyo.SolverFactory
@@ -95,23 +97,21 @@ class SteelPlant():
     def step(self):
         t = self.world.currstep
 
-        self.dictCapacity[self.world.currstep] = 0
-        
         for bid in self.sentBids:
             if 'norm_op_mrEOM' in bid.ID or 'neg_flex_mrEOM' in bid.ID:
-                self.dictCapacity[t] += bid.confirmedAmount
+                self.total_capacity[t] += bid.confirmedAmount
             elif 'pos_flex_mrEOM' in bid.ID:
-                self.dictCapacity[t] -= bid.confirmedAmount
+                self.total_capacity[t] -= bid.confirmedAmount
 
-        if self.dictCapacity[t] == self.dict_capacity_opt[t]: #equal to the optimal operation
+        if self.total_capacity[t] == self.dict_capacity_opt[t]: #equal to the optimal operation
                 self.total_liquid_steel_produced += self.model_params['liquid_steel'][t]
                 
 
         else:
             # define consumption signal
             flexibility_params = {'hour_called': 0,
-                                'cons_signal':self.dictCapacity[t]}
-            
+                                  'cons_signal': self.total_capacity[t]}
+
             #rerun optimization
                 #reset time horizon to = simulation horizon - number of steps already performed
                 #reset goal steel production, detracting the amount of steel already produced in previous steps 
@@ -131,14 +131,9 @@ class SteelPlant():
             self.dict_capacity_pos_flex[t: ], self.dict_capacity_neg_flex[t: ] = self.flexibility_available(time_horizon = len(self.world.snapshots) - self.world.currstep, 
                                                                                                    model = self.flex_case,
                                                                                                    elec_cons=self.flex_params['elec_cons'])
-            
-            
-                     
-                      
+                 
         self.sentBids = []
                 
-
-               
         
     def feedback(self, bid):
 
@@ -165,7 +160,7 @@ class SteelPlant():
         self.sentBids.append(bid)
         
         
-    def requestBid(self, t, market):
+    def formulate_bids(self, t, market="EOM"):
         bids=[]
         
         #create three bids
@@ -219,8 +214,6 @@ class SteelPlant():
 
 
     def calc_power_limits(self, time_horizon):
-
-
         liquid_steel_max = self.max_capacity/time_horizon
         liquid_steel_min = .25*liquid_steel_max
         
@@ -263,7 +256,6 @@ class SteelPlant():
         
         model.t = pyo.RangeSet(1, time_horizon)
 
-                
         model.iron_ore = pyo.Var(model.t, domain = pyo.NonNegativeReals) 
         model.storage_status = pyo.Var(model.t, within=pyo.Binary)
 
@@ -448,7 +440,6 @@ class SteelPlant():
             storage.append(model.storage[i].value)
     
         
-            
             model_params['time_step'] = time
             model_params['iron_ore'] = iron_ore
             model_params['dri_direct'] = dri_direct

@@ -4,7 +4,7 @@ Created on Sun Apr  19 16:31:19 2020
 
 @author: intgridnb-02
 """
-from auxFunc import initializer
+from misc import initializer
 
 
 class MarketResults():
@@ -54,6 +54,14 @@ class MarketResults():
 
         """
         self.feedback()
+        #self.describe()
+    def describe(self):
+        print("|---------------------------------------------")
+        print("|Rejected bids: {:>20}".format(len(self.rejectedBids)))
+        print("|Confirmed bids: {:>19}".format(len(self.confirmedBids)))
+        print("|Partially confirmed bids: {:>9}".format(len(self.partiallyConfirmedBids)))
+        print("|Market clearing price: {:>13.2f}".format(self.marketClearingPrice))
+        print("|---------------------------------------------")
 
     def feedback(self):
         for bid in self.confirmedBids:

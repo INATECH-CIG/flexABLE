@@ -38,11 +38,17 @@ class SteelPlant():
         # bids status parameters
         self.snapshots = range(100)
       
-        self.optimization_horizon = 24
-        
-        #annual steel production target
-        self.steel_prod = self.max_capacity * 365
-    
+        self.optimization_horizon = 48
+       
+       #daily steel production target
+        self.daily_steel_prod_target = self.max_capacity * 0.8
+       
+       #average hourly production target 
+        self.hourly_prod = self.daily_steel_prod_target/24
+       
+       #annual steel production target
+        self.steel_prod = self.daily_steel_prod_target* 365
+       
         # Unit status parameters
         self.sentBids=[]          
            
@@ -112,23 +118,30 @@ class SteelPlant():
             flexibility_params = {'hour_called': 0,
                                   'cons_signal': self.total_capacity[t]}
 
-            #rerun optimization
-                #reset time horizon to = simulation horizon - number of steps already performed
-                #reset goal steel production, detracting the amount of steel already produced in previous steps 
-            self.flex_case = self.process_opt(time_horizon = len(self.world.snapshots) - self.world.currstep ,
-                                              steel_prod =self.steel_prod - self.total_liquid_steel_produced,
+           
+            #determine how much liquid steel needs to be compensated for 
+            # deficit will be positive when pos flex called
+            # deficit will be negative when neg flex called 
+            self.steel_deficit = self.hourly_prod - self.model_params['liquid_steel'][t] 
+            self.steel_prod_opt_horizon = self.optimization_horizon*self.hourly_prod + self.steel_deficit
+                
+                          
+                       
+           #rerun optimization (compensate steel prod within 48 hour optimization horizon)
+            self.flex_case = self.process_opt(time_horizon = self.optimization_horizon ,
+                                              steel_prod =self.steel_prod_opt_horizon,
                                               flexibility_params=flexibility_params)
             
             #extract values of flex_case
-            self.flex_params = self.get_values(self.flex_case, time_horizon = len(self.world.snapshots) - self.world.currstep)
+            self.flex_params = self.get_values(self.flex_case, time_horizon =  self.optimization_horizon)
             
                         
             #save new steel production - will be first value in new flex_params dict
             self.total_liquid_steel_produced += self.flex_params['liquid_steel'][0] 
             
-            #update capacity dictionaries from current time step onwards
-            self.dict_capacity_opt[t: ] = self.flex_params['elec_cons']
-            self.dict_capacity_pos_flex[t: ], self.dict_capacity_neg_flex[t: ] = self.flexibility_available(time_horizon = len(self.world.snapshots) - self.world.currstep, 
+            #update capacity dictionaries from current time step until optimization horizon ends
+            self.dict_capacity_opt[t: t+ self.optimization_horizon ] = self.flex_params['elec_cons']
+            self.dict_capacity_pos_flex[t:t+ self.optimization_horizon ], self.dict_capacity_neg_flex[t: ] = self.flexibility_available(time_horizon = self.optimization_horizon, 
                                                                                                    model = self.flex_case,
                                                                                                    elec_cons=self.flex_params['elec_cons'])
                  

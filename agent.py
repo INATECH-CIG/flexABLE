@@ -13,6 +13,7 @@ from storage import Storage
 from optstorage import OptStorage
 from rlpowerplant import RLPowerplant
 from rlstorage import RLStorage
+from SteelPlant import SteelPlant
 from bid import Bid
 
 
@@ -32,7 +33,7 @@ class Agent():
         self.rl_powerplants = {}
         self.storages = {}
         self.rl_storages = {}
-
+        self.dsm_units = {}
         self.rl_agent = False
 
 
@@ -52,7 +53,9 @@ class Agent():
         for unit in self.rl_storages.values():
             unit.reset()
 
-        
+        for unit in self.dsm_units.values():
+            unit.reset()
+             
     def add_conv_powerplant(self, name, availability = None, **kwargs):
         self.conv_powerplants[name] = Powerplant(name=name,
                                                  agent=self,
@@ -114,7 +117,14 @@ class Agent():
         
         self.world.rl_storages.append(self.rl_storages[name])
 
+    def add_dsm_unit(self, name, **kwargs):
+        self.dsm_unit[name] = SteelPlant(name=name,
+                                                   agent=self,
+                                                   world=self.world,
+                                                   **kwargs)
 
+        self.world.dsm_units.append(self.dsm_unit[name])
+        
     def calculate_conv_bids(self, t, market = "EOM"):
         for unit in self.conv_powerplants.values():
             try:
@@ -131,6 +141,8 @@ class Agent():
         for unit in self.storages.values():
             self.bids.extend(unit.formulate_bids(t, market))
 
+        for unit in self.dsm_units.values():
+            self.bids.extend(unit.formulate_bids(t, market))
 
     def calculate_rl_bids(self):
         actions = th.zeros(size=(len(self.rl_powerplants)+len(self.rl_storages),self.world.act_dim),
@@ -228,7 +240,9 @@ class Agent():
 
         for storage in self.rl_storages.values():
             storage.step()
-
+        
+        for unit in self.dsm_units.values():
+            unit.step()
 
     def check_availability(self):
         for pp in self.conv_powerplants.values():

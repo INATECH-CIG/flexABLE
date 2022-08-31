@@ -6,7 +6,7 @@ from tqdm.notebook import tqdm
 from flexABLE import World
 
 # %% run training on defined scenario
-scenario ={'scenario':'dsm_test/case_01', 'id':'st_01_base', 'year':2019, 'days':60, 'scale':10}
+scenario ={'scenario':'dsm_test/case_01', 'id':'dsm_01', 'year':2019, 'days':60, 'scale':10}
 if 'opt' in scenario['id']:
     opt_storages = True
     rl_mode = False
@@ -47,9 +47,10 @@ world = World(snapshots=snapLength,
 
 # %% Load scenario
 world.load_scenario(startingPoint=startingPoint,
-                    importStorages=True,
+                    importStorages=False,
+                    import_dsm_units = True,
                     opt_storages=opt_storages,
-                    importCBT=True,
+                    importCBT=False,
                     scale=scenario['scale'])
 
 # %% Start training
@@ -105,22 +106,6 @@ else:
         world.results_writer.save_results_to_DB()
     world.logger.info("################")
 
-# %%
-world.training=False
-for unit in world.rl_powerplants+world.rl_storages:
-   unit.load_params(load_params={'id': scenario['id'], 'dir': 'best_policy'})
-world.run_evaluation()
-world.results_writer.save_results_to_DB()
-world.logger.info("################")
-
-
-# %%
-tempDF = pd.DataFrame(world.mcp,
-                      index=pd.date_range(world.starting_date,
-                      periods=len(world.snapshots), freq='15T'),
-                      columns=['Price']).astype('float32')
-
-tempDF.to_csv('input/' + scenario['scenario'] + '/mcp.csv')
 
 # %%
 # historic_prices = pd.read_csv('input/{}/Historic_Prices.csv'.format(scenario['scenario']),

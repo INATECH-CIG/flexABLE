@@ -81,7 +81,7 @@ class World():
         self.vre_powerplants = []
         self.storages = []
         self.rl_storages = []
-
+        self.dsm_units = []
         self.markets = {"EOM": {},
                         "CRM": {}}
 
@@ -324,6 +324,7 @@ class World():
     def load_scenario(self,
                       startingPoint=0,
                       importStorages=False,
+                      import_dsm_units =False,
                       opt_storages=False,
                       importCBT=False,
                       scale = 1):
@@ -404,7 +405,21 @@ class World():
                     self.agents[args['company']].add_storage(storage, opt_storages, **dict(args))
                 else:
                     self.agents[args['company']].add_rl_storage(storage, **dict(args))
-        
+        # =====================================================================
+        # Adding DMS units
+        # =====================================================================
+        if import_dsm_units:
+            dsm_units = pd.read_csv('input/{}/Steel_DE.csv'.format(self.scenario),
+                                      index_col=0,
+                                      encoding="Latin-1")
+
+            for _ in dsm_units.company.unique():
+                if _ not in self.agents:
+                    self.add_agent(_)
+
+            for dsm_unit, args in dsm_units.iterrows():
+               self.agents[args['company']].add_dsm_unit(dsm_unit, **dict(args))
+               
         # =====================================================================
         # Load renewable power generation
         # =====================================================================

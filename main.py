@@ -1,12 +1,13 @@
 # %% import all packages
+import numpy as np 
 import pandas as pd
 from datetime import datetime
 from tqdm.notebook import tqdm
-
+from torch.utils.tensorboard import SummaryWriter
 from flexABLE import World
 
 # %% run training on defined scenario
-scenario ={'scenario':'dsm_test/case_01', 'id':'dsm_01', 'year':2019, 'days':60, 'scale':10}
+scenario ={'scenario':'dsm_test/case_01', 'id':'dsm_01', 'year':2019, 'days':10, 'scale':10}
 if 'opt' in scenario['id']:
     opt_storages = True
     rl_mode = False
@@ -47,7 +48,7 @@ world = World(snapshots=snapLength,
 
 # %% Load scenario
 world.load_scenario(startingPoint=startingPoint,
-                    importStorages=False,
+                    importStorages=True,
                     import_dsm_units = True,
                     opt_storages=opt_storages,
                     importCBT=False,

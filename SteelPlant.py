@@ -31,9 +31,11 @@ class SteelPlant():
                 spec_elec_cons_AF = .575,
                 spec_NG_cons_DRP = 1.56,
                 spec_NG_cons_AF = .216,
-                spec_coal_cons_AF = .028,                 
+                spec_coal_cons_AF = .028,  
+                company = 'producer_01',
                  node = 'Bus_DE',
-                 world = None):
+                 world = None,
+                  **kwargs):
         
         # bids status parameters
         self.snapshots = range(100)

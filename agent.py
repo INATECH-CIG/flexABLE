@@ -16,6 +16,7 @@ from rlstorage import RLStorage
 from SteelPlant import SteelPlant
 from bid import Bid
 
+#%%
 
 class Agent():
     """
@@ -118,12 +119,12 @@ class Agent():
         self.world.rl_storages.append(self.rl_storages[name])
 
     def add_dsm_unit(self, name, **kwargs):
-        self.dsm_unit[name] = SteelPlant(name=name,
+        self.dsm_units[name] = SteelPlant(name=name,
                                                    agent=self,
                                                    world=self.world,
                                                    **kwargs)
 
-        self.world.dsm_units.append(self.dsm_unit[name])
+        self.world.dsm_units.append(self.dsm_units[name])
         
     def calculate_conv_bids(self, t, market = "EOM"):
         for unit in self.conv_powerplants.values():

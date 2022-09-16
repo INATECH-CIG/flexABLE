@@ -14,7 +14,7 @@ if 'opt' in scenario['id']:
 elif 'base' in scenario['id']:
     opt_storages = False
     rl_mode = False
-else:
+else: 
     opt_storages = False
     rl_mode = True
 

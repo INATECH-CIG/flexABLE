@@ -54,49 +54,49 @@ class SteelPlant():
         # Unit status parameters
         self.sentBids=[]          
            
-        self.limits = self.calc_power_limits(time_horizon = len(self.world.snapshots))
+        self.limits = self.calc_power_limits(time_horizon = len(self.snapshots))
         self.solver = pyo.SolverFactory('glpk') 
         
         #Left in case initialization needed
-        #self.dict_capacity_opt = {n:0 for n in self.world.snapshots}
-        #self.dict_capacity_neg_flex = {n:0 for n in self.world.snapshots}
-        #self.dict_capacity_pos_flex = {n:0 for n in self.world.snapshots}
+        #self.dict_capacity_opt = {n:0 for n in self.snapshots}
+        #self.dict_capacity_neg_flex = {n:0 for n in self.snapshots}
+        #self.dict_capacity_pos_flex = {n:0 for n in self.snapshots}
         
         #price signals for elec, NG, and coal 
-        self.elec_price_signal = np.empty(len(self.world.snapshots), dtype=np.float)
+        self.elec_price_signal = np.empty(len(self.snapshots), dtype=np.float)
         self.elec_price_signal.fill(30)
         
-        self.ng_price_signal = np.empty(len(self.world.snapshots), dtype=np.float)
+        self.ng_price_signal = np.empty(len(self.snapshots), dtype=np.float)
         self.ng_price_signal.fill(25)
         
-        self.coal_price_signal = np.empty(len(self.world.snapshots), dtype=np.float)
+        self.coal_price_signal = np.empty(len(self.snapshots), dtype=np.float)
         self.coal_price_signal.fill(8.5)
 
     def reset(self):
         """
         Resets the status of the simulation
         """
-        self.total_capacity = [0. for n in self.world.snapshots]
+        self.total_capacity = [0. for n in self.snapshots]
         
         self.sentBids = []
-        self.limits = self.calc_power_limits(time_horizon =len(self.world.snapshots))     
+        self.limits = self.calc_power_limits(time_horizon =len(self.snapshots))     
         self.solver = pyo.SolverFactory
 
 
         #run optimization for the whole simulation horizon         
-        self.model = self.process_opt(time_horizon = len(self.world.snapshots),steel_prod =self.steel_prod ,flexibility_params=None)
-        self.model_params = self.get_values(self.model, time_horizon = len(self.world.snapshots))
+        self.model = self.process_opt(time_horizon = len(self.snapshots),steel_prod =self.steel_prod ,flexibility_params=None)
+        self.model_params = self.get_values(self.model, time_horizon = len(self.snapshots))
         
         #and extract values
         self.dict_capacity_opt = self.model_params['elec_cons']
-        self.dict_capacity_pos_flex, self.dict_capacity_neg_flex = self.flexibility_available(time_horizon = self.world.snapshots, 
+        self.dict_capacity_pos_flex, self.dict_capacity_neg_flex = self.flexibility_available(time_horizon = self.snapshots, 
                                                                                                model = self.model,
                                                                                                elec_cons=self.model_params['elec_cons'])
         
         #create dictionaries for the confirmed capacities
-        self.conf_opt = {n:0 for n in self.world.snapshots}
-        self.conf_neg_flex = {n:0 for n in self.world.snapshots}
-        self.conf_pos_flex = {n:0 for n in self.world.snapshots}
+        self.conf_opt = {n:0 for n in self.snapshots}
+        self.conf_neg_flex = {n:0 for n in self.snapshots}
+        self.conf_pos_flex = {n:0 for n in self.snapshots}
 
         #varaible to keep track of steel produciton
         self.total_liquid_steel_produced = 0

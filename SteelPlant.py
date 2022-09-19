@@ -43,18 +43,15 @@ class SteelPlant():
         self.optimization_horizon = 48
        
        #daily steel production target
-        self.daily_steel_prod_target = self.max_capacity * 0.8
-       
-       #average hourly production target 
-        self.hourly_prod = self.daily_steel_prod_target/24
-       
+        self.hourly_production_target = self.max_capacity * 0.8
+     
        #annual steel production target
-        self.steel_prod = self.daily_steel_prod_target* 365
+        self.steel_prod = self.hourly_production_target * len(self.world.snapshots)*self.world.dt/24
        
         # Unit status parameters
         self.sentBids=[]          
            
-        self.limits = self.calc_power_limits(time_horizon = len(self.world.snapshots))
+        self.limits = self.calc_power_limits()
         self.solver = pyo.SolverFactory('glpk') 
         
         #Left in case initialization needed
@@ -79,24 +76,26 @@ class SteelPlant():
         self.total_capacity = [0. for n in self.world.snapshots]
         
         self.sentBids = []
-        self.limits = self.calc_power_limits(time_horizon =len(self.world.snapshots))     
-        self.solver = pyo.SolverFactory
-
+        self.solver = pyo.SolverFactory('glpk')
 
         #run optimization for the whole simulation horizon         
-        self.model = self.process_opt(time_horizon = len(self.world.snapshots),steel_prod =self.steel_prod ,flexibility_params=None)
+        self.model = self.process_opt(time_horizon = len(self.world.snapshots)-1, steel_prod = self.steel_prod, flexibility_params=None)
+        self.solver.solve(self.model)
         self.model_params = self.get_values(self.model, time_horizon = len(self.world.snapshots))
         
         #and extract values
         self.dict_capacity_opt = self.model_params['elec_cons']
-        self.dict_capacity_pos_flex, self.dict_capacity_neg_flex = self.flexibility_available(time_horizon = self.world.snapshots, 
-                                                                                               model = self.model,
+        self.dict_capacity_pos_flex, self.dict_capacity_neg_flex = self.flexibility_available(time_horizon = len(self.world.snapshots)-1, 
                                                                                                elec_cons=self.model_params['elec_cons'])
         
         #create dictionaries for the confirmed capacities
         self.conf_opt = {n:0 for n in self.world.snapshots}
         self.conf_neg_flex = {n:0 for n in self.world.snapshots}
         self.conf_pos_flex = {n:0 for n in self.world.snapshots}
+
+        self.bids_opt = {n:(0.,0.) for n in self.world.snapshots}
+        self.bids_flex_up = {n:(0.,0.) for n in self.world.snapshots}
+        self.bids_flex_down = {n:(0.,0.) for n in self.world.snapshots}
 
         #varaible to keep track of steel produciton
         self.total_liquid_steel_produced = 0
@@ -106,10 +105,16 @@ class SteelPlant():
         t = self.world.currstep
 
         for bid in self.sentBids:
-            if 'norm_op_mrEOM' in bid.ID or 'neg_flex_mrEOM' in bid.ID:
+            if 'norm_op_mrEOM' in bid.ID:
                 self.total_capacity[t] += bid.confirmedAmount
+                self.bids_opt[t] = (bid.confirmedAmount, bid.price)
+            elif 'neg_flex_mrEOM' in bid.ID:
+                self.total_capacity[t] += bid.confirmedAmount
+                self.bids_flex_up[t] = (bid.confirmedAmount, bid.price)
             elif 'pos_flex_mrEOM' in bid.ID:
                 self.total_capacity[t] -= bid.confirmedAmount
+                self.bids_flex_down[t] = (bid.confirmedAmount, bid.price)
+
 
         if self.total_capacity[t] == self.dict_capacity_opt[t]: #equal to the optimal operation
                 self.total_liquid_steel_produced += self.model_params['liquid_steel'][t]
@@ -228,8 +233,8 @@ class SteelPlant():
         return  norm_op_bid_Quantity, pos_flex_bid_Quantity, pos_flex_bid_Price, neg_flex_bid_Quantity, neg_flex_bid_Price
 
 
-    def calc_power_limits(self, time_horizon):
-        liquid_steel_max = self.max_capacity/time_horizon
+    def calc_power_limits(self):
+        liquid_steel_max = self.max_capacity
         liquid_steel_min = .25*liquid_steel_max
         
         dri_max = liquid_steel_max*self.mass_ratio_DRI
@@ -265,7 +270,7 @@ class SteelPlant():
         return limits
 
 
-    def process_opt(self,time_horizon, steel_prod, flexibility_params=None):
+    def process_opt(self, time_horizon, steel_prod, flexibility_params=None):
 
         model = pyo.ConcreteModel()    
         
@@ -315,7 +320,7 @@ class SteelPlant():
             return model.iron_ore[t] <= self.limits['max_iron']*model.storage_status[t]
         
         def storage_rule(model, t):
-            if t==1:
+            if t==0:
                 return model.storage[t] == 0 + model.dri_to_storage[t] - model.dri_from_storage[t]
             else:
                 return model.storage[t] == model.storage[t-1] + model.dri_to_storage[t] - model.dri_from_storage[t]
@@ -390,13 +395,12 @@ class SteelPlant():
 
         return model
     
-    def flexibility_available(self, time_horizon, model, elec_cons) :
+    def flexibility_available(self, time_horizon, elec_cons) :
         
         pos_flex_total = []
         neg_flex_total = []
             
-        for i in range(1, time_horizon+1):
-                     
+        for i in range(1, time_horizon):
         # potential to increase elec consumption from grid
           neg_flex_total.append(self.limits['Total_max'] - elec_cons[i-1])
           

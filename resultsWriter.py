@@ -146,7 +146,9 @@ class ResultsWriter():
         # save total capacities, must-run and flex capacities and corresponding bid prices of power plants
         #self.write_pp()
         # write storage capacities
-        self.write_storages()
+        #self.write_storages()
+
+        self.write_dsm()
                                       
         finished = datetime.now()
         self.world.logger.info(
@@ -316,6 +318,40 @@ class ResultsWriter():
                                           'UnitName': storage.name,
                                           'Technology': storage.technology})
 
+
+    def write_dsm(self):
+        index = pd.date_range(self.world.starting_date, periods=len(self.world.snapshots), freq=str(60*self.world.dt)+'T')
+        
+        for unit in self.world.dsm_units:
+            tempDF = pd.DataFrame(unit.total_capacity, index = index, columns = ['Capacity']).astype('float32')
+            self.writeDataFrame(tempDF, 'Capacities',
+                                tags={'simulationID': self.world.simulation_id,
+                                        'UnitName': unit.name,
+                                        'Technology': unit.technology})
+
+            tempDF = pd.DataFrame(unit.dict_capacity_opt, index = index, columns = ['Capacity ref.']).astype('float32')
+            self.writeDataFrame(tempDF, 'Capacities',
+                                tags={'simulationID': self.world.simulation_id,
+                                        'UnitName': unit.name,
+                                        'Technology': unit.technology})
+
+            tempDF = pd.DataFrame(unit.bids_opt, index=['Capacity_opt', 'Price_opt']).T.set_index(index).astype('float32')
+            self.writeDataFrame(tempDF, 'Capacities',
+                                tags={'simulationID': self.world.simulation_id,
+                                        'UnitName': unit.name,
+                                        'Technology': unit.technology})
+
+            tempDF = pd.DataFrame(unit.bids_flex_up, index=['Capacity_Flex_up', 'Price_Flex_up']).T.set_index(index).astype('float32')
+            self.writeDataFrame(tempDF, 'Capacities',
+                                tags={'simulationID': self.world.simulation_id,
+                                        'UnitName': unit.name,
+                                        'Technology': unit.technology})
+
+            tempDF = pd.DataFrame(unit.bids_flex_down, index=['Capacity_Flex_down', 'Price_Flex_down']).T.set_index(index).astype('float32')
+            self.writeDataFrame(tempDF, 'Capacities',
+                                tags={'simulationID': self.world.simulation_id,
+                                        'UnitName': unit.name,
+                                        'Technology': unit.technology})
                                         
     def delete_simulation(self, simID):
         check = input('Are you sure you want to delete ' + simID + ' ??? Type simId to confirm: ')

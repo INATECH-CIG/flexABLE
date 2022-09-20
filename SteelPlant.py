@@ -37,16 +37,16 @@ class SteelPlant():
                  world = None,
                   **kwargs):
         
-        # bids status parameters
-        self.snapshots = range(100)
-      
-        self.optimization_horizon = 48
-       
-       #daily steel production target
+    # bids status parameters
+
+       #define time horizon in which production compnesation must be achieved 
+        self.optimization_horizon =  48    
+
+       #hourly steel production target
         self.hourly_production_target = self.max_capacity * 0.8
      
-       #annual steel production target
-        self.steel_prod = self.hourly_production_target * len(self.world.snapshots)*self.world.dt/24
+       #steel production target for snapshot window 
+        self.steel_prod = self.hourly_production_target * len(self.world.snapshots)*self.world.dt /24
        
         # Unit status parameters
         self.sentBids=[]          
@@ -83,6 +83,16 @@ class SteelPlant():
         self.solver.solve(self.model)
         self.model_params = self.get_values(self.model, time_horizon = len(self.world.snapshots))
         
+
+        self.flexibility_params = {'hour_called': 2,
+                                  'cons_signal': 100}
+
+        self.flex_model = self.process_opt(time_horizon = len(self.world.snapshots)-1, steel_prod = self.steel_prod, flexibility_params=self.flexibility_params)
+        self.solver.solve(self.flex_model)
+        self.flex_model_params = self.get_values(self.flex_model, time_horizon = len(self.world.snapshots))
+
+        
+
         #and extract values
         self.dict_capacity_opt = self.model_params['elec_cons']
         self.dict_capacity_pos_flex, self.dict_capacity_neg_flex = self.flexibility_available(time_horizon = len(self.world.snapshots)-1, 
@@ -102,6 +112,9 @@ class SteelPlant():
 
 
     def step(self):
+
+        self.solver = pyo.SolverFactory('glpk')
+
         t = self.world.currstep
 
         for bid in self.sentBids:
@@ -129,8 +142,8 @@ class SteelPlant():
             #determine how much liquid steel needs to be compensated for 
             # deficit will be positive when pos flex called
             # deficit will be negative when neg flex called 
-            self.steel_deficit = self.hourly_prod - self.model_params['liquid_steel'][t] 
-            self.steel_prod_opt_horizon = self.optimization_horizon*self.hourly_prod + self.steel_deficit
+            self.steel_deficit = self.hourly_production_target - self.model_params['liquid_steel'][t] 
+            self.steel_prod_opt_horizon = self.hourly_production_target*self.optimization_horizon+ self.steel_deficit
                 
                           
                        
@@ -138,7 +151,8 @@ class SteelPlant():
             self.flex_case = self.process_opt(time_horizon = self.optimization_horizon ,
                                               steel_prod =self.steel_prod_opt_horizon,
                                               flexibility_params=flexibility_params)
-            
+
+            self.solver.solve(self.flex_case)
             #extract values of flex_case
             self.flex_params = self.get_values(self.flex_case, time_horizon =  self.optimization_horizon)
             
@@ -480,7 +494,6 @@ class SteelPlant():
     
     
 
-    
     
     
     

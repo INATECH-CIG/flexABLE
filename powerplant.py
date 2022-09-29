@@ -220,8 +220,6 @@ class Powerplant():
         
         if market=="EOM":
             bidQuantity_mr, bidPrice_mr, bidQuantity_flex, bidPrice_flex = self.calculateBidEOM(t)
-            # bidQuantity_mr, bidQuantity_flex = self.minPower, (self.maxPower-self.minPower)
-            # bidPrice_mr, bidPrice_flex = self.marginal_cost[t], self.marginal_cost[t]
             
             bids.append(Bid(issuer = self,
                             ID = "{}_mrEOM".format(self.name),

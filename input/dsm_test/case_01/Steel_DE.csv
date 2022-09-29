@@ -1,2 +1,2 @@
-name,technology,max_capacity,min_production,HBI_storage_capacity,mass_ratio_iron,mass_ratio_DRI,mass_ratio_liquid_steel,spec_elec_cons_EH,spec_elec_cons_DRP,spec_elec_cons_AF,spec_NG_cons_DRP,spec_NG_cons_AF,spec_coal_cons_AF,company,node
-KKW_ISAR_2,Steel_Plant,1500,375,200,1.66,1.03,1,0.37,0.127,0.575,1.56,0.216,0.028,producer_01,0
+name,technology,max_capacity,target_capacity,min_capacity,HBI_storage_capacity,mass_ratio_iron,mass_ratio_DRI,mass_ratio_liquid_steel,spec_elec_cons_EH,spec_elec_cons_DRP,spec_elec_cons_AF,spec_NG_cons_DRP,spec_NG_cons_AF,spec_coal_cons_AF,company,node
+plant_01,Steel_Plant,1500.,1200.,375.,200.,1.66,1.03,1.,0.37,0.127,0.575,1.56,0.216,0.028,producer_01,0

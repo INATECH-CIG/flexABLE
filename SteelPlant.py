@@ -45,7 +45,7 @@ class SteelPlant():
         self.target_capacity = self.target_capacity*self.world.dt
 
         #steel production target for snapshot window 
-        self.target_prod = self.target_capacity*self.opt_horizon
+        self.target_prod = self.target_capacity*len(self.world.snapshots)
                   
         self.limits = self.calc_power_limits()
         self.solver = pyo.SolverFactory('glpk') 
@@ -65,7 +65,7 @@ class SteelPlant():
         self.sentBids = []
 
         #run optimization for the whole simulation horizon         
-        self.op_params = self.process_opt(time_horizon=self.opt_horizon,
+        self.op_params = self.process_opt(time_horizon=len(self.world.snapshots),
                                           total_prod=self.target_prod)
 
         #and extract values
@@ -73,14 +73,14 @@ class SteelPlant():
         self.pos_flex_cap = [0. for i in self.world.snapshots]
         self.neg_flex_cap = [0. for i in self.world.snapshots]
 
-        self.opt_cap[:self.opt_horizon] = self.op_params['elec_cons']
-        temp = self.flex_available(time_horizon=self.opt_horizon,
+        self.opt_cap[:] = self.op_params['elec_cons']
+        temp = self.flex_available(time_horizon=len(self.world.snapshots),
                                    elec_cons=self.opt_cap)
-        self.pos_flex_cap[:self.opt_horizon] = temp[0]
-        self.neg_flex_cap[:self.opt_horizon] =temp[1]
+        self.pos_flex_cap[:] = temp[0]
+        self.neg_flex_cap[:] = temp[1]
 
         self.opt_prod = [0. for i in self.world.snapshots]
-        self.opt_prod[:self.opt_horizon] = self.op_params['liquid_steel']
+        self.opt_prod[:] = self.op_params['liquid_steel']
 
         #create dictionaries for the confirmed capacities
         self.conf_plan = {n:0 for n in self.world.snapshots}
@@ -114,8 +114,8 @@ class SteelPlant():
             if bids_dict['bid_cap_flex_pos'] >= self.world.minBidEOM:
                 bids.append(Bid(issuer=self,
                                 ID="{}_pos_flex_EOM".format(self.name),
-                                price=bids_dict['bid_cap_flex_pos'],
-                                amount=bids_dict['bid_price_flex_pos'],
+                                price=bids_dict['bid_price_flex_pos'],
+                                amount=bids_dict['bid_cap_flex_pos'],
                                 status="Sent",
                                 bidType="Supply",
                                 node=self.node))
@@ -123,23 +123,23 @@ class SteelPlant():
             if bids_dict['bid_cap_flex_neg'] >= self.world.minBidEOM:
                 bids.append(Bid(issuer=self,
                                 ID="{}_neg_flex_EOM".format(self.name),
-                                price=bids_dict['bid_cap_flex_neg'],
-                                amount=bids_dict['bid_price_flex_neg'],
+                                price=bids_dict['bid_price_flex_neg'],
+                                amount=bids_dict['bid_cap_flex_neg'],
                                 status="Sent",
                                 bidType="Demand",
                                 node=self.node))
 
         return bids
-    
+
 
     def calculateBidEOM(self, t):
         bid_cap_plan = self.opt_cap[t]
         
         bid_cap_flex_pos = self.pos_flex_cap[t]
-        bid_price_flex_pos = 100.
+        bid_price_flex_pos = 80.
         
         bid_cap_flex_neg = self.neg_flex_cap[t]
-        bid_price_flex_neg = 10.
+        bid_price_flex_neg = -1000.
 
         bids_dict = {'bid_cap_plan': bid_cap_plan,
                      'bid_cap_flex_pos': bid_cap_flex_pos,
@@ -164,16 +164,16 @@ class SteelPlant():
                 self.total_capacity[t] -= bid.confirmedAmount
                 self.bids_flex_pos[t] = (bid.confirmedAmount, bid.price)
 
-        if self.total_capacity[t] == self.opt_cap[t]: #equal to the optimal operation
-                self.total_prod += self.opt_prod[t]
-
+        if (self.total_capacity[t] <= self.opt_cap[t]+1) and (self.total_capacity[t] >= self.opt_cap[t]-1): #equal to the optimal operation
+            self.total_prod += self.opt_prod[t]
         else:
             # define consumption signal
             flex_params = {'hour_called': 0,
                            'cons_signal': self.total_capacity[t]}
 
+            prod_target = self.target_capacity*self.opt_horizon+self.deficit
             self.op_params = self.process_opt(time_horizon=self.opt_horizon,
-                                              total_prod=self.target_prod+self.deficit,
+                                              total_prod=prod_target,
                                               flex_params=flex_params)
 
             self.opt_cap[t:t+self.opt_horizon] = self.op_params['elec_cons']
@@ -342,7 +342,7 @@ class SteelPlant():
             return model.coal_cost[t] == self.coal_price_signal[t]*model.coal_cons[t]
 
         def total_steel_prod_rule(model):
-            return pyo.quicksum(model.liquid_steel[t] for t in model.t) >= total_prod
+            return pyo.quicksum(model.liquid_steel[t] for t in model.t) == total_prod
 
         #cost objective function (elec, NG, and coal)
         def cost_obj_rule(model):
@@ -382,7 +382,7 @@ class SteelPlant():
         pos_flex = []
         neg_flex = []
             
-        for i in range(1, time_horizon): #why from 1?
+        for i in range(0, time_horizon): #why from 1?
             # potential to increase elec consumption from grid
             neg_flex.append(self.limits['total_max'] - elec_cons[i-1])
             # potential to reduce elec consumption
@@ -413,7 +413,7 @@ class SteelPlant():
         elec_cons_AF = []
         storage = []
     
-        for i in range(1, time_horizon):            
+        for i in range(0, time_horizon):            
             iron_ore.append(model.iron_ore[i].value)
             dri_direct.append(model.dri_direct[i].value)
             dri_to_storage.append(model.dri_to_storage[i].value)

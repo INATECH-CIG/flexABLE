@@ -1,0 +1,48 @@
+# config file version
+apiVersion: 1
+
+# list of datasources that should be deleted from the database
+deleteDatasources:
+  - name: FlexABLE-DB
+    orgId: 1
+
+# list of datasources to insert/update depending
+# whats available in the database
+datasources:
+  # <string, required> name of the datasource. Required
+- name: FlexABLE
+  type: influxdb
+  url: http://influxdb:8086
+  access: proxy
+  user: root
+  database: flexABLE
+  secureJsonData:
+    password: root
+  isDefault: true
+  editable: true
+
+- name: Weather
+  type: postgres
+  url: 10.13.10.41:5432
+  user: readonly
+  database: weather
+  secureJsonData:
+    password: readonly
+  jsonData:
+    sslmode: "disable"
+    postgresVersion: 1200
+    timescaledb: true
+  editable: true
+
+- name: Entsoe
+  type: postgres
+  url: 10.13.10.41:5432
+  user: readonly
+  database: entsoe
+  secureJsonData:
+    password: readonly
+  jsonData:
+    sslmode: "disable"
+    postgresVersion: 1200
+    timescaledb: true
+  editable: true

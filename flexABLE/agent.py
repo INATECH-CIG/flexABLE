@@ -7,6 +7,7 @@ Created on Sun Apr  19 15:58:21 2020
 from . import powerplant
 from . import vrepowerplants
 from . import storage
+from . import SteelPlant
 
 class Agent():
     """
@@ -20,13 +21,19 @@ class Agent():
         self.powerplants = {}
         self.storages = {}
         self.world = world
-        
-        
+
     def addPowerplant(self, name, availability = None, **kwargs):
         self.powerplants[name] = powerplant.Powerplant(name = name, 
                                                        world = self.world,
                                                        maxAvailability = availability, 
                                                        **kwargs)
+        
+        self.world.powerplants.append(self.powerplants[name])
+
+    def addSteelPlant(self,name,**kwargs):
+        self.powerplants[name] = SteelPlant.SteelPlant(name = name, 
+                                                        world = self.world,
+                                                        **kwargs)
         
         self.world.powerplants.append(self.powerplants[name])
         
@@ -66,6 +73,7 @@ class Agent():
     
     
     def requestBid(self, t, market = "EOM"):
+        
         return self.calculateBid(t, market)
     
     

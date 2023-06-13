@@ -50,6 +50,9 @@ class Powerplant():
         
         self.confQtyCRM_neg = {n:0 for n in self.world.snapshots}
         self.confQtyCRM_pos = {n:0 for n in self.world.snapshots}
+        self.confEnCRM_neg = {n:0 for n in self.world.snapshots}
+        self.confEnCRM_pos = {n:0 for n in self.world.snapshots}
+        self.confQtyEOM = {n:0 for n in self.world.snapshots}
         self.confQtyDHM_steam = {n:0 for n in self.world.snapshots}
         self.powerLoss_CHP = {n:0 for n in self.world.snapshots}
         self.maxExtraction /= self.world.dt
@@ -68,7 +71,8 @@ class Powerplant():
         self.averageDownTime = [0] # average downtime during the simulation
         self.currentCapacity = 0
         self.sentBids=[]
-        
+        self.sentBids_dict= {}
+
         if maxAvailability is None:
             self.maxAvailability = [self.maxPower for _ in self.world.snapshots]
         else:
@@ -77,7 +81,7 @@ class Powerplant():
             
     def step(self):
         self.dictCapacity[self.world.currstep] = 0
-        
+
         for bid in self.sentBids:
             if 'mrEOM' in bid.ID or 'flexEOM' in bid.ID:
                 self.dictCapacity[self.world.currstep] += bid.confirmedAmount
@@ -86,6 +90,12 @@ class Powerplant():
                     self.dictCapacityMR[self.world.currstep] = (bid.confirmedAmount, bid.price)
                 else:
                     self.dictCapacityFlex[self.world.currstep] = (bid.confirmedAmount, bid.price)
+            
+            if "posCRMCall" in bid.ID:
+                self.dictCapacity[self.world.currstep] += bid.confirmedAmount
+            
+            if "negCRMCall" in bid.ID:
+                self.dictCapacity[self.world.currstep] -= bid.confirmedAmount
         
         #change crm capacity every 4 hours (CRM market clearing time)
         if self.world.currstep % self.crmTime:
@@ -128,7 +138,7 @@ class Powerplant():
                 self.currentDowntime = 1
             else:
                 self.currentStatus = 1
-        
+        self.sentBids_dict[self.world.currstep] = self.sentBids.copy()
         self.sentBids = []
         
         
@@ -143,6 +153,15 @@ class Powerplant():
                 
             if 'CRMNegDem' in bid.ID:
                 self.confQtyCRM_neg.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
+
+            if 'posCRMCall' in bid.ID:
+                self.confEnCRM_pos.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
+                
+            if 'negCRMCall' in bid.ID:
+                self.confEnCRM_neg.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
+
+            if 'EOM_DE' in bid.ID:
+                self.confQtyEOM.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
                 
             if 'steam' in bid.ID:
                 self.confQtyDHM_steam[self.world.currstep] = bid.confirmedAmount
@@ -153,15 +172,26 @@ class Powerplant():
                 
             if 'CRMNegDem' in bid.ID:
                 self.confQtyCRM_neg.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
+
+            if 'posCRMCall' in bid.ID:
+                self.confEnCRM_pos.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
+                
+            if 'negCRMCall' in bid.ID:
+                self.confEnCRM_neg.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
+
+            if 'EOM_DE' in bid.ID:
+                self.confQtyEOM.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
                 
             if 'steam' in bid.ID:
                 self.confQtyDHM_steam[self.world.currstep] = bid.confirmedAmount
                     
         if 'steam' in bid.ID:
             self.powerLossFPP(self.world.currstep, bid)
-            
+
         self.sentBids.append(bid)
 
+    def write_to_db(self,t, bid):
+        self.world.ResultsWriter.writeBid(self, t, bid)
 
     def powerLossFPP(self, t, bid):
         if bid.confirmedAmount > 0:
@@ -198,12 +228,17 @@ class Powerplant():
         elif market=="DHM": 
             bids.extend(self.calculateBidDHM(t))
 
-        elif market=="posCRMDemand": 
+        elif market=="posCRMDemand":
             bids.extend(self.calculatingBidsFPP_CRM_pos(t))
 
         elif market=="negCRMDemand":
             bids.extend(self.calculatingBidsFPP_CRM_neg(t))
-            
+
+        elif market=="posCRMCall": 
+            bids.extend(self.calculatingBidsFPP_CRM_pos_energy(t))
+
+        elif market=="negCRMCall":
+            bids.extend(self.calculatingBidsFPP_CRM_neg_energy(t))
         return bids
     
     
@@ -265,7 +300,6 @@ class Powerplant():
         return marginalCosts
     
 
-
     def calculateBidEOM(self, t):
         '''
         This is currently hard coded, but should be removed into input files
@@ -274,18 +308,34 @@ class Powerplant():
         
         maxDowntime_hotStart = 32 # represents 8h in 15min res
         maxDowntime_warmStart = 192
+
+        FlexNeg = 0
+        FlexPos = 0
+        
+        if self.confQtyCRM_neg[t]: 
+            FlexNeg = self.confQtyCRM_neg[t]
+        else:
+            if self.confEnCRM_neg[t]: 
+                FlexNeg = self.confEnCRM_neg[t] 
+        
+        if self.confQtyCRM_pos[t]: 
+            FlexPos = self.confQtyCRM_pos[t]
+        else:
+            if self.confEnCRM_pos[t]: 
+                FlexPos = self.confEnCRM_pos[t] 
+
         
         if ((self.currentStatus) or (not(self.currentStatus) and (self.currentDowntime >= self.minDowntime))):
             # =============================================================================
             # Powerplant is either on, or is able to turn on
             # Calculating possible bid amount          
             # =============================================================================
-            mustRunPowerFPP = (max(self.dictCapacity[t-1] - self.rampDown + self.confQtyCRM_neg[t], self.minPower + self.confQtyCRM_neg[t]))
+            mustRunPowerFPP = (max(self.dictCapacity[t-1] - self.rampDown + FlexNeg, self.minPower + FlexNeg))
             bidQuantity_mr = mustRunPowerFPP if mustRunPowerFPP > 0 else 0
             
             if bidQuantity_mr >= self.world.minBidEOM:
-                flexPowerFPP = min(self.dictCapacity[t-1] + self.rampUp - self.confQtyCRM_pos[t] - mustRunPowerFPP,
-                                   self.maxPower - self.powerLoss_CHP[t] - self.confQtyCRM_pos[t] - mustRunPowerFPP)
+                flexPowerFPP = min(self.dictCapacity[t-1] + self.rampUp - FlexPos - mustRunPowerFPP,
+                                   self.maxPower - self.powerLoss_CHP[t] - FlexPos - mustRunPowerFPP)
                 
                 bidQuantity_flex = flexPowerFPP if flexPowerFPP > 0 else 0
                 totalOutputCapacity = mustRunPowerFPP + flexPowerFPP
@@ -453,7 +503,7 @@ class Powerplant():
     
         return bidsDHM
 
-
+    
     def calculatingBidsFPP_CRM_pos(self, t):
         bidsCRM = []
     
@@ -477,13 +527,10 @@ class Powerplant():
             else:
                 capacityPrice = ((abs(specificRevenueEOM_dtau) * self.minPower) / bidQuantityBPM_pos)
 
-            energyPrice = self.marginalCostsFPP(t, 1, 0)
-
             bidsCRM.append(Bid(issuer=self,
                                ID = "Bu{}t{}_CRMPosDem".format(self.name,t),
                                price = capacityPrice,
                                amount = bidQuantityBPM_pos,
-                               energyPrice = energyPrice,
                                status = "Sent",
                                bidType = "Supply",
                                node = self.node))
@@ -493,24 +540,74 @@ class Powerplant():
                                ID = "Bu{}t{}_CRMPosDem".format(self.name,t),
                                price = 0,
                                amount = 0,
-                               energyPrice = 0,
                                status = "Sent",
                                bidType = "Supply",
                                node = self.node))
-    
-        return bidsCRM
 
+        return bidsCRM
+    
+
+    def calculatingBidsFPP_CRM_pos_energy(self, t):
+        bidsCRM = []
+
+        lastCapacity = self.dictCapacity[t-1]
+        rampUpPower_BPM = ((1 / 3) * self.rampUp)
+
+        Ergebnis_EOM = self.confQtyEOM[t]
+        Ergebnis_CRM_pos_capacity = self.confQtyCRM_pos[t]
+        self.world.minBidCRM_energy = self.world.minBidCRM
+
+        if Ergebnis_EOM:
+            if Ergebnis_EOM > lastCapacity:
+                rampUpPower_BPM = rampUpPower_BPM - (Ergebnis_EOM - lastCapacity)
+            else:
+                rampUpPower_BPM = rampUpPower_BPM + (lastCapacity - Ergebnis_EOM)
+
+        # available power (pos. BP FPP)
+        if Ergebnis_CRM_pos_capacity:
+            availablePower_BP_pos = Ergebnis_CRM_pos_capacity
+        else:
+                if  ((self.currentStatus) or (not(self.currentStatus) and (self.currentDowntime >= self.minDowntime))): 
+                    availablePower_BP_pos = (min(self.maxPower - lastCapacity, rampUpPower_BPM))
+                else:
+                    availablePower_BP_pos = 0
+
+        #available capacity to offer on he CRM market
+        bidQuantityBPM_pos = availablePower_BP_pos if availablePower_BP_pos >= self.world.minBidCRM_energy else 0
+
+        if bidQuantityBPM_pos > 0:
+            energyPrice = self.marginalCostsFPP(t, 1, 0) # für die nächsten 4 h bestimmen und durchschnitt verwenden? Außerdem Kapazitätszahlung abziehen
+
+            bidsCRM.append(Bid(issuer=self,
+                                ID = "Bu{}t{}_posCRMCall".format(self.name,t),
+                                amount = bidQuantityBPM_pos,
+                                energyPrice = energyPrice,
+                                status = "Sent",
+                                bidType = "Supply",
+                                node = self.node))
+
+        else:
+            bidsCRM.append(Bid(issuer=self,
+                                ID = "Bu{}t{}_posCRMCall".format(self.name,t),
+                                amount = 0,
+                                energyPrice = 0,
+                                status = "Sent",
+                                bidType = "Supply",
+                                node = self.node))
+
+        return bidsCRM
+    
 
     def calculatingBidsFPP_CRM_neg(self, t):
         bidsCRM = []
-    
+
         lastCapacity = self.dictCapacity[t-1]
         rampDownPower_CRM = ((1 / 3) * self.rampDown)
 
         if  ((self.currentStatus) or (not(self.currentStatus) and (self.currentDowntime >= self.minDowntime))):
             bidQtyCRM_neg = (min(lastCapacity - self.minPower, rampDownPower_CRM))
         else:
-            bidQtyCRM_neg = 0
+            bidQtyCRM_neg = t
 
         if bidQtyCRM_neg > self.world.minBidCRM:
             # Specific revenue if power was offered on the energy marke
@@ -520,25 +617,73 @@ class Powerplant():
             else:
                 capacityPrice = 0.00
 
+            bidsCRM.append(Bid(issuer=self,
+                                ID = "Bu{}t{}_CRMNegDem".format(self.name,t),
+                                price = capacityPrice,
+                                amount = bidQtyCRM_neg,
+                                status = "Sent",
+                                bidType = "Supply",
+                                node = self.node))
+        else:
+            bidsCRM.append(Bid(issuer=self,
+                                ID = "Bu{}t{}_CRMNegDem".format(self.name,t),
+                                price = 0,
+                                amount = 0,
+                                status = "Sent",
+                                bidType = "Supply",
+                                node = self.node))
+
+        return bidsCRM
+    
+
+    def calculatingBidsFPP_CRM_neg_energy(self, t):
+        bidsCRM = []
+
+        lastCapacity = self.dictCapacity[t-1]
+        rampDownPower_CRM = ((1 / 3) * self.rampDown)
+
+        Ergebnis_EOM = self.confQtyEOM[t]
+        Ergebnis_CRM_neg_capacity = self.confQtyCRM_neg[t]
+        self.world.minBidCRM_energy = self.world.minBidCRM
+
+        if Ergebnis_EOM:
+            if Ergebnis_EOM > lastCapacity:
+                rampDownPower_CRM = rampDownPower_CRM + (Ergebnis_EOM - lastCapacity)
+            else:
+                rampDownPower_CRM = rampDownPower_CRM - (lastCapacity - Ergebnis_EOM)
+
+        # available Power
+        if Ergebnis_CRM_neg_capacity:
+            availablePower_BP_neg = Ergebnis_CRM_neg_capacity
+        else:
+            if  ((self.currentStatus) or (not(self.currentStatus) and (self.currentDowntime >= self.minDowntime))):
+                availablePower_BP_neg = (min(lastCapacity - self.minPower, rampDownPower_CRM))
+            else:
+                availablePower_BP_neg = 0
+
+        #available neg capacity to offer on he CRM market
+        bidQtyCRM_neg = availablePower_BP_neg if availablePower_BP_neg >= self.world.minBidCRM_energy else 0
+
+
+        if bidQtyCRM_neg > self.world.minBidCRM:
+
             energyPrice = -self.marginalCostsFPP(t,  1, 0)
 
             bidsCRM.append(Bid(issuer=self,
-                               ID = "Bu{}t{}_CRMNegDem".format(self.name,t),
-                               price = capacityPrice,
-                               amount = bidQtyCRM_neg,
-                               energyPrice = energyPrice,
-                               status = "Sent",
-                               bidType = "Supply",
-                               node = self.node))
+                                ID = "Bu{}t{}_negCRMCall".format(self.name,t),
+                                amount = bidQtyCRM_neg,
+                                energyPrice = energyPrice,
+                                status = "Sent",
+                                bidType = "Supply",
+                                node = self.node))
         else:
             bidsCRM.append(Bid(issuer=self,
-                               ID = "Bu{}t{}_CRMNegDem".format(self.name,t),
-                               price = 0,
-                               amount = 0,
-                               energyPrice = 0,
-                               status = "Sent",
-                               bidType = "Supply",
-                               node = self.node))
+                                ID = "Bu{}t{}_negCRMCall".format(self.name,t),
+                                amount = 0,
+                                energyPrice = 0,
+                                status = "Sent",
+                                bidType = "Supply",
+                                node = self.node))
 
         return bidsCRM
 
@@ -562,8 +707,8 @@ class Powerplant():
                                              in listPFC]), 2)
             
 
-        return specificRevenue_sum
-    
+        return specificRevenue_sum  
+ 
     
     def plotResults(self, ax=None, legend=True, **kwargs):
         ax = ax or plt.gci()

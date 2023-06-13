@@ -16,6 +16,7 @@ class EOM():
         self.world = world
         self.snapshots = self.world.snapshots
         
+        self.debug_results = []
         if demand == None:
             self.demand = {t:0 for t in self.snapshots}
         elif len(demand) != len(self.snapshots):
@@ -41,6 +42,7 @@ class EOM():
     
     def collectBids(self, agents, t):
         self.bids = []
+        
         for agent in agents.values():
             self.bids.extend(agent.requestBid(t))
 
@@ -93,6 +95,7 @@ class EOM():
         
         #Case 1
         if sum_totalSupply == 0 or sum_totalDemand == 0:
+            print(t, "Case 1")
             logging.debug('The sum of either demand offers ({}) or supply '
                           'offers ({}) is 0 at t:{}'.format(sum_totalDemand, sum_totalSupply, t))
             
@@ -107,6 +110,7 @@ class EOM():
         
         #Case 2
         elif self.demand[t] > sum_totalSupply:
+            print(t, "Case 2")
             """
             Since the Inelastic demand is higher than the sum of all supply offers
             all the supply offers are confirmed
@@ -134,6 +138,8 @@ class EOM():
                                    energyDeficit = self.demand[t] - sum_totalSupply,
                                    energySurplus = 0,
                                    timestamp = t)
+            
+            print('demand higher as supply')
         
         #Case 3
         else:
@@ -166,6 +172,7 @@ class EOM():
                 # Case 3.1
                 # =============================================================================
                 if confQty_demand > confQty_supply and currBidPrice_demand > currBidPrice_supply:
+                    #print(t, "Case 3.1")
                     try:
                         '''
                         Tries accepting last supply offer since they are reverse sorted
@@ -181,12 +188,15 @@ class EOM():
                     except IndexError:
                         confirmedBidsDemand[-1].partialConfirm(confirmedBidsDemand[-1].amount-(confQty_demand - confQty_supply))
                         case = 'Case3.1'
+                        print(t, case)
                         break
                     
+    
                 # =============================================================================
                 # Case 3.2
                 # =============================================================================
                 elif confQty_demand <= confQty_supply and currBidPrice_demand > currBidPrice_supply:
+                    #print(t, "Case 3.2")
                     try:
                         '''
                         Tries accepting last demand offer since they are reverse sorted
@@ -209,7 +219,7 @@ class EOM():
                 # Case 3.3    
                 # =============================================================================
                 elif currBidPrice_demand < currBidPrice_supply:
-                    
+                    print(t, "Case 3.3")
                     # Checks whether the confirmed demand is greater than confirmed supply
                     if (confQty_supply - confirmedBidsSupply[-1].amount) < (confQty_demand - confirmedBidsDemand[-1].amount):
                         confQty_demand -= confirmedBidsDemand[-1].amount
@@ -237,7 +247,7 @@ class EOM():
                 # Case 3.4
                 # =============================================================================
                 elif currBidPrice_demand == currBidPrice_supply:
-    
+                    print(t, "Case 3.4")
                     # Confirmed supply is greater than confirmed demand
                     if confQty_supply > confQty_demand:
                         confirmedBidsSupply[-1].partialConfirm(confirmedBidsSupply[-1].amount - (confQty_supply - confQty_demand))
@@ -247,7 +257,7 @@ class EOM():
                     # Confirmed demand is greater than confirmed supply
                     elif confQty_demand > confQty_supply:
                         confirmedBidsDemand[-1].partialConfirm(confirmedBidsDemand[-1].amount - (confQty_demand - confQty_supply))
-                        confirmedBidsDemand[-1][1] -= (confQty_demand - confQty_supply)
+                        # old: confirmedBidsDemand[-1][1] -= (confQty_demand - confQty_supply)
                         case = 'Case3.4'
                         break
     
@@ -267,6 +277,7 @@ class EOM():
             marketClearingPrice = sorted(confirmedBidsSupply, key = operator.attrgetter('price'))[-1].price
             marginalUnit = sorted(confirmedBidsSupply,key=operator.attrgetter('price'))[-1].ID
 
+           
             result = MarketResults("{}".format(self.name),
                        issuer = self.name,
                        confirmedBids = confirmedBids,
@@ -278,8 +289,10 @@ class EOM():
                        energyDeficit = 0,
                        energySurplus = 0,
                        timestamp = t)
+        
 
         self.world.dictPFC[t] = result.marketClearingPrice
+        self.debug_results.append(result)
 
 
     def feedback(self,award):

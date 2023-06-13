@@ -8,6 +8,7 @@ import operator
 from .bid import Bid
 import logging
 from .MarketResults import MarketResults
+import pandas as pd # import von mir hendrik
 
 class CRM():
     """
@@ -46,11 +47,16 @@ class CRM():
                               "posCRMCall":{t:0 for t in range(96)},
                               "negCRMCall":{t:0 for t in range(96)}}
         
+        self.marketClearingPrice = {"posCRMDemand":{t:0 for t in range(96)},
+                              "negCRMDemand":{t:0 for t in range(96)},
+                              "posCRMCall":{t:0 for t in range(96)},
+                              "negCRMCall":{t:0 for t in range(96)}}
         
-    def step(self, t, agents):
-        for product in ["posCRMDemand","negCRMDemand"]:
+        
+    def step(self, t, agents, products=["posCRMDemand","negCRMDemand","posCRMCall","negCRMCall"]):
+        for product in products:
             
-            if t % self.world.dtu and product in ["posCRMDemand","negCRMDemand"]:
+            if t % self.world.dtu and product in products:
                 self.marketResults[product][t % 96]  = self.marketResults[product][(t % 96) - 1]
                 self.bids[product][t % 96] = self.bids[product][(t % 96) - 1]
                 
@@ -61,19 +67,23 @@ class CRM():
         
     def collectBids(self, agents, t, product):
         self.bids[product][(t % 96)] = []
+
+
         
-        if product == 'posCRMCall':
-            self.bids[product][(t % 96)].extend(self.marketResults['posCRMDemand'][((t % 96) // 16) * 16].confirmedBids)
-            
-        if product == 'negCRMCall':
-            self.bids[product][(t % 96)].extend(self.marketResults['negCRMDemand'][((t % 96) // 16) * 16].confirmedBids)
+        # if product == 'posCRMCall':
+        #     self.bids[product][(t % 96)].extend(self.marketResults['posCRMDemand'][((t % 96) // 16) * 16].confirmedBids)
+
+        # if product == 'negCRMCall':
+        #     self.bids[product][(t % 96)].extend(self.marketResults['negCRMDemand'][((t % 96) // 16) * 16].confirmedBids)
             
         for agent in agents.values():
-            self.bids[product][(t % 96)].extend(agent.requestBid(t, product))
-            
+            self.bids[product][(t % 96)].extend(agent.requestBid(t, product)) # requestBid for FPP has no calculatingBidsFPP_CRM_pos and neg tor the Calls
 
     def marketClearing(self, t, product):
-        
+
+        if t == 16 and product == "negCRMDemand":
+            xtes = 9
+
         if product in ["posCRMDemand", "negCRMDemand"]:
             sortingAttribute = 'price'
         else:
@@ -104,10 +114,12 @@ class CRM():
         
         bidsReceived["Demand"].sort(key = operator.attrgetter(sortingAttribute),
                                     reverse = True)
-        
+    
+
         sum_totalSupply = sum(bidsReceived["Supply"])
         sum_totalDemand = sum(bidsReceived["Demand"])
         
+
         # =====================================================================
         # The different cases of uniform price market clearing
         # Case 1: The sum of either supply or demand is 0
@@ -131,6 +143,9 @@ class CRM():
             
         #Case 2
         elif self.demand[product][t] > sum_totalSupply:
+            
+            
+            
             """
             Since the Inelastic demand is higher than the sum of all supply offers
             all the supply offers are confirmed
@@ -169,7 +184,9 @@ class CRM():
             confQty_supply = 0
             currBidPrice_demand = 3000.00
             currBidPrice_supply = -3000.00
-    
+
+            
+
             while True:
                 # =============================================================================
                 # Cases to accept bids
@@ -189,6 +206,7 @@ class CRM():
                 # Case 3.1
                 # =============================================================================
                 if confQty_demand > confQty_supply and currBidPrice_demand > currBidPrice_supply:
+                    
                     try:
                         '''
                         Tries accepting last supply offer since they are reverse sorted
@@ -197,18 +215,29 @@ class CRM():
                         '''
                         
                         confirmedBidsSupply.append(bidsReceived["Supply"].pop())
+                        if (confQty_demand - confQty_supply) >= confirmedBidsSupply[-1].amount:
+                            confirmedBidsSupply[-1].confirm()
+                        else:
+                            confirmedBidsDemand[-1].partialConfirm(confirmedBidsDemand[-1].amount-(confQty_demand - confQty_supply))
+
                         confQty_supply += confirmedBidsSupply[-1].amount
                         currBidPrice_supply = confirmedBidsSupply[-1].price
-                        confirmedBidsSupply[-1].confirm()
+                        # Demand 500  supply 100
+                        # Demand 500 supply 500
+                        # Demand 500 supply 1000
+
     
                     except IndexError:
                         confirmedBidsDemand[-1].partialConfirm(confirmedBidsDemand[-1].amount-(confQty_demand - confQty_supply))
                         break
-                    
+                
+                   
+
                 # =============================================================================
                 # Case 3.2
                 # =============================================================================
                 elif confQty_demand <= confQty_supply and currBidPrice_demand > currBidPrice_supply:
+                    
                     try:
                         '''
                         Tries accepting last demand offer since they are reverse sorted
@@ -249,12 +278,14 @@ class CRM():
                     # The confirmed supply matches confirmed demand
                     else:
                         break
+
+                    
     
                 # =============================================================================
                 # Case 3.4
                 # =============================================================================
                 elif currBidPrice_demand == currBidPrice_supply:
-    
+                    
                     # Confirmed supply is greater than confirmed demand
                     if confQty_supply > confQty_demand:
                         confirmedBidsSupply[-1].partialConfirm(confirmedBidsSupply[-1].amount - (confQty_supply - confQty_demand))
@@ -280,6 +311,7 @@ class CRM():
             marketClearingPrice = getattr(sorted(confirmedBids,key=operator.attrgetter(sortingAttribute))[-1],sortingAttribute)
             marginalUnit = sorted(confirmedBids,key=operator.attrgetter(sortingAttribute))[-1].ID
 
+
             result = MarketResults("{}".format(self.name),
                                    issuer = self.name,
                                    confirmedBids = confirmedBids,
@@ -292,8 +324,15 @@ class CRM():
                                    energySurplus = 0,
                                    timestamp = t)
 
-
         self.marketResults[product][(t % 96)] = result
-        
+        self.marketClearingPrice[product][(t % 96)] = result.marketClearingPrice
+
+        # if product == "negCRMCall" or product == "posCRMCall":
+        #     print("Zeit: ",t)
+        #     print(product)
+        #     print("rejectedBids: " + str(result.rejectedBids))
+        #     print("confirmedBids:" + str(result.confirmedBids))
+        #     print("marketClearingPrice: " + str(result.marketClearingPrice))
+
     def feedback(self,award):
         pass

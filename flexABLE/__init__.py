@@ -1,4 +1,4 @@
-from . import agent, auxFunc, bid, CRM, DHM, EOM, MarketResults, MeritOrder, powerplant, resultsWriter, storage, vrepowerplants, flexABLE
+from . import agent, auxFunc, bid, CRM, DHM, EOM, MarketResults, MeritOrder, powerplant, storage, vrepowerplants, flexABLE
 
 __version__='0.1.2'
 __author__='Thomas Künzel (HS Offenburg, Fichtner), Ramiz Qussous (HS Offenburg, Uni Freiburg), Nick Harder (Uni Freiburg)'

@@ -38,6 +38,7 @@ class VREPowerplant():
         
         # Unit status parameters
         self.sentBids=[]
+        self.sentBids_dict= {}
         
         
     def step(self):
@@ -77,7 +78,7 @@ class VREPowerplant():
     
     def calculateBidEOM(self, t):
         marginalCost = -500 if 'Biomass' in self.name else -500
-        
+
         return self.dictFeedIn[t], marginalCost
     
     

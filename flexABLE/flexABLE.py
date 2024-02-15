@@ -117,16 +117,19 @@ class World():
             
     #perform a single step on each market in the following order CRM, DHM, EOM 
     def step(self):
+        
         if self.currstep < len(self.snapshots):
             for powerplant in self.powerplants:
                 powerplant.checkAvailability(self.snapshots[self.currstep])
                 
-            self.markets['CRM'].step(self.snapshots[self.currstep], self.agents)
+            self.markets['CRM'].step(self.snapshots[self.currstep], self.agents, products=["posCRMDemand","negCRMDemand"])
             self.markets['DHM'].step(self.snapshots[self.currstep])
             
             for market in self.markets["EOM"].values():
                 market.step(self.snapshots[self.currstep],self.agents)
-                
+            
+            self.markets['CRM'].step(self.snapshots[self.currstep], self.agents, products=["posCRMCall","negCRMCall"])
+
             for powerplant in self.powerplants:
                 powerplant.step()
                 
@@ -141,6 +144,8 @@ class World():
             
     def runSimulation(self):
         start = datetime.now()
+        df_ergebnisse_CRM = pd.DataFrame()
+
         
         if self.writeResultsToDB:
             tempDF = pd.DataFrame(self.dictPFC,
@@ -179,7 +184,8 @@ class World():
                                   columns=['IED_Price']).astype('float64')
             
             self.ResultsWriter.writeDataFrame(tempDF, 'PFC', tags = {'simulationID':self.simulationID, "user": "EOM"})
-            
+
+
             #save total capacities of power plants
             for powerplant in self.powerplants:
                 tempDF = pd.DataFrame(powerplant.dictCapacity,
@@ -211,6 +217,18 @@ class World():
                 self.ResultsWriter.writeDataFrame(tempDF, 'Capacities', tags = {'simulationID':self.simulationID,
                                                                                 'UnitName':powerplant.name,
                                                                                 'Technology':powerplant.technology})
+                for t, bids in powerplant.sentBids_dict.items():
+                    for bid in bids:
+                        self.ResultsWriter.writeBid(powerplant, t, bid)
+
+            # save different opt schedules off industry
+                if powerplant.technology == "industry":
+                    tempDF = powerplant.CapacityOptimization_all.set_index(pd.date_range(self.startingDate,
+                                                                                                   periods = len(self.snapshots),
+                                                                                                   freq = '15T')).astype('float64')
+
+                    self.ResultsWriter.writeDataFrame(tempDF, 'Opt_Schedule', tags = {'simulationID':self.simulationID,
+                                                                                    'UnitName':powerplant.name})
             
             #write storage capacities
             for powerplant in self.storages:
@@ -232,11 +250,19 @@ class World():
             finished = datetime.now()
             logger.info('Writing results into database finished at: {}'.format(finished))
             logger.info('Saving into database time: {}'.format(finished - start))
+
+            # writing EOM market prices as CSV (Temporär, an dieser Stelle eigentlich nicht nötig)
+            tempDF = pd.DataFrame(self.dictPFC,
+                                  index = pd.date_range(self.startingDate, periods = len(self.snapshots), freq = '15T'),
+                                  columns = ['Price']).astype('float64')
+            
+            tempDF.to_csv('EOM_Prices.csv')
+            
             
         else:
             logger.info('Saving results into CSV files...')
             
-            directory = 'output/{}/'.format(self.scenario)
+            directory = 'output/{}/'.format(self.scenario+self.simulationID)
             if not os.path.exists(directory):
                 os.makedirs(directory)
                 os.makedirs(directory+'/PP_capacities')
@@ -415,43 +441,43 @@ class World():
         # =====================================================================
         # Loads the demand for district heating
         # =====================================================================
-        if importDHM:
-            logger.info("Loading District heating demand....")
-            
-            HLP_DH = pd.read_csv('input/{}/HLP_DH_DE.csv'.format(scenario),
-                                 nrows = len(self.snapshots) + startingPoint,
-                                 index_col = 0)
-            HLP_DH.drop(HLP_DH.index[0:startingPoint], inplace = True)
-            HLP_DH.reset_index(drop = True, inplace = True)
-                        
-            annualDemand = pd.read_csv('input/{}/DH_DE.csv'.format(scenario),
-                                       index_col=0)
-            annualDemand *= 4
-            
-            self.addMarket('DHM_DE', 'DHM', HLP_DH = HLP_DH, annualDemand = annualDemand)
+        logger.info("Loading District heating demand....")
         
+        HLP_DH = pd.read_csv('input/{}/HLP_DH_DE.csv'.format(scenario),
+                             nrows = len(self.snapshots) + startingPoint,
+                             index_col = 0)
+        HLP_DH.drop(HLP_DH.index[0:startingPoint], inplace = True)
+        HLP_DH.reset_index(drop = True, inplace = True)
+                    
+        annualDemand = pd.read_csv('input/{}/DH_DE.csv'.format(scenario),
+                                   index_col=0)
+        if not(importDHM):
+            annualDemand *= 0
+            
+        self.addMarket('DHM_DE', 'DHM', HLP_DH = HLP_DH, annualDemand = annualDemand)
         
         # =====================================================================
         # Loads the control reserve demand
         # =====================================================================
-        if importCRM:
-            logger.info("Loading control reserve demand....")
-            
-            CRM = pd.read_csv('input/{}/CRM_DE.csv'.format(scenario),
-                              nrows = len(self.snapshots) + startingPoint,
-                              index_col = 0)
-            CRM.drop(CRM.index[0:startingPoint], inplace = True)
-            CRM.reset_index(drop = True, inplace = True)
-            
-            CRMdemand = {"posCRMDemand":dict(CRM['positive Demand [MW]']),
-                         "negCRMDemand":dict(CRM['negative Demand [MW]']),
-                         "posCRMCall":dict(CRM['positive Call-Off [MW]']),
-                         "negCRMCall":dict(CRM['negative Call-Off [MW]'])}
-            
-            self.addMarket('CRM_DE','CRM', demand = CRMdemand)
+
+        logger.info("Loading control reserve demand....")
         
+        CRM = pd.read_csv('input/{}/CRM_DE.csv'.format(scenario),
+                          nrows = len(self.snapshots) + startingPoint,
+                          index_col = 0)
+        CRM.drop(CRM.index[0:startingPoint], inplace = True)
+        CRM.reset_index(drop = True, inplace = True)
+        if not(importCRM):
+            CRM *= 0
+        CRMdemand = {"posCRMDemand":dict(CRM['positive Demand [MW]']),
+                     "negCRMDemand":dict(CRM['negative Demand [MW]']),
+                     "posCRMCall":dict(CRM['positive Call-Off [MW]']),
+                     "negCRMCall":dict(CRM['negative Call-Off [MW]'])}
+
+        self.addMarket('CRM_DE','CRM', demand = CRMdemand)
+
+
         logger.info("Demand data loaded.")
-        
         
         # =====================================================================
         # Calculate prce forward curve using simple merit order

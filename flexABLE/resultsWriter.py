@@ -53,6 +53,7 @@ class ResultsWriter():
 
         
     def writeBids(self, powerplant,t):
+
         for bid in powerplant.sentBids:
             json_body = [
         {

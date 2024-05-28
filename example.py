@@ -13,13 +13,13 @@ import pandas as pd
 scenarios = [(2016,2)]#,(2017,365),(2018,365),(2019,365)]
 
 importStorages = False
-importCRM = True
+importCRM = False
 importDHM = False
 importCBT = False
 checkAvailability = False
 meritOrder = True
 
-writeResultsToDB = True
+writeResultsToDB = False
 
 for year, days in scenarios:
     startingPoint = 0
@@ -49,6 +49,17 @@ for year, days in scenarios:
 
 clearingTime = [0,12,13,14,15,16,17,32,33,48]
 
+#%%
+
+t = 91
+
+bids_confirmed_EOM = [r.confirmedBids for r in example.markets['EOM']['EOM_DE'].debug_results]
+print(pd.DataFrame({bid.issuer.name: {'price':bid.price, 'amount':bid.confirmedAmount} for bid in bids_confirmed_EOM[t]}))
+
+bids_rejected_EOM = [r.rejectedBids for r in example.markets['EOM']['EOM_DE'].debug_results]
+print(pd.DataFrame({bid.issuer.name: {'price':bid.price, 'amount':bid.confirmedAmount} for bid in bids_rejected_EOM[t]}))
+
+
 # for t in clearingTime:
 #     print("------------------------------------------------------------------------")
 #     print("clearingTime:" + str(t))
@@ -69,3 +80,5 @@ clearingTime = [0,12,13,14,15,16,17,32,33,48]
 #     print(pd.DataFrame({bid.issuer.name: {'price':bid.energyPrice, 'amount':bid.confirmedAmount} for bid in bids_rejected[t]}))
    
 #     print("-----------")
+
+# %%

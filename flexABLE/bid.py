@@ -36,7 +36,8 @@ class Bid(object):
 
 
     def __repr__(self):
-        return self.ID
+        #return self.ID
+        return f"ID:{self.ID}\n Amount:{self.amount}\nConfirmed Amount:{self.confirmedAmount}"
 
 
     def __add__(self, other):
@@ -70,8 +71,12 @@ class Bid(object):
             self.status = "Rejected"
             self.confirmedAmount= 0
         elif confirmedAmount < self.amount:
-            self.status = "PartiallyConfirmed"
-            self.confirmedAmount= confirmedAmount
+            if "SteelPlant" in self.ID:
+                self.status = "Rejected"
+                self.confirmedAmount= 0
+            else:
+                self.status = "PartiallyConfirmed"
+                self.confirmedAmount= confirmedAmount
         elif confirmedAmount == self.amount:
             self.status = "Confirmed"
             self.confirmedAmount = self.amount
@@ -81,6 +86,8 @@ class Bid(object):
                             " This could eventually cause imbalance problem. Amount: {}".format(self.ID,confirmedAmount- self.amount))
             self.confirmedAmount = self.amount
 
+        if "TestStahl" in self.ID:
+            pass
 
     def reject(self):
         if 'IED' in self.ID:

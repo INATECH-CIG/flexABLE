@@ -20,7 +20,11 @@ class SteelPlant():
                  minPower = 50,
                  node = 'Bus_DE',
                  world = None,
-                 yearlyProductionGoal = 60000,
+                 requierdProduction = 24000,
+                 minDowntime = 0,
+                 minOperatingTime = 0,
+                 rampUp = 400,
+                 rampDown = 400,
                  technology = "industry",
                  **kwargs):
         
@@ -38,81 +42,115 @@ class SteelPlant():
         self.dictCapacityMR = {n:(0,0) for n in self.world.snapshots}
         self.dictCapacityFlex = {n:(0,0) for n in self.world.snapshots}
 
-
+        self.confQtyCRM_neg = {n:0 for n in self.world.snapshots}
+        self.confQtyCRM_pos = {n:0 for n in self.world.snapshots}
+        self.confEnCRM_neg = {n:0 for n in self.world.snapshots}
+        self.confEnCRM_pos = {n:0 for n in self.world.snapshots}
         self.confQtyEOM = {n:0 for n in self.world.snapshots}
+        self.confQtyCRM_neg_amount = {n:0 for n in self.world.snapshots}
+        self.confQtyCRM_pos_amount = {n:0 for n in self.world.snapshots}
 
         self.dicPFC = self.world.PFC
         df_PFC = pd.DataFrame(self.dicPFC)
         df_PFC.to_csv(f'output/2016example/SteelPlant/PFC.csv', index=False)
 
+        # df_PFC = pd.read_csv(f'input/2016/SteelPlant/PFC_EOM.csv',header=None,dtype=int)
+        # self.dicPFC = df_PFC.iloc[:,0].values.tolist()
+        # df_PFC.to_csv(f'output/2016example/SteelPlant/PFC.csv', index=False)
 
         # Unit status parameters
+        self.meanMarketSuccess = 0
+        self.marketSuccess = [0]
+        self.currentDowntime = self.minDowntime # Keeps track of the powerplant if it reached the minimum shutdown time
+        self.currentStatus = 0 # 0 means the power plant is currently off, 1 means it is on
+        self.averageDownTime = [0] # average downtime during the simulation
+        self.currentCapacity = 0
         self.sentBids=[]
         self.sentBids_dict = {}
-        self.slag = []
         
         # additional parameters
 
+        self.minDowntime /= self.world.dt          # This was added to consider dt 15 mins
+        self.minOperatingTime /= self.world.dt     # This was added to consider dt 15 mins
+        self.crmTime = int(4 / self.world.dt)
+        self.foresight = int(self.minDowntime)
 
+        self.CapacityOptimization = pd.DataFrame()
+        self.CapacityOptimization_all = pd.DataFrame()
         self.segment = 96 # Describes the length of a segment for detail optimization
         self.segmentFlex = self.segment * 2 # Describes the length of a segment for the flex switch
         self.section = 32 # Describes the length of a section for the production goal optimization (non detailed)
         self.Tprevious = 24
-        self.reproduction_time = 1
+        self.yearlyProductionGoal = 100000
 
         self.resultsSegment = pd.DataFrame()
         self.resultsSegment_all = pd.DataFrame()
         self.previousSegment = pd.DataFrame()
         self.productionGoalSegment = []
-        
-
-        self.shutDownCost = 1000000
-        self.slagCost = max(self.dicPFC)
 
 
 
         
     def step(self):
         self.dictCapacity[self.world.currstep] = 0
-        
         for bid in self.sentBids:
-            if 'supplyEOM' in bid.ID in bid.ID:
-                self.dictCapacity[self.world.currstep] -= bid.confirmedAmount
-                
-            if 'demandEOM' in bid.ID:
+            if 'mrEOM' in bid.ID or 'flexEOM' in bid.ID:
                 self.dictCapacity[self.world.currstep] += bid.confirmedAmount
-        
-        
-        for bid in self.sentBids:
-            if 'mrEOM' in bid.ID:
-                self.dictCapacityMR[self.world.currstep] = (bid.confirmedAmount, bid.price)    
-            else:
-                self.dictCapacityFlex[self.world.currstep] = (bid.confirmedAmount, bid.price)
+                if 'mrEOM' in bid.ID:
+                    self.dictCapacityMR[self.world.currstep] = (bid.confirmedAmount, bid.price)    
+                else:
+                    self.dictCapacityFlex[self.world.currstep] = (bid.confirmedAmount, bid.price)
 
+            if "posCRMCall" in bid.ID:
+                self.dictCapacity[self.world.currstep] += bid.confirmedAmount
+            
+            if "negCRMCall" in bid.ID:
+                self.dictCapacity[self.world.currstep] -= bid.confirmedAmount
+
+        #change crm capacity every 4 hours (CRM market clearing time)
+        if self.world.currstep % self.crmTime:
+            self.confQtyCRM_pos[self.world.currstep] = self.confQtyCRM_pos[self.world.currstep-1]
+            self.confQtyCRM_neg[self.world.currstep] = self.confQtyCRM_neg[self.world.currstep-1]
+            self.confEnCRM_neg[self.world.currstep] = self.confEnCRM_neg[self.world.currstep-1]
         
         self.sentBids_dict[self.world.currstep] = self.sentBids.copy()
         self.sentBids = []
         
         
     def feedback(self, bid):
+    # confQtyCRM_### describes the accepted energy ("Call")
+    # confQtyCRM_###_amount describes the accpeted capacity ("Demand")
         if bid.status == "Confirmed":
 
-            if 'supplyEOM' in bid.ID:
-                self.confQtyEOM[self.world.currstep] -= bid.confirmedAmount
-            if 'demandEOM' in bid.ID:
-                self.confQtyEOM[self.world.currstep] += bid.confirmedAmount
+            if 'CRMPosDem' in bid.ID:
+                self.confQtyCRM_pos.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
+                self.confQtyCRM_pos_amount.update({self.world.currstep+_:bid.amount for _ in range(self.crmTime)})
+                
+            if 'CRMNegDem' in bid.ID:
+                self.confQtyCRM_neg.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
+                self.confQtyCRM_neg_amount.update({self.world.currstep+_:bid.amount for _ in range(self.crmTime)})
 
-            if round(self.confQtyEOM[self.world.currstep],2) != round(self.resultsSegment_all.iloc[self.world.currstep]["production"],2):
-                print("Flex bid accepted at time: ", self.world.currstep)
-                self.resultsSegment_all.to_csv(f'output/2016example/SteelPlant/prod_opt_{self.world.currstep}_before.csv', index=True)
-                self.resultsSegment_all.iloc[self.world.currstep:self.world.currstep+timestampsSectionFlex+1] = SectionModelFlex[0][-(timestampsSectionFlex+1):].reset_index(drop=True)
-                self.resultsSegment_all.to_csv(f'output/2016example/SteelPlant/prod_opt_{self.world.currstep}after.csv', index=True)
+            if 'negCRMCall' in bid.ID:
+                self.confEnCRM_neg.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
 
-                print("production goal before flex: ", self.productionGoalSegment)
-                self.slagFlex = sum(SectionModelFlex[0]["slag"])
-                print("slagFlex: ", self.slagFlex)
-                self.updateProductionGoal(self.slagFlex, self.world.currstep)
-                print("production goal after flex: ", self.productionGoalSegment)
+            if 'EOM_DE' in bid.ID:
+                self.confQtyEOM.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
+                
+                
+        elif bid.status =="PartiallyConfirmed":
+            if 'CRMPosDem' in bid.ID:
+                self.confQtyCRM_pos.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
+                self.confQtyCRM_pos_amount.update({self.world.currstep+_:bid.amount for _ in range(self.crmTime)})
+                
+            if 'CRMNegDem' in bid.ID:
+                self.confQtyCRM_neg.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
+                self.confQtyCRM_neg_amount.update({self.world.currstep+_:bid.amount for _ in range(self.crmTime)})
+
+            if 'negCRMCall' in bid.ID:
+                self.confEnCRM_neg.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.crmTime)})
+
+            if 'EOM_DE' in bid.ID:
+                self.confQtyEOM.update({self.world.currstep+_:bid.confirmedAmount for _ in range(self.Time)})
 
 
         #self.write_to_db(self.world.currstep, bid)
@@ -124,12 +162,12 @@ class SteelPlant():
 
     def requestBid(self, t, market):
         bids = []
-        
+
         if market == "EOM":
             BidsDict = self.calculateBidEOM(t)           
             # if BidsDict['bidQuantity_plan'] != 0:
             bids.append(Bid(issuer = self,
-                            ID = "{}_SteelPlant_demandEOM".format(self.name),
+                            ID = "{}_mrEOM".format(self.name),
                             price =  BidsDict['bidPrice_plan'],
                             amount = BidsDict['bidQuantity_plan'],
                             status = "Sent",
@@ -139,9 +177,9 @@ class SteelPlant():
      
 
             bids.append(Bid(issuer = self,
-                            ID = "{}_SteelPlant_supplyEOM".format(self.name),
-                            price = BidsDict['bidPrice_flex'],
-                            amount = BidsDict['bidQuantity_flex'],
+                            ID = "{}_flexEOM".format(self.name),
+                            price =  BidsDict[f'bidPrice_flex'],
+                            amount = BidsDict[f'bidQuantity_flex'],
                             status = "Sent",
                             bidType = "Supply",
                             node = self.node))
@@ -149,36 +187,26 @@ class SteelPlant():
 
         return bids
     
-    def updateProductionGoal(self,slag, t):
-        OptSegment = t // self.segment
-        self.maxProdSegment = self.maxProdSection * (self.segment/self.section)
-        counter = 0
-        print("SLAG: ",slag)
-        while slag > 0:
-            print("OptSegment: ", OptSegment)
-            print("counter: ", counter)
-            if (OptSegment + counter + 1) >= len(self.productionGoalSegment):
-                print("PRODUCTION GOAL NOT REACHED")
-                break
-            else:
-                print("PRODUCTION GOAL REACHED")
-                if self.productionGoalSegment[OptSegment+counter+1] < self.maxProdSegment:
-                    addProduction = self.maxProdSegment - self.productionGoalSegment[OptSegment+counter+1]
-                    if slag < addProduction:
-                        self.productionGoalSegment[OptSegment+counter+1] += slag
-                        slag = 0
-                    else:
-                        self.productionGoalSegment[OptSegment+counter+1] = self.maxProdSegment
-                        slag -= addProduction
-                        counter += 1
-                else:
-                    counter += 1
 
 
     
 
+    # def calcPrevSegment(self, t):
+    #     # check if previous segment scheduled as planed
+    #     previousProduction = []
+    #     previousSegment = pd.DataFrame()
+    #     for i in range(0,self.segment):
+    #         previousProduction.append(self.dictCapacity[t-(self.segment-i)])
+    #         if self.resultsSegment["production"].equals(pd.Series(previousProduction)):
+    #             print("production as planed")
+    #             previousSegment = 
+
+
+
+    #     return previousSegment
+    
+
     def calculateBaseline(self, t):
-        print("Optimiere Baseline für Segment: ", t//self.segment)
         #calculate the baseline based on the PFC for given length of segment
         OptSegment = t // self.segment
         
@@ -188,39 +216,32 @@ class SteelPlant():
                 Tprevious = 0
                 SOCStart = 0
                 # calulate production for every segment
-                # 1. calculate max production of one section
-                maxProdSectionModel = self.steelOptBase(
-                    optHorizon = self.section, 
+                # 1. calculate max production of one segment
+                maxProdSegmentModel = self.steelOptBase(
+                    optHorizon = self.segment, 
                     timestampsPreviousSection = Tprevious, 
                     PFC = [abs(value) for value in self.dicPFC[(t-Tprevious):(t+self.segment)]], #erstmal nur positive um Überprodukion zu verhindern
                     previousSection = self.previousSegment,
                     productionGoal = 0, 
                     maxPower = self.maxPower, 
-                    SOCStart = 0,
-                    shutDownCosts=self.shutDownCost,
-                    slagCosts=self.slagCost, 
-                    objective="maximize_production")[0]
+                    SOCStart = 0, 
+                    objective="maximize_production")
                 
                 
-                self.maxProdSection = sum(maxProdSectionModel["production"])
+                maxProdSegment = sum(maxProdSegmentModel["production"])
                
-                
-
                 # 2. calculate opt production for each segment
-                productionGoalSectionModel = self.prodGoalOpt(
+                productionGoalSegmentModel = self.prodGoalOpt(
                     timestampsTotal = len(self.world.snapshots),
                     timestampsSection = self.section, # kleiner als self.segment um Randeffekte zu minimieren
                     PFC = [abs(value) for value in self.dicPFC], #erstmal nur positive um Überprodukion zu verhindern
                     productionGoal = self.yearlyProductionGoal,
-                    maxProductionSection = self.maxProdSection)
+                    maxProductionSection = maxProdSegment)
                 
                 
 
-                productionGoalSection = [productionGoalSectionModel.production_section[t]() for t in productionGoalSectionModel.timesteps]
+                productionGoalSection = [productionGoalSegmentModel.production_section[t]() for t in productionGoalSegmentModel.timesteps]
                 
-                
-
-
                 if self.segment != self.section:
                     x = int(self.segment/self.section)
                     for i in range(0, len(productionGoalSection), x):
@@ -230,16 +251,16 @@ class SteelPlant():
                 else:
                     self.productionGoalSegment = productionGoalSection
 
-                
-                print("productionGoalSection:", productionGoalSection)
+                print("productionGoalSectioin:", productionGoalSection)
                 print("productionGoalSegment:", self.productionGoalSegment)
                 
         else:
             # get values from previous segment
-            self.previousSegment = self.resultsSegment_all.iloc[t-self.segment:t].reset_index(drop=True)
+            self.previousSegment = self.resultsSegment
             Tprevious = self.Tprevious
-            SOCStart = self.resultsSegment_all["SOC"].iloc[t-self.Tprevious-1]
+            SOCStart = self.resultsSegment["SOC"].iloc[-self.Tprevious-1]
 
+        self.resultsSegment = self.resultsSegment.drop(self.resultsSegment.index)
 
         # optimize segment
         self.resultsSegment = self.steelOptBase(
@@ -249,32 +270,19 @@ class SteelPlant():
             previousSection = self.previousSegment.iloc[-Tprevious:].reset_index(drop=True),
             productionGoal = self.productionGoalSegment[t//self.segment], 
             maxPower = self.maxPower, 
-            SOCStart = SOCStart,
-            shutDownCosts=self.shutDownCost,
-            slagCosts=self.slagCost, 
-            objective="minimize_cost")[0]
+            SOCStart = SOCStart, 
+            objective="minimize_cost")
         
-        self.resultsSegment_all = pd.concat([self.resultsSegment_all[0:t-Tprevious], self.resultsSegment], ignore_index=True)
+        self.resultsSegment_all = pd.concat([self.resultsSegment_all[1:t-Tprevious], self.resultsSegment], ignore_index=True)
 
 
         self.resultsSegment.to_csv(f'output/2016example/SteelPlant/prod_opt_{OptSegment}.csv', index=True)
-
-        self.slag.append(sum(self.resultsSegment["slag"]))
-        print(self.slag[-1])
-        print("production goal: ",self.productionGoalSegment)
-        self.updateProductionGoal(self.slag[-1],t)
-        print("production goal: ",self.productionGoalSegment)
-
+        self.resultsSegment_all.to_csv('output/2016example/SteelPlant/prod_opt.csv', index=True)
         
         return self.resultsSegment_all
-
-
-
+    
 
     def calculateFlexBids(self, t):
-
-        global SectionModelFlex
-        global timestampsSectionFlex
         
        
 
@@ -290,12 +298,10 @@ class SteelPlant():
 
         # 2. Start flex calculation
         
-        if t > self.Tprevious: # Müsste man noch anpassen, will ich gerade nicht ### Check ###
+        if t > self.Tprevious: # Müsste man noch anpassen, will ich gerade nicht
             if productionHour > 0: # Check if production in considered hour
                 if startHour > 0: # Check if start of batch in considered hour
-                                        
-                    print("calculateFlexBids at time: ", t)
-                    flexAmountI = self.resultsSegment_all["production"][t]
+
 
                     # 2.1. Determine start index of batch
                     startIndex = t
@@ -306,22 +312,24 @@ class SteelPlant():
 
                     # set optimization horizon
 
-                    timestampsSectionFlex = self.segment - t % self.segment - 1            # nur für restzeit in diesem segment
-                    timestampsPreviousSectionFlex = self.Tprevious 
+                    timestampsSectionFlex = (t+self.segment)//self.segment               # nur für restzeit in diesem segment
+                    timestampsPreviousSectionFlex = self.Tprevious
 
-                    # get values of previous segment
-                    startFlex = t - timestampsPreviousSectionFlex + 1
+                    # get values of previous section
+                    startFlex = t - self.Tprevious
                     endFlex = t + 1 # because df[x:y] is exclusive y
 
                     flexSection = self.resultsSegment_all[startFlex:endFlex].reset_index(drop=True)
 
                     # set values for blocked timestamp t
-                    
+
+
+                   
+
                     for columnname in flexSection.columns:
                         if columnname != "SOC" and columnname != "discharge" and columnname != "shutDown":
-                            
+
                             flexSection[columnname][flexSection.index[-1]] = 0
-                            
 
                         else:
                             if columnname == "SOC":
@@ -330,70 +338,35 @@ class SteelPlant():
                                     flexSection['discharge'][flexSection.index[-1]] = 1
                                 else:
                                     flexSection['SOC'][flexSection.index[-1]] = 0
-                                    flexSection['discharge'][flexSection.index[-1]] = 0
-                 
+                                    flexSection['discharge'][flexSection.index[-1]] = 0  
+
+                    print("calculateFlexBids at time: ", t)
+
+                    if t == 27 or t == 28:
+                        print("timesampsSectionFlex: ", timestampsSectionFlex)
+                        print("timestampsPreviousSectionFlex: ", timestampsPreviousSectionFlex)
+                        print("PFC: ", [abs(value) for value in self.dicPFC[(t-self.Tprevious):(t+timestampsSectionFlex)]])
+                        print("lenPFC: ", len([abs(value) for value in self.dicPFC[(t-self.Tprevious):(t+timestampsSectionFlex)]]))
+                        print("previousSection: ", flexSection)
+                        print("productionGoal: ", self.productionGoalSegment[t//self.segment])
+                        print("maxPower: ", self.maxPower)
+                        print("SOCStart: ", self.resultsSegment_all['SOC'][startFlex-1])
+                        
 
 
                     SectionModelFlex = self.steelOptBase(
                         optHorizon = timestampsSectionFlex, 
                         timestampsPreviousSection=timestampsPreviousSectionFlex, 
-                        PFC = [abs(value) for value in self.dicPFC[(t-timestampsPreviousSectionFlex):(t+timestampsSectionFlex)]],
+                        PFC = [abs(value) for value in self.dicPFC[(t-self.Tprevious):(t+timestampsSectionFlex)]],
                         previousSection = flexSection,
-                        productionGoal=sum(self.resultsSegment_all["production"][startFlex:t+timestampsSectionFlex]), 
+                        productionGoal=self.productionGoalSegment[t//self.segment], 
                         maxPower=self.maxPower, 
-                        SOCStart=self.resultsSegment_all['SOC'][startFlex-1],
-                        shutDownCosts=self.shutDownCost,
-                        slagCosts=self.slagCost, 
+                        SOCStart=self.resultsSegment_all['SOC'][startFlex-1], 
                         objective="minimize_cost")
-    
-                    
-                    
-                    # prdoction costs old
-
-                    productionCostSegmentOld = sum([self.resultsSegment_all["production"].iloc[i] * abs(self.dicPFC[i-1]) + self.resultsSegment_all["shutDown"].iloc[i] * self.shutDownCost for i in range(startFlex, t + timestampsSectionFlex)])
-                    productionCostSegementNew = sum([SectionModelFlex[0]["production"].iloc[i] * abs(self.dicPFC[i-1]) + SectionModelFlex[0]["shutDown"].iloc[i] * self.shutDownCost for i in range(1, len(SectionModelFlex[0]))])
-
-
-                      # if t == 28:# or t == 50 or t == 91:
-                    #     flexPriceI  = -1000
-                    # else:
-                    #     flexAmountI = 0
-                    #     flexPriceI = 1000000
-
-                    flexPriceI = productionCostSegementNew - productionCostSegmentOld ### aktuell teilweise mit slag (neue Berehcnung), teilweise ohne slag (alte Berechnung)
-
-                    # check if slag due to flex can´t be produced in next segment (reproduction_time)
-                    self.slagFlex = sum(SectionModelFlex[0]["slag"])
-                    freeCap = 0
-                    reproductionTime_temp = self.reproduction_time
-                    if len(self.productionGoalSegment) - (t//self.segment) - 1 >= reproductionTime_temp:
-                        for i in range(1,reproductionTime_temp+1):
-                            freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
-                    else:
-                        reproductionTime_temp = len(self.productionGoalSegment) - (t//self.segment) - 1
-                        for i in range(1,reproductionTime_temp+1):
-                            freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
-
-                    if freeCap < self.slagFlex:
-                        flexAmountI = 0
-                        flexPriceI = 0
-
-
-                    
-                  
                     
 
-
-
-              
-
-
-
-
-
-
-                    
-                    
+                    flexPriceI = -4000 ### muss noch rechnerisch bestimmt werden
+                    flexAmountI = self.resultsSegment_all["production"][t]
                     
             return flexAmountI, flexPriceI
         else:
@@ -411,10 +384,10 @@ class SteelPlant():
         # calculate baseline bids
         if t % self.segment == 0:
             self.resultsSegment_all = self.calculateBaseline(t)
-            
+            self.resultsSegment_all.to_csv("datei.csv", index=False)
 
         
-        BidsEOM['bidQuantity_plan'] = self.resultsSegment_all["production"][t]
+        BidsEOM['bidQuantity_plan'] = self.resultsSegment["production"][t - (OptSegment * self.segment)]
         BidsEOM['bidPrice_plan'] = 3000 # forecast wird erwartet, deswegen wird teuer in den Markt geboten
     
         # calculate flexibility bids

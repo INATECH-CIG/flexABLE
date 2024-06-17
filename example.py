@@ -59,7 +59,7 @@ print(pd.DataFrame({bid.issuer.name: {'price':bid.price, 'amount':bid.confirmedA
 bids_rejected_EOM = [r.rejectedBids for r in example.markets['EOM']['EOM_DE'].debug_results]
 print(pd.DataFrame({bid.issuer.name: {'price':bid.price, 'amount':bid.confirmedAmount} for bid in bids_rejected_EOM[t]}))
 
-
+print(example.dictPFC)
 # for t in clearingTime:
 #     print("------------------------------------------------------------------------")
 #     print("clearingTime:" + str(t))

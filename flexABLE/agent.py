@@ -10,6 +10,7 @@ from . import storage
 from . import SteelPlant
 from . import CementPlant
 
+
 class Agent():
     """
     The agent class is intented to represent a power plant or storage operator with at least one unit.

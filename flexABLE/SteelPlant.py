@@ -9,6 +9,7 @@ from .bid import Bid
 import pandas as pd
 from .steelPlantOptimization import steelOptBase
 from .productionGoalOptimization import prodGoalOpt
+import logging
 
 class SteelPlant():
     
@@ -28,6 +29,8 @@ class SteelPlant():
         self.steelOptBase = steelOptBase
         self.prodGoalOpt = prodGoalOpt
 
+        
+
         # bid status parameters
         self.sentBids=[]
 
@@ -42,9 +45,7 @@ class SteelPlant():
         self.confQtyEOM = {n:0 for n in self.world.snapshots}
 
         self.dicPFC = self.world.PFC
-        df_PFC = pd.DataFrame(self.dicPFC)
-        df_PFC.to_csv(f'output/2016example/SteelPlant/PFC.csv', index=False)
-
+        
 
         # Unit status parameters
         self.sentBids=[]
@@ -67,7 +68,7 @@ class SteelPlant():
         
 
         self.shutDownCost = 1000000
-        self.slagCost = max(self.dicPFC)
+        self.slagCost = 100000000
 
 
 
@@ -102,17 +103,19 @@ class SteelPlant():
             if 'demandEOM' in bid.ID:
                 self.confQtyEOM[self.world.currstep] += bid.confirmedAmount
 
-            if round(self.confQtyEOM[self.world.currstep],2) != round(self.resultsSegment_all.iloc[self.world.currstep]["production"],2):
-                print("Flex bid accepted at time: ", self.world.currstep)
-                self.resultsSegment_all.to_csv(f'output/2016example/SteelPlant/prod_opt_{self.world.currstep}_before.csv', index=True)
-                self.resultsSegment_all.iloc[self.world.currstep:self.world.currstep+timestampsSectionFlex+1] = SectionModelFlex[0][-(timestampsSectionFlex+1):].reset_index(drop=True)
-                self.resultsSegment_all.to_csv(f'output/2016example/SteelPlant/prod_opt_{self.world.currstep}after.csv', index=True)
+       
 
-                print("production goal before flex: ", self.productionGoalSegment)
+            if round(self.confQtyEOM[self.world.currstep],2) != round(self.resultsSegment_all.iloc[self.world.currstep]["production"],2):
+                logging.debug("Flex bid accepted at time: ", self.world.currstep)
+                # self.resultsSegment_all.to_csv(f'output/2016example/SteelPlant/prod_opt_{self.world.currstep}_before.csv', index=True)
+                self.resultsSegment_all.iloc[self.world.currstep:self.world.currstep+timestampsSectionFlex+1] = SectionModelFlex[0][-(timestampsSectionFlex+1):].reset_index(drop=True)
+                # self.resultsSegment_all.to_csv(f'output/2016example/SteelPlant/prod_opt_{self.world.currstep}after.csv', index=True)
+
                 self.slagFlex = sum(SectionModelFlex[0]["slag"])
-                print("slagFlex: ", self.slagFlex)
                 self.updateProductionGoal(self.slagFlex, self.world.currstep)
-                print("production goal after flex: ", self.productionGoalSegment)
+
+
+                
 
 
         #self.write_to_db(self.world.currstep, bid)
@@ -153,15 +156,12 @@ class SteelPlant():
         OptSegment = t // self.segment
         self.maxProdSegment = self.maxProdSection * (self.segment/self.section)
         counter = 0
-        print("SLAG: ",slag)
         while slag > 0:
-            print("OptSegment: ", OptSegment)
-            print("counter: ", counter)
             if (OptSegment + counter + 1) >= len(self.productionGoalSegment):
-                print("PRODUCTION GOAL NOT REACHED")
+                logging.debug("PRODUCTION GOAL NOT REACHED")
                 break
             else:
-                print("PRODUCTION GOAL REACHED")
+                logging.debug("PRODUCTION GOAL REACHED")
                 if self.productionGoalSegment[OptSegment+counter+1] < self.maxProdSegment:
                     addProduction = self.maxProdSegment - self.productionGoalSegment[OptSegment+counter+1]
                     if slag < addProduction:
@@ -178,7 +178,7 @@ class SteelPlant():
     
 
     def calculateBaseline(self, t):
-        print("Optimiere Baseline für Segment: ", t//self.segment)
+        logging.debug("Optimiere Baseline für Segment: ", t//self.segment)
         #calculate the baseline based on the PFC for given length of segment
         OptSegment = t // self.segment
         
@@ -219,8 +219,6 @@ class SteelPlant():
                 productionGoalSection = [productionGoalSectionModel.production_section[t]() for t in productionGoalSectionModel.timesteps]
                 
                 
-
-
                 if self.segment != self.section:
                     x = int(self.segment/self.section)
                     for i in range(0, len(productionGoalSection), x):
@@ -231,8 +229,6 @@ class SteelPlant():
                     self.productionGoalSegment = productionGoalSection
 
                 
-                print("productionGoalSection:", productionGoalSection)
-                print("productionGoalSegment:", self.productionGoalSegment)
                 
         else:
             # get values from previous segment
@@ -257,13 +253,11 @@ class SteelPlant():
         self.resultsSegment_all = pd.concat([self.resultsSegment_all[0:t-Tprevious], self.resultsSegment], ignore_index=True)
 
 
-        self.resultsSegment.to_csv(f'output/2016example/SteelPlant/prod_opt_{OptSegment}.csv', index=True)
+        # self.resultsSegment.to_csv(f'output/2016example/SteelPlant/prod_opt_{OptSegment}.csv', index=True)
 
         self.slag.append(sum(self.resultsSegment["slag"]))
-        print(self.slag[-1])
-        print("production goal: ",self.productionGoalSegment)
         self.updateProductionGoal(self.slag[-1],t)
-        print("production goal: ",self.productionGoalSegment)
+
 
         
         return self.resultsSegment_all
@@ -294,7 +288,7 @@ class SteelPlant():
             if productionHour > 0: # Check if production in considered hour
                 if startHour > 0: # Check if start of batch in considered hour
                                         
-                    print("calculateFlexBids at time: ", t)
+                    logging.debug("calculateFlexBids at time: ", t)
                     flexAmountI = self.resultsSegment_all["production"][t]
 
                     # 2.1. Determine start index of batch
@@ -345,20 +339,12 @@ class SteelPlant():
                         shutDownCosts=self.shutDownCost,
                         slagCosts=self.slagCost, 
                         objective="minimize_cost")
-    
-                    
                     
                     # prdoction costs old
 
-                    productionCostSegmentOld = sum([self.resultsSegment_all["production"].iloc[i] * abs(self.dicPFC[i-1]) + self.resultsSegment_all["shutDown"].iloc[i] * self.shutDownCost for i in range(startFlex, t + timestampsSectionFlex)])
-                    productionCostSegementNew = sum([SectionModelFlex[0]["production"].iloc[i] * abs(self.dicPFC[i-1]) + SectionModelFlex[0]["shutDown"].iloc[i] * self.shutDownCost for i in range(1, len(SectionModelFlex[0]))])
+                    productionCostSegmentOld = sum([self.resultsSegment_all["el_consumption"].iloc[i] * abs(self.dicPFC[i-1]) + self.resultsSegment_all["shutDown"].iloc[i] * self.shutDownCost for i in range(startFlex, t + timestampsSectionFlex)])
+                    productionCostSegementNew = sum([SectionModelFlex[0]["el_consumption"].iloc[i] * abs(self.dicPFC[startFlex + i -1]) + SectionModelFlex[0]["shutDown"].iloc[i] * self.shutDownCost for i in range(0, len(SectionModelFlex[0]))])
 
-
-                      # if t == 28:# or t == 50 or t == 91:
-                    #     flexPriceI  = -1000
-                    # else:
-                    #     flexAmountI = 0
-                    #     flexPriceI = 1000000
 
                     flexPriceI = productionCostSegementNew - productionCostSegmentOld ### aktuell teilweise mit slag (neue Berehcnung), teilweise ohne slag (alte Berechnung)
 
@@ -378,27 +364,9 @@ class SteelPlant():
                         flexAmountI = 0
                         flexPriceI = 0
 
-
-                    
-                  
-                    
-
-
-
-              
-
-
-
-
-
-
-                    
-                    
-                    
             return flexAmountI, flexPriceI
         else:
             return 0, 0
-
 
                     
 

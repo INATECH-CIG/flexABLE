@@ -40,45 +40,12 @@ for year, days in scenarios:
                          meritOrder = meritOrder)
 
     example.addAgent(name='Testoperator')
+    example.addAgent(name='Testoperator2')
 
-    example.agents['Testoperator'].addSteelPlant(name='TestStahl')
+    example.agents['Testoperator'].addCementPlant(name='TestZement')
+    example.agents['Testoperator2'].addCementPlant(name='TestStahl')
 
     example.runSimulation()
 
 
 
-clearingTime = [0,12,13,14,15,16,17,32,33,48]
-
-#%%
-
-t = 91
-
-bids_confirmed_EOM = [r.confirmedBids for r in example.markets['EOM']['EOM_DE'].debug_results]
-print(pd.DataFrame({bid.issuer.name: {'price':bid.price, 'amount':bid.confirmedAmount} for bid in bids_confirmed_EOM[t]}))
-
-bids_rejected_EOM = [r.rejectedBids for r in example.markets['EOM']['EOM_DE'].debug_results]
-print(pd.DataFrame({bid.issuer.name: {'price':bid.price, 'amount':bid.confirmedAmount} for bid in bids_rejected_EOM[t]}))
-
-
-# for t in clearingTime:
-#     print("------------------------------------------------------------------------")
-#     print("clearingTime:" + str(t))
-#     print("confirmedBids negCRMDemand:")
-#     bids_confirmed = [r.confirmedBids for t, r in example.markets['CRM'].marketResults['negCRMDemand'].items()]
-#     print(pd.DataFrame({bid.issuer.name: {'price':bid.price, 'amount':bid.confirmedAmount} for bid in bids_confirmed[t]}))
-#     print("rejectedBids negCRMDemand:")
-#     bids_rejected = [r.rejectedBids for t, r in example.markets['CRM'].marketResults['negCRMDemand'].items()]
-#     print(pd.DataFrame({bid.issuer.name: {'price':bid.price, 'amount':bid.confirmedAmount} for bid in bids_rejected[t]}))
-   
-#     print("-----------")
-
-#     print("confirmedBids negCRMCall:")
-#     bids_confirmed = [r.confirmedBids for t, r in example.markets['CRM'].marketResults['negCRMCall'].items()]
-#     print(pd.DataFrame({bid.issuer.name: {'price':bid.energyPrice, 'amount':bid.confirmedAmount} for bid in bids_confirmed[t]}))
-#     print("rejectedBids negCRMCall:")
-#     bids_rejected = [r.rejectedBids for t, r in example.markets['CRM'].marketResults['negCRMCall'].items()]
-#     print(pd.DataFrame({bid.issuer.name: {'price':bid.energyPrice, 'amount':bid.confirmedAmount} for bid in bids_rejected[t]}))
-   
-#     print("-----------")
-
-# %%

@@ -282,10 +282,17 @@ def cementOptBase(
             return model.raw_meal_silo[t] == previousSection['raw_meal_silo'][t-1]
         else:
             if t == max(model.timesteps):
-                return model.raw_meal_silo[t] >= 0 + (model.kiln_on[t] * maxPowerKiln * rawMillClinkerFactor) 
+                return model.raw_meal_silo[t] >= 0 + (maxPowerKiln * rawMillClinkerFactor)
             else:
                 return model.raw_meal_silo[t] >= 0
     model.capacity_raw_meal_silo_con_2 = pyo.Constraint(model.timesteps, rule=capacity_raw_meal_silo_rule_2)
+
+    def capacity_raw_meal_silo_rule_3(model, t):
+        if t <= TPrevious:
+            return model.raw_meal_silo[t] == previousSection['raw_meal_silo'][t-1]
+        else:
+            return model.raw_meal_silo[t] >= (1 - model.raw_mill_shut_down_change[t]) * 16 * (maxPowerKiln * rawMillClinkerFactor)
+    model.capacity_raw_meal_silo_con_3 = pyo.Constraint(model.timesteps, rule=capacity_raw_meal_silo_rule_3)
 
     def balance_raw_meal_silo_rule(model, t):
         if t <= TPrevious:

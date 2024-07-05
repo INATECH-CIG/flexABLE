@@ -25,9 +25,9 @@ class CementPlant():
                  maxPowerCementMill = 390,
                  maxCapRawMealSilo = 22000,
                  maxCapClinkerDome = 22000,
-                 elConsRawMill = 23, # electricity consumption of raw mill per ton
-                 elConsKiln = 30, # electricity consumption of kiln per ton
-                 elConsCementMill = 40, # electricity consumption of cement mill per ton
+                 elConsRawMill = 0.023, # electricity consumption mwh of raw mill per ton
+                 elConsKiln = 0.030, # electricity consumption mwh of kiln per ton
+                 elConsCementMill = 0.040, # electricity consumption mwh of cement mill per ton
                  node = 'Bus_DE',
                  world = None,
                  yearlyProductionGoal = 23000,
@@ -115,9 +115,9 @@ class CementPlant():
 
             if round(self.confQtyEOM[self.world.currstep],2) != round(self.resultsSegment_all.iloc[self.world.currstep]["el_cons_total"],2):
                 logging.debug("Flex bid accepted at time: ", self.world.currstep)
-                # self.resultsSegment_all.to_csv(f'output/2016example/CementPlant/prod_opt_{self.world.currstep}_before.csv', index=True) 
+                self.resultsSegment_all.to_csv(f'output/2016example/CementPlant/prod_opt_{self.world.currstep}_before.csv', index=True)
                 self.resultsSegment_all.iloc[self.world.currstep:self.world.currstep+timestampsSectionFlex+1] = SectionModelFlex[-(timestampsSectionFlex+1):].reset_index(drop=True)
-                # self.resultsSegment_all.to_csv(f'output/2016example/CementPlant/prod_opt_{self.world.currstep}after.csv', index=True)
+                self.resultsSegment_all.to_csv(f'output/2016example/CementPlant/prod_opt_{self.world.currstep}after.csv', index=True)
 
  
 
@@ -285,7 +285,7 @@ class CementPlant():
         self.resultsSegment_all = pd.concat([self.resultsSegment_all[0:t-Tprevious], self.resultsSegment], ignore_index=True)
 
 
-        # self.resultsSegment.to_csv(f'output/2016example/CementPlant/prod_opt_{OptSegment}.csv', index=True)
+        self.resultsSegment.to_csv(f'output/2016example/CementPlant/prod_opt_{OptSegment}.csv', index=True)
 
         self.slag.append(sum(self.resultsSegment["slag"]))
         self.updateProductionGoal(self.slag[-1],t)
@@ -295,30 +295,59 @@ class CementPlant():
 
 
 
-
     def calculateFlexBids(self, t): 
 
         global SectionModelFlex
         global timestampsSectionFlex
 
         SectionModelFlex = pd.DataFrame()
+        SectionModelFlex_I = pd.DataFrame()
+        SectionModelFlex_II = pd.DataFrame()
+        SectionModelFlex_III = pd.DataFrame()
+
+        flexSectionI = pd.DataFrame()
+        flexSectionII = pd.DataFrame()
+        flexSectionIII = pd.DataFrame()
         
         # check if raw_mill can be turned off
-        if t > 16 and self.resultsSegment_all["raw_meal_silo"][t-1] >= self.maxPowerKiln * self.rawMillClinkerFactor and self.resultsSegment_all["raw_mill_start"][t-16:t].sum() == 0 and self.resultsSegment_all["raw_mill_on"][t] == 1:
-            RawMillFlex = True
+        if t > 16 and t%96 <= (self.segment-5) and self.resultsSegment_all["raw_meal_silo"][t-1] >= self.maxPowerKiln * self.rawMillClinkerFactor and self.resultsSegment_all["raw_mill_start"][t-16:t].sum() == 0 and self.resultsSegment_all["raw_mill_on"][t] == 1:
+            # check if flex leads to shutdwon
+            if self.resultsSegment_all["raw_mill_stop"].iloc[t-4] == 1 and sum(self.resultsSegment_all["raw_mill_on"].iloc[t-4:t]) == 0:
+                # check if shutdown is possible
+                if self.resultsSegment_all["raw_meal_silo"].iloc[t-1] >= (self.maxPowerKiln * self.rawMillClinkerFactor * 16):
+                    RawMillFlex = True
+                else:
+                    RawMillFlex = False
+            else:
+                RawMillFlex = True        
         else:
             RawMillFlex = False
 
         # check if cement_mill can be turned off
-        if t > 16 and self.resultsSegment_all["clinker_dome"][t] + self.minPowerKiln <= self.maxCapClinkerDome and self.resultsSegment_all["cement_mill_start"][t-16:t].sum() == 0 and self.resultsSegment_all["cement_mill_on"][t] == 1:
-            CementMillFlex = True
+        if t > 16 and t%96 <= (self.segment-5) and self.resultsSegment_all["clinker_dome"][t-1] + self.minPowerKiln <= self.maxCapClinkerDome and self.resultsSegment_all["cement_mill_start"][t-16:t].sum() == 0 and self.resultsSegment_all["cement_mill_on"][t] == 1:
+            # check if flex leads to shutdwon
+            if self.resultsSegment_all["cement_mill_stop"].iloc[t-4] == 1 and sum(self.resultsSegment_all["cement_mill_on"].iloc[t-4:t]) == 0:
+                # check if shutdown is possible
+                if self.maxCapClinkerDome >= self.resultsSegment_all["clinker_dome"].iloc[t-1] + (self.minPowerKiln * 16):
+                    CementMillFlex = True
+                else:
+                    CementMillFlex = False
+            else:
+                CementMillFlex = True                
         else:
             CementMillFlex = False
 
 
         # set default values for price and amount
+        BidI = 0
+        BidII = 0
+        BidIII = 0
         flexAmountI = 0
         flexPriceI = 0
+        flexAmountII = 0
+        flexPriceII = 0
+        flexAmountIII = 0
+        flexPriceIII = 0
 
         # set optimization horizon
 
@@ -336,51 +365,67 @@ class CementPlant():
 
         flexSection = self.resultsSegment_all[startFlex:endFlex].reset_index(drop=True)
 
-       
+        
+
+
+
+
+
+
         # set values for blocked timestamps
 
         if CementMillFlex == True and RawMillFlex == True:
-            logging.debug(t, "CementMillFlex and RawMillFlex ------------------------------------------")
-            flexAmountI = int(flexSection["el_cons_raw_mill"][flexSection.index[-1]]) + int(flexSection["el_cons_cement_mill"][flexSection.index[-1]])
+            # print(t, "CementMillFlex and RawMillFlex ------------------------------------------")
+            flexSectionI = flexSection.copy()
+            
+            flexAmountI = float(flexSectionI["el_cons_raw_mill"][flexSectionI.index[-1]]) + int(flexSectionI["el_cons_cement_mill"][flexSectionI.index[-1]])
 
             # cement mill
-            flexSection["clinker_dome"][flexSection.index[-1]] = flexSection["clinker_dome"][flexSection.index[-1]] + flexSection["input_cement_mill"][flexSection.index[-1]]
-            flexSection["input_cement_mill"][flexSection.index[-1]] = 0
-            flexSection["output_cement_mill"][flexSection.index[-1]] = 0
-            flexSection["el_cons_cement_mill"][flexSection.index[-1]] = 0
-            flexSection["cement_mill_on"][flexSection.index[-1]] = 0
-            if flexSection["cement_mill_stop"].iloc[-4:-1].sum() == 1:
-                flexSection["cement_mill_shut_down"][flexSection.index[-1]] = 1
-                if flexSection["cement_mill_shut_down_change"][flexSection.index[-4]] == 1:
-                    flexSection["cement_mill_shut_down_change"][flexSection.index[-1]] = 0
+            flexSectionI["clinker_dome"][flexSectionI.index[-1]] = flexSectionI["clinker_dome"][flexSectionI.index[-1]] + flexSectionI["input_cement_mill"][flexSectionI.index[-1]]
+            flexSectionI["input_cement_mill"][flexSectionI.index[-1]] = 0
+            flexSectionI["output_cement_mill"][flexSectionI.index[-1]] = 0
+            flexSectionI["el_cons_cement_mill"][flexSectionI.index[-1]] = 0
+            flexSectionI["cement_mill_on"][flexSectionI.index[-1]] = 0
+
+            if flexSectionI["cement_mill_stop"][flexSectionI.index[-5]] == 1 and flexSectionI["cement_mill_on"].iloc[-5:-1].sum() == 0:
+                flexSectionI["cement_mill_shut_down_change"][flexSectionI.index[-1]] = 0
             else:
-                if flexSection["cement_mill_start"][flexSection.index[-1]] == 1:
-                    flexSection["cement_mill_stop"][flexSection.index[-1]] = 0
-                    flexSection["cement_mill_shut_down"][flexSection.index[-1]] = 0
+                flexSectionI["cement_mill_shut_down_change"][flexSectionI.index[-1]] = 1
+
+            if flexSectionI["cement_mill_stop"].iloc[-4:-1].sum() == 1:
+                flexSectionI["cement_mill_shut_down"][flexSectionI.index[-1]] = 1
+            else:
+                if flexSectionI["cement_mill_start"][flexSectionI.index[-1]] == 1:
+                    flexSectionI["cement_mill_stop"][flexSectionI.index[-1]] = 0
+                    flexSectionI["cement_mill_shut_down"][flexSectionI.index[-1]] = 0
                 else:
-                    flexSection["cement_mill_stop"][flexSection.index[-1]] = 1
-                    flexSection["cement_mill_shut_down"][flexSection.index[-1]] = 1
-            flexSection["cement_mill_start"][flexSection.index[-1]] = 0
-            flexSection["cement_mill_shut_down_change"][flexSection.index[-1]] = 1
+                    flexSectionI["cement_mill_stop"][flexSectionI.index[-1]] = 1
+                    flexSectionI["cement_mill_shut_down"][flexSectionI.index[-1]] = 1
+            flexSectionI["cement_mill_start"][flexSectionI.index[-1]] = 0
+
             
             # raw mill
-            flexSection["raw_meal_silo"][flexSection.index[-1]] = flexSection["raw_meal_silo"][flexSection.index[-1]] - flexSection["output_raw_mill"][flexSection.index[-1]]
-            flexSection["output_raw_mill"][flexSection.index[-1]] = 0
-            flexSection["el_cons_raw_mill"][flexSection.index[-1]] = 0
-            flexSection["raw_mill_on"][flexSection.index[-1]] = 0
-            if flexSection["raw_mill_stop"].iloc[-4:-1].sum() == 1:
-                flexSection["raw_mill_shut_down"][flexSection.index[-1]] = 1
-                if flexSection["raw_mill_shut_down_change"][flexSection.index[-4]] == 1:
-                    flexSection["raw_mill_shut_down_change"][flexSection.index[-1]] = 0
+            flexSectionI["raw_meal_silo"][flexSectionI.index[-1]] = flexSectionI["raw_meal_silo"][flexSectionI.index[-1]] - flexSectionI["output_raw_mill"][flexSectionI.index[-1]]
+            flexSectionI["output_raw_mill"][flexSectionI.index[-1]] = 0
+            flexSectionI["el_cons_raw_mill"][flexSectionI.index[-1]] = 0
+            flexSectionI["raw_mill_on"][flexSectionI.index[-1]] = 0
+
+            if flexSectionI["raw_mill_stop"][flexSectionI.index[-5]] == 1 and flexSectionI["raw_mill_on"].iloc[-5:-1].sum() == 0:
+                flexSectionI["raw_mill_shut_down_change"][flexSectionI.index[-1]] = 0
             else:
-                if flexSection["raw_mill_start"][flexSection.index[-1]] == 1:
-                    flexSection["raw_mill_stop"][flexSection.index[-1]] = 0
-                    flexSection["raw_mill_shut_down"][flexSection.index[-1]] = 0
+                flexSectionI["raw_mill_shut_down_change"][flexSectionI.index[-1]] = 1
+
+
+            if flexSectionI["raw_mill_stop"].iloc[-4:-1].sum() == 1:
+                flexSectionI["raw_mill_shut_down"][flexSectionI.index[-1]] = 1
+            else:
+                if flexSectionI["raw_mill_start"][flexSectionI.index[-1]] == 1:
+                    flexSectionI["raw_mill_stop"][flexSectionI.index[-1]] = 0
+                    flexSectionI["raw_mill_shut_down"][flexSectionI.index[-1]] = 0
                 else:
-                    flexSection["raw_mill_stop"][flexSection.index[-1]] = 1
-                    flexSection["raw_mill_shut_down"][flexSection.index[-1]] = 1
-            flexSection["raw_mill_start"][flexSection.index[-1]] = 0
-            flexSection["raw_mill_shut_down_change"][flexSection.index[-1]] = 1
+                    flexSectionI["raw_mill_stop"][flexSectionI.index[-1]] = 1
+                    flexSectionI["raw_mill_shut_down"][flexSectionI.index[-1]] = 1
+            flexSectionI["raw_mill_start"][flexSectionI.index[-1]] = 0
 
             # flexSection.to_csv(f'output/2016example/CementPlant/flexSection_{t}.csv', index=True)
 
@@ -395,7 +440,7 @@ class CementPlant():
                 optHorizon = timestampsSectionFlex, 
                 timestampsPreviousSection = timestampsPreviousSectionFlex, 
                 PFC = [abs(value) for value in self.dicPFC[(t-timestampsPreviousSectionFlex+addCount):(t+timestampsSectionFlex+1)]], #erstmal nur positive um Überprodukion zu verhindern
-                previousSection = flexSection,
+                previousSection = flexSectionI,
                 productionGoal = sum(self.resultsSegment_all["output_cement_mill"][t:t+timestampsSectionFlex+1]), # kein t+1 da verlorene Produktion nachgeholt werden muss
                 minPowerRawMill = self.minPowerRawMill,
                 maxPowerRawMill = self.maxPowerRawMill,
@@ -413,7 +458,7 @@ class CementPlant():
             
             # production costs old and new
 
-            SectionModelFlex = SectionModelFlex_RawMill_CementMill[0].copy()
+            SectionModelFlex_I = SectionModelFlex_RawMill_CementMill[0].copy()
 
 
 
@@ -426,10 +471,17 @@ class CementPlant():
             #Nötig weil: Wenn man sonst t<= self.Tprecios hat, ist startFlex=1, somit fehlt der index 0 zu Berechnung der Kosten
 
             productionCostSegmentOld = sum([self.resultsSegment_all["el_cons_total"].iloc[i] * abs(self.dicPFC[i]) for i in range(startFlex_cost, t + timestampsSectionFlex+1)]) 
-            productionCostSegementNew = sum([SectionModelFlex["el_cons_total"].iloc[i] * abs(self.dicPFC[startFlex_cost+i]) for i in range(0, len(SectionModelFlex))])
+            productionCostSegementNew = sum([SectionModelFlex_I["el_cons_total"].iloc[i] * abs(self.dicPFC[startFlex_cost+i]) for i in range(0, len(SectionModelFlex_I))])
+
+            flexPriceI = int(productionCostSegementNew - productionCostSegmentOld)
+
+            # print("productionCostSegmentOld", productionCostSegmentOld)
+            # print("productionCostSegementNew", productionCostSegementNew)
+            # print("flexPriceI", flexPriceI)
+            # print("flexAmountI", flexAmountI)
 
             # check if slag due to flex can´t be produced in next segment (reproduction_time)
-            self.slagFlex = sum(SectionModelFlex["slag"])
+            self.slagFlex = sum(SectionModelFlex_I["slag"])
             freeCap = 0
             reproductionTime_temp = self.reproduction_time
             if len(self.productionGoalSegment) - (t//self.segment) - 1 >= reproductionTime_temp:
@@ -440,186 +492,279 @@ class CementPlant():
                 for i in range(1,reproductionTime_temp+1):
                     freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
 
+            if flexAmountI > 0:
+                BidI = flexPriceI/flexAmountI
+            # print("BidI", BidI)
+            
             if freeCap < self.slagFlex:
                 flexAmountI = 0
                 flexPriceI = 0
 
 
-            return flexAmountI, flexPriceI
-        else:
-            if RawMillFlex == True:
-                logging.debug(t, "RawMillFlex")
-                flexAmountI = int(flexSection["el_cons_raw_mill"][flexSection.index[-1]])
-                
-                flexSection["raw_meal_silo"][flexSection.index[-1]] = flexSection["raw_meal_silo"][flexSection.index[-1]] - flexSection["output_raw_mill"][flexSection.index[-1]]
-                flexSection["output_raw_mill"][flexSection.index[-1]] = 0
-                flexSection["el_cons_raw_mill"][flexSection.index[-1]] = 0
-                flexSection["raw_mill_on"][flexSection.index[-1]] = 0
-                if flexSection["raw_mill_stop"].iloc[-4:-1].sum() == 1:
-                    flexSection["raw_mill_shut_down"][flexSection.index[-1]] = 1
-                    if flexSection["raw_mill_shut_down_change"][flexSection.index[-4]] == 1:
-                        flexSection["raw_mill_shut_down_change"][flexSection.index[-1]] = 0
-                else:
-                    if flexSection["raw_mill_start"][flexSection.index[-1]] == 1:
-                        flexSection["raw_mill_stop"][flexSection.index[-1]] = 0
-                        flexSection["raw_mill_shut_down"][flexSection.index[-1]] = 0
-                    else:
-                        flexSection["raw_mill_stop"][flexSection.index[-1]] = 1
-                        flexSection["raw_mill_shut_down"][flexSection.index[-1]] = 1
-                flexSection["raw_mill_start"][flexSection.index[-1]] = 0
-                flexSection["raw_mill_shut_down_change"][flexSection.index[-1]] = 1
-
-                # flexSection.to_csv(f'output/2016example/CementPlant/flexSection_{t}.csv', index=True)
-
-                if timestampsPreviousSectionFlex >= self.Tprevious:
-                    addCount = 1
-                else:
-                    addCount = 0
-                # benötigt man, beispiel: t = 26, timestampsPreviosuSection = 24 --> untere Grenze des PFC abrufs wird 2, aber t previous geht eigentlich von 3-26 (24 einheiten)
 
 
-                SectionModelFlex_RawMill = self.cementOptBase(
-                    optHorizon = timestampsSectionFlex, 
-                    timestampsPreviousSection = timestampsPreviousSectionFlex, 
-                    PFC = [abs(value) for value in self.dicPFC[(t-timestampsPreviousSectionFlex+addCount):(t+timestampsSectionFlex+1)]], #erstmal nur positive um Überprodukion zu verhindern
-                    previousSection = flexSection,
-                    productionGoal = sum(self.resultsSegment_all["output_cement_mill"][t+1:t+timestampsSectionFlex+1]),  #+1 da sonst produktion aus t doppelt berechnet wird
-                    minPowerRawMill = self.minPowerRawMill,
-                    maxPowerRawMill = self.maxPowerRawMill,
-                    minPowerKiln = self.minPowerKiln,
-                    maxPowerKiln = self.maxPowerKiln,
-                    minPowerCementMill = self.minPowerCementMill,
-                    maxPowerCementMill = self.maxPowerCementMill,
-                    maxCapRawMealSilo = self.maxCapRawMealSilo,
-                    maxCapClinkerDome = self.maxCapClinkerDome,
-                    elConsRawMill = self.elConsRawMill,
-                    elConsKiln = self.elConsKiln,
-                    elConsCementMill = self.elConsCementMill, 
-                    slagCosts=self.slagCost, 
-                    objective="minimize_cost")
-                
-                # production costs old and new
-
-                SectionModelFlex = SectionModelFlex_RawMill[0].copy()
+        
 
 
 
-                if t <= self.Tprevious:
-                    startFlex_cost = 0
-                else:
-                    startFlex_cost = startFlex
-                #Nötig weil: Wenn man sonst t<= self.Tprecios hat, ist startFlex=1, somit fehlt der index 0 zu Berechnung der Kosten
 
-                productionCostSegmentOld = sum([self.resultsSegment_all["el_cons_total"].iloc[i] * abs(self.dicPFC[i]) for i in range(startFlex_cost, t + timestampsSectionFlex+1)]) 
-                productionCostSegementNew = sum([SectionModelFlex["el_cons_total"].iloc[i] * abs(self.dicPFC[startFlex_cost+i]) for i in range(0, len(SectionModelFlex))])
 
-                flexPriceI = int(productionCostSegmentOld - productionCostSegementNew)
+        
 
-                # check if slag due to flex can´t be produced in next segment (reproduction_time)
-                self.slagFlex = sum(SectionModelFlex["slag"])
-                freeCap = 0
-                reproductionTime_temp = self.reproduction_time
-                if len(self.productionGoalSegment) - (t//self.segment) - 1 >= reproductionTime_temp:
-                    for i in range(1,reproductionTime_temp+1):
-                        freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
-                else:
-                    reproductionTime_temp = len(self.productionGoalSegment) - (t//self.segment) - 1
-                    for i in range(1,reproductionTime_temp+1):
-                        freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
+        if RawMillFlex == True:
+            # print(t, "RawMillFlex")
 
-                if freeCap < self.slagFlex:
-                    flexAmountI = 0
-                    flexPriceI = 0
+            flexSectionII = flexSection.copy()
 
-                return flexAmountI, flexPriceI
+            flexAmountII = float(flexSection["el_cons_raw_mill"][flexSection.index[-1]])
+            
+            flexSectionII["raw_meal_silo"][flexSectionII.index[-1]] = flexSectionII["raw_meal_silo"][flexSectionII.index[-1]] - flexSectionII["output_raw_mill"][flexSectionII.index[-1]]
+            flexSectionII["output_raw_mill"][flexSectionII.index[-1]] = 0
+            flexSectionII["el_cons_raw_mill"][flexSectionII.index[-1]] = 0
+            flexSectionII["raw_mill_on"][flexSectionII.index[-1]] = 0
+
+            if flexSectionII["raw_mill_stop"][flexSectionII.index[-5]] == 1 and flexSectionII["raw_mill_on"].iloc[-5:-1].sum() == 0:
+                flexSectionII["raw_mill_shut_down_change"][flexSectionII.index[-1]] = 0
             else:
-                if CementMillFlex == True:
-
-                    logging.debug(t, "CementMillFlex")
-                    flexAmountI = int(flexSection["el_cons_cement_mill"][flexSection.index[-1]])
-
-                    flexSection["clinker_dome"][flexSection.index[-1]] = flexSection["clinker_dome"][flexSection.index[-1]] + flexSection["input_cement_mill"][flexSection.index[-1]]
-                    flexSection["input_cement_mill"][flexSection.index[-1]] = 0
-                    flexSection["output_cement_mill"][flexSection.index[-1]] = 0
-                    flexSection["el_cons_cement_mill"][flexSection.index[-1]] = 0
-                    flexSection["cement_mill_on"][flexSection.index[-1]] = 0
-
-                    if flexSection["cement_mill_start"][flexSection.index[-1]] == 1:
-                        flexSection["cement_mill_start"][flexSection.index[-1]] = 0
-                    else:
-                        flexSection["cement_mill_start"][flexSection.index[-1]] = 0
-                        flexSection["cement_mill_stop"][flexSection.index[-1]] = 1
-                    if flexSection["output_cement_mill"].iloc[-5:-1].sum() == 0:
-                        flexSection["cement_mill_shut_down"][flexSection.index[-1]] = 0
-                        if flexSection["cement_mill_shut_down_change"].iloc[-5:-1].sum() == 4:
-                            flexSection["cement_mill_shut_down_change"][flexSection.index[-1]] = 0
-                        else:
-                            flexSection["cement_mill_shut_down_change"][flexSection.index[-1]] = 1
-
-                    # flexSection.to_csv(f'output/2016example/CementPlant/flexSection_{t}.csv', index=True)
-
-                    if timestampsPreviousSectionFlex >= self.Tprevious:
-                        addCount = 1
-                    else:
-                        addCount = 0
-
-                # benötigt man, beispiel: t = 26, timestampsPreviosuSection = 24 --> untere Grenze des PFC abrufs wird 2, aber t previous geht eigentlich von 3-26 (24 einheiten)
-
-                    SectionModelFlex_CementMill = self.cementOptBase(
-                        optHorizon = timestampsSectionFlex, 
-                        timestampsPreviousSection = timestampsPreviousSectionFlex, 
-                        PFC = [abs(value) for value in self.dicPFC[(t-timestampsPreviousSectionFlex+addCount):(t+timestampsSectionFlex+1)]], #erstmal nur positive um Überprodukion zu verhindern
-                        previousSection = flexSection,
-                        productionGoal = sum(self.resultsSegment_all["output_cement_mill"][t:t+timestampsSectionFlex+1]), # kein t+1 da verlorene Produktion nachgeholt werden muss
-                        minPowerRawMill = self.minPowerRawMill,
-                        maxPowerRawMill = self.maxPowerRawMill,
-                        minPowerKiln = self.minPowerKiln,
-                        maxPowerKiln = self.maxPowerKiln,
-                        minPowerCementMill = self.minPowerCementMill,
-                        maxPowerCementMill = self.maxPowerCementMill,
-                        maxCapRawMealSilo = self.maxCapRawMealSilo,
-                        maxCapClinkerDome = self.maxCapClinkerDome,
-                        elConsRawMill = self.elConsRawMill,
-                        elConsKiln = self.elConsKiln,
-                        elConsCementMill = self.elConsCementMill, 
-                        slagCosts=self.slagCost, 
-                        objective="minimize_cost")
-                    
-                    SectionModelFlex = SectionModelFlex_CementMill[0].copy()
-                    
-                    # production costs old and new
-
-                    if t <= self.Tprevious:
-                        startFlex_cost = 0
-                    else:
-                        startFlex_cost = startFlex
-                    #Nötig weil: Wenn man sonst t<= self.Tprecios hat, ist startFlex=1, somit fehlt der index 0 zu Berechnung der Kosten
-
-                    productionCostSegmentOld = sum([self.resultsSegment_all["el_cons_total"].iloc[i] * abs(self.dicPFC[i]) for i in range(startFlex_cost, t + timestampsSectionFlex+1)]) 
-                    productionCostSegementNew = sum([SectionModelFlex["el_cons_total"].iloc[i] * abs(self.dicPFC[startFlex_cost+i]) for i in range(0, len(SectionModelFlex))])
-
-                    flexPriceI = int(productionCostSegmentOld - productionCostSegementNew)
+                flexSectionII["raw_mill_shut_down_change"][flexSectionII.index[-1]] = 1
 
 
-                    # check if slag due to flex can´t be produced in next segment (reproduction_time)
-                    self.slagFlex = sum(SectionModelFlex["slag"])
-                    freeCap = 0
-                    reproductionTime_temp = self.reproduction_time
-                    if len(self.productionGoalSegment) - (t//self.segment) - 1 >= reproductionTime_temp:
-                        for i in range(1,reproductionTime_temp+1):
-                            freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
-                    else:
-                        reproductionTime_temp = len(self.productionGoalSegment) - (t//self.segment) - 1
-                        for i in range(1,reproductionTime_temp+1):
-                            freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
-
-                    if freeCap < self.slagFlex:
-                        flexAmountI = 0
-                        flexPriceI = 0
-
-                    return flexAmountI, flexPriceI
+            if flexSectionII["raw_mill_stop"].iloc[-4:-1].sum() == 1:
+                flexSectionII["raw_mill_shut_down"][flexSectionII.index[-1]] = 1
+            else:
+                if flexSectionII["raw_mill_start"][flexSectionII.index[-1]] == 1:
+                    flexSectionII["raw_mill_stop"][flexSectionII.index[-1]] = 0
+                    flexSectionII["raw_mill_shut_down"][flexSectionII.index[-1]] = 0
                 else:
-                    return 0, 0
+                    flexSectionII["raw_mill_stop"][flexSectionII.index[-1]] = 1
+                    flexSectionII["raw_mill_shut_down"][flexSectionII.index[-1]] = 1
+            flexSectionII["raw_mill_start"][flexSectionII.index[-1]] = 0
+
+            
+
+
+            # flexSection.to_csv(f'output/2016example/CementPlant/flexSection_{t}.csv', index=True)
+
+            if timestampsPreviousSectionFlex >= self.Tprevious:
+                addCount = 1
+            else:
+                addCount = 0
+            # benötigt man, beispiel: t = 26, timestampsPreviosuSection = 24 --> untere Grenze des PFC abrufs wird 2, aber t previous geht eigentlich von 3-26 (24 einheiten)
+
+
+
+
+
+            SectionModelFlex_RawMill = self.cementOptBase(
+                optHorizon = timestampsSectionFlex, 
+                timestampsPreviousSection = timestampsPreviousSectionFlex, 
+                PFC = [abs(value) for value in self.dicPFC[(t-timestampsPreviousSectionFlex+addCount):(t+timestampsSectionFlex+1)]], #erstmal nur positive um Überprodukion zu verhindern
+                previousSection = flexSectionII,
+                productionGoal = sum(self.resultsSegment_all["output_cement_mill"][t+1:t+timestampsSectionFlex+1]),  #+1 da sonst produktion aus t doppelt berechnet wird
+                minPowerRawMill = self.minPowerRawMill,
+                maxPowerRawMill = self.maxPowerRawMill,
+                minPowerKiln = self.minPowerKiln,
+                maxPowerKiln = self.maxPowerKiln,
+                minPowerCementMill = self.minPowerCementMill,
+                maxPowerCementMill = self.maxPowerCementMill,
+                maxCapRawMealSilo = self.maxCapRawMealSilo,
+                maxCapClinkerDome = self.maxCapClinkerDome,
+                elConsRawMill = self.elConsRawMill,
+                elConsKiln = self.elConsKiln,
+                elConsCementMill = self.elConsCementMill, 
+                slagCosts=self.slagCost, 
+                objective="minimize_cost")
+            
+            # production costs old and new
+
+            SectionModelFlex_II = SectionModelFlex_RawMill[0].copy()
+
+            
+
+
+
+            if t <= self.Tprevious:
+                startFlex_cost = 0
+            else:
+                startFlex_cost = startFlex
+            #Nötig weil: Wenn man sonst t<= self.Tprecios hat, ist startFlex=1, somit fehlt der index 0 zu Berechnung der Kosten
+
+            productionCostSegmentOld = sum([self.resultsSegment_all["el_cons_total"].iloc[i] * abs(self.dicPFC[i]) for i in range(startFlex_cost, t + timestampsSectionFlex+1)]) 
+            productionCostSegementNew = sum([SectionModelFlex_II["el_cons_total"].iloc[i] * abs(self.dicPFC[startFlex_cost+i]) for i in range(0, len(SectionModelFlex_II))])
+
+            flexPriceII = int(productionCostSegementNew - productionCostSegmentOld)
+            # print("productionCostSegmentOld", productionCostSegmentOld)
+            # print("productionCostSegementNew", productionCostSegementNew)
+            # print("flexPriceII", flexPriceII)
+            # print("flexAmountII", flexAmountII)
+
+            # check if slag due to flex can´t be produced in next segment (reproduction_time)
+            self.slagFlex = sum(SectionModelFlex_II["slag"])
+            freeCap = 0
+            reproductionTime_temp = self.reproduction_time
+            if len(self.productionGoalSegment) - (t//self.segment) - 1 >= reproductionTime_temp:
+                for i in range(1,reproductionTime_temp+1):
+                    freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
+            else:
+                reproductionTime_temp = len(self.productionGoalSegment) - (t//self.segment) - 1
+                for i in range(1,reproductionTime_temp+1):
+                    freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
+
+            if flexAmountII > 0:
+                BidII = flexPriceII/flexAmountII
+            # print("BidII", BidII)
+            
+            if freeCap < self.slagFlex:
+                # print("No free cap")
+                flexAmountII = 0
+                flexPriceII = 0
+
+
+
+        
+        
+
+
+
+           
+        if CementMillFlex == True:
+
+            flexSectionIII = flexSection.copy()
+
+            # print(t, "CementMillFlex")
+            flexAmountIII = float(flexSection["el_cons_cement_mill"][flexSection.index[-1]])
+
+            flexSectionIII["clinker_dome"][flexSectionIII.index[-1]] = flexSectionIII["clinker_dome"][flexSectionIII.index[-1]] + flexSectionIII["input_cement_mill"][flexSectionIII.index[-1]]
+            flexSectionIII["input_cement_mill"][flexSectionIII.index[-1]] = 0
+            flexSectionIII["output_cement_mill"][flexSectionIII.index[-1]] = 0
+            flexSectionIII["el_cons_cement_mill"][flexSectionIII.index[-1]] = 0
+            flexSectionIII["cement_mill_on"][flexSectionIII.index[-1]] = 0
+
+            if flexSectionIII["cement_mill_stop"][flexSectionIII.index[-5]] == 1 and flexSectionIII["cement_mill_on"].iloc[-5:-1].sum() == 0:
+                flexSectionIII["cement_mill_shut_down_change"][flexSectionIII.index[-1]] = 0
+            else:
+                flexSectionIII["cement_mill_shut_down_change"][flexSectionIII.index[-1]] = 1
+
+            if flexSectionIII["cement_mill_stop"].iloc[-4:-1].sum() == 1:
+                flexSectionIII["cement_mill_shut_down"][flexSectionIII.index[-1]] = 1
+            else:
+                if flexSectionIII["cement_mill_start"][flexSectionIII.index[-1]] == 1:
+                    flexSectionIII["cement_mill_stop"][flexSectionIII.index[-1]] = 0
+                    flexSectionIII["cement_mill_shut_down"][flexSectionIII.index[-1]] = 0
+                else:
+                    flexSectionIII["cement_mill_stop"][flexSectionIII.index[-1]] = 1
+                    flexSectionIII["cement_mill_shut_down"][flexSectionIII.index[-1]] = 1
+            flexSectionIII["cement_mill_start"][flexSectionIII.index[-1]] = 0
+
+            
+
+            if timestampsPreviousSectionFlex >= self.Tprevious:
+                addCount = 1
+            else:
+                addCount = 0
+
+            
+        # benötigt man, beispiel: t = 26, timestampsPreviosuSection = 24 --> untere Grenze des PFC abrufs wird 2, aber t previous geht eigentlich von 3-26 (24 einheiten)
+
+            SectionModelFlex_CementMill = self.cementOptBase(
+                optHorizon = timestampsSectionFlex, 
+                timestampsPreviousSection = timestampsPreviousSectionFlex, 
+                PFC = [abs(value) for value in self.dicPFC[(t-timestampsPreviousSectionFlex+addCount):(t+timestampsSectionFlex+1)]], #erstmal nur positive um Überprodukion zu verhindern
+                previousSection = flexSectionIII,
+                productionGoal = sum(self.resultsSegment_all["output_cement_mill"][t:t+timestampsSectionFlex+1]), # kein t+1 da verlorene Produktion nachgeholt werden muss
+                minPowerRawMill = self.minPowerRawMill,
+                maxPowerRawMill = self.maxPowerRawMill,
+                minPowerKiln = self.minPowerKiln,
+                maxPowerKiln = self.maxPowerKiln,
+                minPowerCementMill = self.minPowerCementMill,
+                maxPowerCementMill = self.maxPowerCementMill,
+                maxCapRawMealSilo = self.maxCapRawMealSilo,
+                maxCapClinkerDome = self.maxCapClinkerDome,
+                elConsRawMill = self.elConsRawMill,
+                elConsKiln = self.elConsKiln,
+                elConsCementMill = self.elConsCementMill, 
+                slagCosts=self.slagCost, 
+                objective="minimize_cost")
+            
+            SectionModelFlex_III = SectionModelFlex_CementMill[0].copy()
+            
+            # production costs old and new
+
+            if t <= self.Tprevious:
+                startFlex_cost = 0
+            else:
+                startFlex_cost = startFlex
+            #Nötig weil: Wenn man sonst t<= self.Tprecios hat, ist startFlex=1, somit fehlt der index 0 zu Berechnung der Kosten
+
+            productionCostSegmentOld = sum([self.resultsSegment_all["el_cons_total"].iloc[i] * abs(self.dicPFC[i]) for i in range(startFlex_cost, t + timestampsSectionFlex+1)]) 
+            productionCostSegementNew = sum([SectionModelFlex_III["el_cons_total"].iloc[i] * abs(self.dicPFC[startFlex_cost+i]) for i in range(0, len(SectionModelFlex_III))])
+
+            flexPriceIII = int(productionCostSegementNew - productionCostSegmentOld)
+
+            # print("productionCostSegmentOld", productionCostSegmentOld)
+            # print("productionCostSegementNew", productionCostSegementNew)
+            # print("flexPriceIII", flexPriceIII)
+            # print("flexAmountIII", flexAmountIII)
+
+            # check if slag due to flex can´t be produced in next segment (reproduction_time)
+            self.slagFlex = sum(SectionModelFlex_III["slag"])
+            freeCap = 0
+            reproductionTime_temp = self.reproduction_time
+            if len(self.productionGoalSegment) - (t//self.segment) - 1 >= reproductionTime_temp:
+                for i in range(1,reproductionTime_temp+1):
+                    freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
+            else:
+                reproductionTime_temp = len(self.productionGoalSegment) - (t//self.segment) - 1
+                for i in range(1,reproductionTime_temp+1):
+                    freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
+
+            if flexAmountIII > 0:
+                BidIII = flexPriceIII/flexAmountIII
+            # print("BidIII", BidIII)
+            
+            if freeCap < self.slagFlex:
+                flexAmountIII = 0
+                flexPriceIII = 0
+
+        
+
+        flex_bid_list = []
+        flex_bid_list.append(("CaseI",flexAmountI, BidI))
+        flex_bid_list.append(("CaseII",flexAmountII, BidII))
+        flex_bid_list.append(("CaseIII",flexAmountIII, BidIII))
+
+        flex_bid_list_filtered = [item for item in flex_bid_list if item[1] != 0]
+
+        if not flex_bid_list_filtered:
+            return 0,0
+        else:
+            cheapest_flex_bid = min(flex_bid_list_filtered, key=lambda x: x[2])
+            if cheapest_flex_bid[0] == "CaseI":
+                SectionModelFlex = SectionModelFlex_I.copy()
+                flexSection = flexSectionI.copy()
+                # print("RawMill and CementMill Flex")
+                return flexAmountI, BidI
+            else:
+                if cheapest_flex_bid[0] == "CaseII":
+                    SectionModelFlex = SectionModelFlex_II.copy()
+                    flexSection = flexSectionII.copy()
+                    # print("RawMill Flex")
+                    return flexAmountII, BidII
+                else:
+                    SectionModelFlex = SectionModelFlex_III.copy()
+                    flexSection = flexSectionIII.copy()
+                    # print("CementMill Flex")
+                    return flexAmountIII, BidIII
+
+
+
+           
+
+
+
+        
+            
+
                     
 
             

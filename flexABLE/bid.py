@@ -37,7 +37,7 @@ class Bid(object):
 
     def __repr__(self):
         #return self.ID
-        return f"ID:{self.ID}\n Amount:{self.amount}\nConfirmed Amount:{self.confirmedAmount}"
+        return f"########\nID:{self.ID}\nAmount:{self.amount}\nConfirmed Amount:{self.confirmedAmount}\nBid price:{self.price}\n"
 
 
     def __add__(self, other):

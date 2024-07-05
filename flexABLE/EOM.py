@@ -107,7 +107,7 @@ class EOM():
 
         # Constraints 
         # Energy balance constraint
-        energy_balanace_lhs = poi.quicksum(supplyBids[b.ID] for b in bidsReceived["Supply"].values()) - poi.quicksum(demandBids[b.ID] for b in bidsReceived["Demand"].values())
+        energy_balanace_lhs = poi.quicksum(demandBids[b.ID] for b in bidsReceived["Demand"].values()) - poi.quicksum(supplyBids[b.ID] for b in bidsReceived["Supply"].values())
 
         energy_balance = model.add_linear_constraint(
                             energy_balanace_lhs, 

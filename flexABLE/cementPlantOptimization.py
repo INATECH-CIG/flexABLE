@@ -32,7 +32,7 @@ def cementOptBase(
 
     # 1. Define the model, sets, and parameters ----------------------------------------------------------------------------
 
-    logging.debug('Start optimization cement plant')
+    print('Start optimization cement plant')
 
 
    # 1.1. create the model
@@ -282,7 +282,7 @@ def cementOptBase(
             return model.raw_meal_silo[t] == previousSection['raw_meal_silo'][t-1]
         else:
             if t == max(model.timesteps):
-                return model.raw_meal_silo[t] >= 0 + (model.kiln_on[t] * maxPowerKiln/rawMillClinkerFactor) 
+                return model.raw_meal_silo[t] >= 0 + (model.kiln_on[t] * maxPowerKiln * rawMillClinkerFactor) 
             else:
                 return model.raw_meal_silo[t] >= 0
     model.capacity_raw_meal_silo_con_2 = pyo.Constraint(model.timesteps, rule=capacity_raw_meal_silo_rule_2)
@@ -311,7 +311,7 @@ def cementOptBase(
         if t <= TPrevious:
             return model.output_kiln[t] == previousSection['output_kiln'][t-1]
         else:
-            return model.output_kiln[t] == model.input_kiln[t] * rawMillClinkerFactor 
+            return model.output_kiln[t] == model.input_kiln[t] / rawMillClinkerFactor 
     model.production_kiln_1 = pyo.Constraint(model.timesteps, rule=production_kiln_rule_1)
 
     def production_kiln_rule_2(model, t):
@@ -357,7 +357,7 @@ def cementOptBase(
             return model.clinker_dome[t] == previousSection['clinker_dome'][t-1]
         else:
             if t == max(model.timesteps):
-                return model.clinker_dome[t] >= 0 + model.cement_mill_on[t] *  maxPowerCementMill/clinkerCementFactor # to ensure valid SOC for next section if cement_mill is allread running
+                return model.clinker_dome[t] >= 0 + model.cement_mill_on[t] *  maxPowerCementMill * clinkerCementFactor # to ensure valid SOC for next section if cement_mill is allread running
             else:
                 return model.clinker_dome[t] >= 0
     model.capacity_clinker_dome_con_2 = pyo.Constraint(model.timesteps, rule=capacity_clinker_dome_rule_2)
@@ -420,7 +420,7 @@ def cementOptBase(
         if t <= TPrevious:
             return model.cement_mill_start[t] == previousSection['cement_mill_start'][t-1]
         else:
-            return model.clinker_dome[t] >= 16 * (minPowerCementMill/clinkerCementFactor - minPowerKiln) * model.cement_mill_start[t]
+            return model.clinker_dome[t] >= 16 * (minPowerCementMill*clinkerCementFactor - minPowerKiln) * model.cement_mill_start[t]
     model.cement_mill_start_rule_3 = pyo.Constraint(model.timesteps, rule=cement_mill_start_rule_3)
 
     # Rule to define cement_mill_stop when transitioning from "on" to "off" state
@@ -520,7 +520,7 @@ def cementOptBase(
         if t <= TPrevious:
             return model.output_cement_mill[t] == previousSection['output_cement_mill'][t-1]
         else:
-            return model.output_cement_mill[t] == model.input_cement_mill[t] * clinkerCementFactor 
+            return model.output_cement_mill[t] == model.input_cement_mill[t] / clinkerCementFactor 
     model.production_cement_mill_1 = pyo.Constraint(model.timesteps, rule=production_cement_mill_rule_1)
 
     def production_cement_mill_rule_2(model, t):
@@ -583,5 +583,7 @@ def cementOptBase(
     results_df["slag"] = [model.production_slag[t]() for t in model.timesteps]
     results_df["PFC"] = [el_PFC[t-1] for t in model.timesteps]
 
-    return results_df, objective_value
+    slagSection = sum([model.production_slag[t]() for t in model.timesteps])
+
+    return results_df, objective_value, slagSection
 

@@ -17,12 +17,12 @@ class CementPlant():
     @initializer
     def __init__(self,
                  agent = None,
-                 minPowerRawMill = 150,
-                 maxPowerRawMill = 150,
+                 minPowerRawMill = 260,
+                 maxPowerRawMill = 260,
                  minPowerKiln = 130,
                  maxPowerKiln = 130,
-                 minPowerCementMill = 220,
-                 maxPowerCementMill = 220,
+                 minPowerCementMill = 390,
+                 maxPowerCementMill = 390,
                  maxCapRawMealSilo = 22000,
                  maxCapClinkerDome = 22000,
                  elConsRawMill = 23, # electricity consumption of raw mill per ton
@@ -30,7 +30,7 @@ class CementPlant():
                  elConsCementMill = 40, # electricity consumption of cement mill per ton
                  node = 'Bus_DE',
                  world = None,
-                 yearlyProductionGoal = 21000,
+                 yearlyProductionGoal = 23000,
                  technology = "industry",
                  **kwargs):
         
@@ -122,8 +122,10 @@ class CementPlant():
  
 
                 self.slagFlex = sum(SectionModelFlex["slag"])
-
+                # print("Slag Flex: ", self.slagFlex)
+                # print("production goal before", self.productionGoalSegment)
                 self.updateProductionGoal(self.slagFlex, self.world.currstep)
+                # print("production goal after", self.productionGoalSegment)
 
         self.sentBids.append(bid)
 
@@ -235,8 +237,10 @@ class CementPlant():
                 
 
                 productionGoalSection = [productionGoalSectionModel.production_section[t]() for t in productionGoalSectionModel.timesteps]
-                
-                
+                slagproductionGoal = sum([productionGoalSectionModel.slag[t]() for t in productionGoalSectionModel.timesteps])
+
+                if slagproductionGoal >= 0:
+                    logging.debug("Total production goal can´t be reached by:", slagproductionGoal)
 
 
                 if self.segment != self.section:
@@ -300,7 +304,7 @@ class CementPlant():
         SectionModelFlex = pd.DataFrame()
         
         # check if raw_mill can be turned off
-        if t > 16 and self.resultsSegment_all["raw_meal_silo"][t-1] >= self.maxPowerKiln/self.rawMillClinkerFactor and self.resultsSegment_all["raw_mill_start"][t-16:t].sum() == 0 and self.resultsSegment_all["raw_mill_on"][t] == 1:
+        if t > 16 and self.resultsSegment_all["raw_meal_silo"][t-1] >= self.maxPowerKiln * self.rawMillClinkerFactor and self.resultsSegment_all["raw_mill_start"][t-16:t].sum() == 0 and self.resultsSegment_all["raw_mill_on"][t] == 1:
             RawMillFlex = True
         else:
             RawMillFlex = False
@@ -424,6 +428,22 @@ class CementPlant():
             productionCostSegmentOld = sum([self.resultsSegment_all["el_cons_total"].iloc[i] * abs(self.dicPFC[i]) for i in range(startFlex_cost, t + timestampsSectionFlex+1)]) 
             productionCostSegementNew = sum([SectionModelFlex["el_cons_total"].iloc[i] * abs(self.dicPFC[startFlex_cost+i]) for i in range(0, len(SectionModelFlex))])
 
+            # check if slag due to flex can´t be produced in next segment (reproduction_time)
+            self.slagFlex = sum(SectionModelFlex["slag"])
+            freeCap = 0
+            reproductionTime_temp = self.reproduction_time
+            if len(self.productionGoalSegment) - (t//self.segment) - 1 >= reproductionTime_temp:
+                for i in range(1,reproductionTime_temp+1):
+                    freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
+            else:
+                reproductionTime_temp = len(self.productionGoalSegment) - (t//self.segment) - 1
+                for i in range(1,reproductionTime_temp+1):
+                    freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
+
+            if freeCap < self.slagFlex:
+                flexAmountI = 0
+                flexPriceI = 0
+
 
             return flexAmountI, flexPriceI
         else:
@@ -495,6 +515,22 @@ class CementPlant():
 
                 flexPriceI = int(productionCostSegmentOld - productionCostSegementNew)
 
+                # check if slag due to flex can´t be produced in next segment (reproduction_time)
+                self.slagFlex = sum(SectionModelFlex["slag"])
+                freeCap = 0
+                reproductionTime_temp = self.reproduction_time
+                if len(self.productionGoalSegment) - (t//self.segment) - 1 >= reproductionTime_temp:
+                    for i in range(1,reproductionTime_temp+1):
+                        freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
+                else:
+                    reproductionTime_temp = len(self.productionGoalSegment) - (t//self.segment) - 1
+                    for i in range(1,reproductionTime_temp+1):
+                        freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
+
+                if freeCap < self.slagFlex:
+                    flexAmountI = 0
+                    flexPriceI = 0
+
                 return flexAmountI, flexPriceI
             else:
                 if CementMillFlex == True:
@@ -563,6 +599,23 @@ class CementPlant():
                     productionCostSegementNew = sum([SectionModelFlex["el_cons_total"].iloc[i] * abs(self.dicPFC[startFlex_cost+i]) for i in range(0, len(SectionModelFlex))])
 
                     flexPriceI = int(productionCostSegmentOld - productionCostSegementNew)
+
+
+                    # check if slag due to flex can´t be produced in next segment (reproduction_time)
+                    self.slagFlex = sum(SectionModelFlex["slag"])
+                    freeCap = 0
+                    reproductionTime_temp = self.reproduction_time
+                    if len(self.productionGoalSegment) - (t//self.segment) - 1 >= reproductionTime_temp:
+                        for i in range(1,reproductionTime_temp+1):
+                            freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
+                    else:
+                        reproductionTime_temp = len(self.productionGoalSegment) - (t//self.segment) - 1
+                        for i in range(1,reproductionTime_temp+1):
+                            freeCap += (self.maxProdSegment - self.productionGoalSegment[(t//self.segment)+i])
+
+                    if freeCap < self.slagFlex:
+                        flexAmountI = 0
+                        flexPriceI = 0
 
                     return flexAmountI, flexPriceI
                 else:

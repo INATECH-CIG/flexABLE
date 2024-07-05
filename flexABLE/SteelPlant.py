@@ -21,7 +21,7 @@ class SteelPlant():
                  minPower = 50,
                  node = 'Bus_DE',
                  world = None,
-                 yearlyProductionGoal = 60000,
+                 yearlyProductionGoal = 150000,
                  technology = "industry",
                  **kwargs):
         
@@ -214,11 +214,14 @@ class SteelPlant():
                     productionGoal = self.yearlyProductionGoal,
                     maxProductionSection = self.maxProdSection)
                 
-                
+                slagproductionGoal = sum([productionGoalSectionModel.slag[t]() for t in productionGoalSectionModel.timesteps])
+
+                if slagproductionGoal >= 0:
+                    logging.debug("Total production goal can´t be reached by:", slagproductionGoal)
 
                 productionGoalSection = [productionGoalSectionModel.production_section[t]() for t in productionGoalSectionModel.timesteps]
                 
-                
+
                 if self.segment != self.section:
                     x = int(self.segment/self.section)
                     for i in range(0, len(productionGoalSection), x):

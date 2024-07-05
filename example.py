@@ -10,7 +10,7 @@ from flexABLE.flexABLE import World
 import pandas as pd
 
 
-scenarios = [(2016,2)]#,(2017,365),(2018,365),(2019,365)]
+scenarios = [(2016,3)]#,(2017,365),(2018,365),(2019,365)]
 
 importStorages = False
 importCRM = False
@@ -40,10 +40,10 @@ for year, days in scenarios:
                          meritOrder = meritOrder)
 
     example.addAgent(name='Testoperator')
-    example.addAgent(name='Testoperator2')
+    # example.addAgent(name='Testoperator2')
 
     example.agents['Testoperator'].addCementPlant(name='TestZement')
-    example.agents['Testoperator2'].addCementPlant(name='TestStahl')
+    # example.agents['Testoperator2'].addSteelPlant(name='TestStahl')
 
     example.runSimulation()
 

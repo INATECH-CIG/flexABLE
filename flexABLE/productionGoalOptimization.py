@@ -2,6 +2,7 @@ import pyomo.environ as pyo
 from pyomo.opt import SolverFactory
 import pandas as pd
 import numpy as np
+import logging
 
 
 def prodGoalOpt(timestampsTotal,
@@ -24,6 +25,7 @@ def prodGoalOpt(timestampsTotal,
 
     # priceforecast
     el_PFC = PFC
+    slagCosts = 1000000000
 
     # summarize cost of each section
     cost_section = np.array([el_PFC[i * timestampsSection: (i + 1) * timestampsSection] for i in range(T_optimization)])
@@ -37,12 +39,13 @@ def prodGoalOpt(timestampsTotal,
 
     # 2. Define the decision variables ----------------------------------------------------------------------------
     model.production_section = pyo.Var(model.timesteps, within=pyo.NonNegativeIntegers)  # production in section
+    model.slag = pyo.Var(model.timesteps, within=pyo.NonNegativeIntegers)  # slag in section
 
 
 
     # 3. Define the objective function  ----------------------------------------------------------------------------
     def obj_rule(model):
-        return sum(model.production_section[t] * cost_section[t-1] for t in model.timesteps)
+        return sum(model.production_section[t] * cost_section[t-1] + model.slag[t] * slagCosts for t in model.timesteps)
     model.obj = pyo.Objective(rule=obj_rule, sense=pyo.minimize)
 
 
@@ -52,7 +55,7 @@ def prodGoalOpt(timestampsTotal,
     # 4.1. Total production constraint: 
         # Ensure that production goal is reached
     def total_production_rule(model):
-        return sum(model.production_section[t] for t in model.timesteps) >= productionGoal
+        return sum(model.production_section[t] + model.slag[t] for t in model.timesteps) >= productionGoal
     model.total_production_con = pyo.Constraint(rule=total_production_rule)
 
     # 4.2. Max production section:

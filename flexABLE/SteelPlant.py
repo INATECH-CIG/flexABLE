@@ -67,7 +67,7 @@ class SteelPlant():
         
 
         self.shutDownCost = 1000000
-        self.slagCost = max(self.dicPFC)
+        self.slagCost = 100000 #max(self.dicPFC)
 
 
 

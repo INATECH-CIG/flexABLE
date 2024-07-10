@@ -6,3 +6,6 @@ __pycache__/
 .pylint.d/
 input/reference_data_set-v1.0.0.xlsx
 data/
+input/2021
+input/2021_simple
+output/*/

@@ -1,0 +1,39 @@
+\ Model obj_copy
+\ LP format - for model browsing. Use MPS format to capture full model detail.
+Minimize
+ 
+Subject To
+ c1060: x1060 >= 0
+ c2521: x12 <= 0
+ c2980: x471 <= 0
+ c4258: x1749 <= 66.54
+ c4489: x1980 <= 0
+ c4490: x1981 <= 0
+ c4491: x1982 <= 0
+ c4492: x1983 <= 46.8375
+ c4493: x1984 <= 46.4625
+ c4494: x1985 <= 47.85
+ c4734: x2225 <= 8.1
+ c4735: x2226 <= 9.9
+ c4755: x2246 <= 7.9077
+ c5233: x2724 >= -3396.205223
+ c5894: x3385 >= -3396.205223
+ c8505: x471 - x1060 + x12 + x1749 + x1980 + x1981 + x1982 + x1983 + x1984
+   + x1985 + x2225 + x2226 + x2246 - x2724 - x3385 = 7802.57653
+Bounds
+ x471 free
+ x1060 free
+ x12 free
+ x1749 free
+ x1980 free
+ x1981 free
+ x1982 free
+ x1983 free
+ x1984 free
+ x1985 free
+ x2225 free
+ x2226 free
+ x2246 free
+ x2724 free
+ x3385 free
+End

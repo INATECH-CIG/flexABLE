@@ -34,7 +34,9 @@ class Powerplant():
                  node = 'Bus_DE',
                  world = None,
                  maxAvailability = None,
-                 emission = None):
+                 emission = None,
+                 Redispatch=0,
+                 Node=1):
         
 
         self.minDowntime /= self.world.dt          # This was added to consider dt 15 mins
@@ -46,6 +48,7 @@ class Powerplant():
         self.dictCapacity = {n:0 for n in self.world.snapshots}
         self.dictCapacityMR = {n:(0,0) for n in self.world.snapshots}
         self.dictCapacityFlex = {n:(0,0) for n in self.world.snapshots}
+        self.dictCapacityRedis = {n:0 for n in self.world.snapshots}
         self.dictCapacity[-1] = self.maxPower/2
         
         self.confQtyCRM_neg = {n:0 for n in self.world.snapshots}

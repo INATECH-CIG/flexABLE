@@ -43,8 +43,10 @@ for year, days in scenarios:
                          meritOrder = meritOrder)
 
     example.addAgent(name='Testoperator')
+    # example.addAgent(name='Testoperator2')
 
-    example.agents['Testoperator'].addSteelPlant(name='TestStahl')
+    example.agents['Testoperator'].addCementPlant(name='TestZement')
+    # example.agents['Testoperator2'].addSteelPlant(name='TestStahl')
 
     example.runSimulation()
 
@@ -52,7 +54,17 @@ pd.DataFrame(example.dictPFC).plot()
 
 clearingTime = [0,12,13,14,15,16,17,32,33,48]
 
+#%%
 
+t = 91
+
+bids_confirmed_EOM = [r.confirmedBids for r in example.markets['EOM']['EOM_DE'].debug_results]
+print(pd.DataFrame({bid.issuer.name: {'price':bid.price, 'amount':bid.confirmedAmount} for bid in bids_confirmed_EOM[t]}))
+
+bids_rejected_EOM = [r.rejectedBids for r in example.markets['EOM']['EOM_DE'].debug_results]
+print(pd.DataFrame({bid.issuer.name: {'price':bid.price, 'amount':bid.confirmedAmount} for bid in bids_rejected_EOM[t]}))
+
+print(example.dictPFC)
 # for t in clearingTime:
 #     print("------------------------------------------------------------------------")
 #     print("clearingTime:" + str(t))

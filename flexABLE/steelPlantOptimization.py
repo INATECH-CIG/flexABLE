@@ -1,6 +1,7 @@
 import pyomo.environ as pyo
 from pyomo.opt import SolverFactory
 import pandas as pd
+import logging
 
 
 def steelOptBase(optHorizon,
@@ -15,10 +16,9 @@ def steelOptBase(optHorizon,
                 elConsumption = 1,
                 objective="minimize_cost"):
     
-    print("--------------Start Optimization Steel Plant-----------------")
+    logging.debug("--------------Start Optimization Steel Plant-----------------")
         
     # 1. Define the model, sets, and parameters ----------------------------------------------------------------------------
-
 
     # 1.1. create the model
     
@@ -65,7 +65,6 @@ def steelOptBase(optHorizon,
     
     # objective function
     if objective == "minimize_cost":
-       
         def obj_rule(model):
             return sum((el_PFC[t-1] * model.cons_el[t] + model.production_slag[t] * slagCosts + model.shut_down[t] * shutDownCosts) for t in model.timesteps)
         model.obj = pyo.Objective(rule=obj_rule, sense=pyo.minimize)
@@ -258,6 +257,7 @@ def steelOptBase(optHorizon,
         dfResults["production"] = [model.production[t]() for t in model.timesteps]
         dfResults["shutDown"] = [model.shut_down[t]() for t in model.timesteps]
         dfResults["SOC"] = [model.SOC[t]() for t in model.timesteps]
+        dfResults["el_consumption"] = [model.cons_el[t]() for t in model.timesteps]
         dfResults["discharge"] = [model.discharge_on[t]() for t in model.timesteps]
         dfResults["slag"] = [model.production_slag[t]() for t in model.timesteps]
 

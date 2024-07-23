@@ -80,7 +80,7 @@ class CRM():
             self.bids[product][(t % 96)].extend(agent.requestBid(t, product)) # requestBid for FPP has no calculatingBidsFPP_CRM_pos and neg tor the Calls
 
     def marketClearing(self, t, product):
-
+        
         if t == 16 and product == "negCRMDemand":
             xtes = 9
 
@@ -129,8 +129,9 @@ class CRM():
         
         #Case 1
         if sum_totalSupply == 0 or sum_totalDemand == 0:
-            logging.debug('The sum of either demand offers ({}) or supply '
-                          'offers ({}) is 0 at t:{}'.format(sum_totalDemand, sum_totalSupply, t))
+            if self.world.importCRM:
+                logging.debug('The sum of either demand offers ({}) or supply '
+                            'offers ({}) is 0 at t:{}'.format(sum_totalDemand, sum_totalSupply, t))
             
             result = MarketResults("{}".format(self.name),
                                    issuer = self.name,
@@ -140,6 +141,9 @@ class CRM():
                                    marginalUnit = "None",
                                    status = "Case1",
                                    timestamp = t)
+            self.marketResults[product][(t % 96)] = result
+            self.marketClearingPrice[product][(t % 96)] = result.marketClearingPrice
+            return
             
         #Case 2
         elif self.demand[product][t] > sum_totalSupply:

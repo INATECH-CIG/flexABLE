@@ -32,7 +32,7 @@ class VREPowerplant():
         self.dictCapacity = {n:None for n in self.world.snapshots}
         self.dictCapacity[self.world.snapshots[0]] = self.maxPower
         self.dictCapacity[-1] = self.maxPower
-
+        self.dictCapacityRedis = {n:0 for n in self.world.snapshots}
         self.dictCapacityMR = {n:(0,0) for n in self.world.snapshots}
         self.dictCapacityFlex = {n:(0,0) for n in self.world.snapshots}
         
@@ -77,7 +77,7 @@ class VREPowerplant():
     
     
     def calculateBidEOM(self, t):
-        marginalCost = -500 if 'Biomass' in self.name else -500
+        marginalCost = 0 if 'Biomass' in self.name else -500
 
         return self.dictFeedIn[t], marginalCost
     

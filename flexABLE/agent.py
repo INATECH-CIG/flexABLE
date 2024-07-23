@@ -9,6 +9,7 @@ from . import vrepowerplants
 from . import storage
 from . import SteelPlant
 from . import CementPlant
+from . import ElectrolyzerPlant
 
 
 class Agent():
@@ -44,6 +45,13 @@ class Agent():
         self.powerplants[name] = CementPlant.CementPlant(name = name, 
                                                         world = self.world,
                                                         **kwargs)
+        
+        self.world.powerplants.append(self.powerplants[name])
+
+    def addElectrolyzerPlant(self, name, **kwargs):
+        self.powerplants[name] = ElectrolyzerPlant.ElectrolyzerPlant(name = name, 
+                                                         world = self.world, 
+                                                         **kwargs)
         
         self.world.powerplants.append(self.powerplants[name])
             

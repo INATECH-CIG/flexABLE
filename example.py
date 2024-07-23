@@ -42,7 +42,7 @@ for year, days in scenarios:
     example.addAgent(name='Testoperator')
     # example.addAgent(name='Testoperator2')
 
-    example.agents['Testoperator'].addCementPlant(name='TestZement')
+    example.agents['Testoperator'].addElectrolyzerPlant(name='Elektrolyzer')
     # example.agents['Testoperator2'].addSteelPlant(name='TestStahl')
 
     example.runSimulation()

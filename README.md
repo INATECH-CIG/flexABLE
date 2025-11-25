@@ -1,7 +1,9 @@
+> [!IMPORTANT]
+> **This project is no longer actively maintained.**  
+> For a modern, actively developed framework that provides all the capabilities of flexABLE, please use [ASSUME](https://github.com/assume-framework/assume).
+
+
 # flexABLE
-
-This project is no longer actively maintained. For a modern and actively developed framework that provides all the capabilities of flexABLE, please consider using ASSUME: https://github.com/assume-framework/assume .
-
 
 flexABLE stands for “**Flex**ibility-oriented **A**gent-**B**ased **L**aboratory for **E**lectricity system analysis”. flexABLE is an open-source Python-based toolbox to simulate European electricity markets focusing on the German bidding zone. The toolbox could be used to backcast electricity prices of previous years and the unit-wise power generations.
 
